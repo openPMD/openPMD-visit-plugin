@@ -48,7 +48,7 @@
 #include <vector>
 
 // PMDFile class to handle PMD files
-#include "PMDFile.h"
+#include "OpenPMDClasses/PMDFile.h"
 
 // ****************************************************************************
 //  Class: avtOpenPMDFileFormat
