@@ -5,7 +5,7 @@ OpenPMD plugin for VisIt
 1. [Presentation](#Presentation)
 2. [Repository and code structure](#Repository-and-code-structure)
 3. [Installation](#Installation)
-4. [To be implented](#To-be-implemented)
+4. [To be implented/improved](#To-be-implemented/improved)
 
 ## Presentation
 -------------------
@@ -14,6 +14,8 @@ This repository contains the sources for development of an OpenPMD plugin for th
 
 ## Repository and code structure
 ------------------------------------
+
+#### Files
 
 This repository contains:
 
@@ -41,6 +43,20 @@ And external C++ classes developped for reading OpenPMD files:
 
 Visit plugins basically read outputs with some specific code or data formats to convert them internally into vtk readable data.
 
+![alt text](./Doxygen/images/class_description.png "Classes")
+
+#### How to generate the Doxygen documentation
+
+First, download and install [Doxygen](http://www.stack.nl/~dimitri/doxygen/download.html).
+
+You can create the documentation by command line ([see this page for more information](https://www.stack.nl/~dimitri/doxygen/manual/doxygen_usage.html))
+
+```
+doxygen Doxygen/Doxyfile
+```
+
+You can also use the GUI frontend. Open `Doxygen/Doxyfile`, go to `Run`, click on `Run Doxygen` and finally `Show HTML output`.
+
 ## Installation
 ---------------------
 
@@ -50,6 +66,8 @@ For more information about how to generate install a plugin, please, consider th
 - [NERSC Visit presentation and instructions](http://www.nersc.gov/users/data-analytics/data-visualization/visit-2/)
 
 Visit contains a series of tools that makes it easy to create and generate plugins. Without going to the details, we will use one of them (`xml2cmake`) to install this plugin. These tools are located in the directory `<Visit application directory>/Contents/Resources/bin/`.
+
+You also need to install [cmake](https://cmake.org/download/).
 
 #### MacOs
 
