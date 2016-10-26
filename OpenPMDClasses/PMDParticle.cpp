@@ -133,6 +133,12 @@ void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 			// Datasets at the root of the particle group are treated as scalar data
 			this->ScanDataSet(particleGroupId,objectName);
 			break;
+
+		default:
+
+			cerr << " Non-valid object type while scanning the 'particles' group: " << objectName << ", this object is ignored." << endl;
+
+			break;
 		}
 
 	}

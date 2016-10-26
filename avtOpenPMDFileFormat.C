@@ -211,7 +211,7 @@ avtOpenPMDFileFormat::GetTimes(std::vector<double> &times)
     for (std::vector<PMDIteration>::iterator it = iterations->begin() ; it != iterations->end(); ++it)
     {
         // Store the times in the vector.
-        times.push_back(it->time);
+        times.push_back(it->time*it->timeUnitSI);
     }
 }
 
