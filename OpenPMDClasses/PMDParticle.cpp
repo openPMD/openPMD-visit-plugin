@@ -31,7 +31,7 @@
 PMDParticle::PMDParticle()
 {
 	int i;
-	
+
 	verbose=0;
 	momentumAvailable = 0;
 	for(i=0;i<3;i++)
@@ -418,10 +418,18 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 		this->scalarDataSets.push_back(scalar);
 
 		// We store the index of the position datasets in positionsId to find them easily
-		if (strcmp(datasetName,"x")) this->positionsId[0] = this->scalarDataSets.size();
-		if (strcmp(datasetName,"y")) this->positionsId[1] = this->scalarDataSets.size();
-		if (strcmp(datasetName,"z")) this->positionsId[2] = this->scalarDataSets.size();
-
+		if (strcmp(datasetName,"x")==0)
+		{
+			this->positionsId[0] = this->scalarDataSets.size()-1;
+		}
+		if (strcmp(datasetName,"y")==0)
+		{
+			this->positionsId[1] = this->scalarDataSets.size()-1;
+		}
+		if (strcmp(datasetName,"z")==0)
+		{
+			this->positionsId[2] = this->scalarDataSets.size()-1;
+		}
 	}
 
 	H5Gclose(groupId);

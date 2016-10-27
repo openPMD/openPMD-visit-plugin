@@ -366,6 +366,7 @@ void PMDIteration::PrintInfo()
     	cout << " - charge: " << particle->charge << endl;
     	cout << " - mass: " << particle->mass << endl;
     	cout << " - number of particles: " << particle->numParticles << endl;
+    	cout << " - Position datasets: " << particle->positionsId[0] << " " << particle->positionsId[1] << " "<< particle->positionsId[2]  << endl; 
     	cout << " Number of scalar datasets: " << particle->GetNumScalarDatasets() << endl;
 		for (i=0;i<particle->GetNumScalarDatasets();i++)
 	    {
