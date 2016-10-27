@@ -38,13 +38,14 @@ int main(void)
 	openPMDFile.ScanParticles();
 
 	// Read dataset
-	//float * array = new float[1016];
-	//char dataSetPath[128] = "/data/1000/particles/beam/position/x";
-	//openPMDFile.ReadScalarDataSet(array,1016,H5T_FLOAT,dataSetPath);
-	//for (int i=0;i<1016;i++)
-	//{
-	//	cout << array[i] << endl;	
-	//}
+	// float * array = new float[1016];
+	// char dataSetPath[128] = "/data/1000/particles/beam/position/x";
+	// float factor = 1.;
+	// openPMDFile.ReadScalarDataSet(array,1016,&factor,H5T_FLOAT,dataSetPath);
+	// for (int i=0;i<1016;i++)
+	// {
+	// 	cout << array[i] << endl;	
+	// }
 
 	// Print the content
 	openPMDFile.Print();

@@ -406,6 +406,9 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int time
             e1->SetDefinition(definition);
             // Final type
             e1->SetType(Expression::ScalarMeshVar);
+            // Units
+            //e1->hasUnits = true;
+            //e1->units = "";
             // Expression is visible to users
             e1->SetHidden(false);
             // Add expression to the list of metadata
@@ -551,9 +554,11 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     int             ndims;
     int             dims[3];
     int             i;
+    int             id;
     int             nnodes;
     char            bufferMeshName[128];
     char            bufferDataSetName[128];
+    float           factor;
     vtkFloatArray*  coords[3];
 
     // ________________________________________________________
@@ -591,7 +596,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             float *xarray = (float *)coords[0]->GetVoidPointer(0);
             for(i=0;i<dims[0];i++)
             {
-                xarray[i] = (i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2];
+                xarray[i] = ((i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2])*field->unitSI;
             }
 
             // Read the Y coordinates from the file.
@@ -600,7 +605,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             float *yarray = (float *)coords[1]->GetVoidPointer(0);
             for(i=0;i<dims[1];i++)
             {
-                yarray[i] = (i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1];
+                yarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->unitSI;
             }
 
             // Read the Z coordinates from the file.
@@ -611,7 +616,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 float *zarray = (float *)coords[2]->GetVoidPointer(0);
                 for(i=0;i<dims[2];i++)
                 {
-                    zarray[i] = (i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1];
+                    zarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->unitSI;
                 }
             }
             else
@@ -663,24 +668,34 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             // Read the X coordinates from the file.
             float *xarray = new float[nnodes];
 
+            // Dataset Id
+            id = particle->positionsId[2];
+
             // Dataset path
-            strcpy(bufferDataSetName,particle->path);
-            strcat(bufferDataSetName,"/position/z");
+            strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
+
+            // Multiplication factor
+            factor = particle->scalarDataSets[id].unitSI;
 
             // Read the dataset
             cerr << "Read dataset: " << bufferDataSetName << endl;
-            openPMDFile.ReadScalarDataSet(xarray,nnodes,H5T_FLOAT,bufferDataSetName);
+            openPMDFile.ReadScalarDataSet(xarray,nnodes,&factor,H5T_FLOAT,bufferDataSetName);
 
             // Read the Y coordinates from the file.
             float *yarray = new float[nnodes];   
 
+            // Dataset Id
+            id = particle->positionsId[1];
+
             // Dataset path
-            strcpy(bufferDataSetName,particle->path);
-            strcat(bufferDataSetName,"/position/y");        
+            strcpy(bufferDataSetName,particle->scalarDataSets[id].path);    
+
+            // Multiplication factor
+            factor = particle->scalarDataSets[id].unitSI;
 
             // Read the dataset
             cerr << "Read dataset: " << bufferDataSetName << endl;
-            openPMDFile.ReadScalarDataSet(yarray,nnodes,H5T_FLOAT,bufferDataSetName);
+            openPMDFile.ReadScalarDataSet(yarray,nnodes,&factor,H5T_FLOAT,bufferDataSetName);
 
             float *zarray = 0;
             if (ndims>2) 
@@ -688,13 +703,18 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // Read the Z coordinates from the file.
                 zarray = new float[nnodes];   
 
+                // Dataset Id
+                id = particle->positionsId[0];
+
                 // Dataset path
-                strcpy(bufferDataSetName,particle->path);
-                strcat(bufferDataSetName,"/position/x");        
+                strcpy(bufferDataSetName,particle->scalarDataSets[id].path);         
+
+                // Multiplication factor
+                factor = particle->scalarDataSets[id].unitSI;
 
                 // Read the dataset
                 cerr << "Read dataset: " << bufferDataSetName << endl;
-                openPMDFile.ReadScalarDataSet(zarray,nnodes,H5T_FLOAT,bufferDataSetName);
+                openPMDFile.ReadScalarDataSet(zarray,nnodes,&factor,H5T_FLOAT,bufferDataSetName);
             }
 
             // Create the vtkPoints object and copy points into it.
@@ -788,6 +808,8 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     hsize_t datasetStorageSize;
     int     ndims;
     float * array;
+    float   factor;
+    bool    varFound;
 
     // ________________________________________________________
     // FIELDS
@@ -807,7 +829,10 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
         if (strcmp(varname, buffer) == 0)
         {
 
+            // Number of values
             numValues = field->GetNumValues();
+            // Factor for SI units
+            factor = field->gridUnitSI;
 
             // Allocate the return vtkFloatArray object. Note that
             // you can use vtkFloatArray, vtkDoubleArray,
@@ -819,13 +844,13 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
             cerr << " Dataset path: " << field->datasetPath << endl;
 
             // Reading of the dataset
-            err = openPMDFile.ReadScalarDataSet(data,numValues,H5T_FLOAT,field->datasetPath);
+            err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
 
             // If no error, we return the array
             if (err>=0)
             {
                 return vtkArray;
-            }
+            }        
 
         }
     }
@@ -851,7 +876,10 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
             if (strcmp(varname, buffer) == 0)
             {
 
+                // Number of particles
                 numValues = particle->numParticles;
+                // multiplication factor for SI units
+                factor=particle->scalarDataSets[i].unitSI;
 
                 // Allocate the return vtkFloatArray object. Note that
                 // you can use vtkFloatArray, vtkDoubleArray,
@@ -863,7 +891,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 cerr << " Dataset path: " << particle->scalarDataSets[i].path << endl;
 
                 // Reading of the dataset
-                err = openPMDFile.ReadScalarDataSet(data,numValues,H5T_FLOAT,particle->scalarDataSets[i].path);
+                err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,particle->scalarDataSets[i].path);
 
                 // If no error, we return the array
                 if (err>=0)
@@ -873,6 +901,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 
             }
         }
+
     }
     //
     // If you have a file format where variables don't apply (for example a
@@ -933,6 +962,7 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate, int domain,const char *varname
     int     numValues;
     int     numComponents;
     char    buffer[128];
+    float   factor;
 
     // ________________________________________________________
     // PARTICLES
@@ -948,26 +978,35 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate, int domain,const char *varname
         for (i=0;i<particle->vectorDataSets.size();i++)
         {
 
+            // Current dataset name to be compared with varname
             strcpy(buffer,"Particles/");
             strcat(buffer,particle->vectorDataSets[i].name);
 
-            // Determine which vector datasets
+            // If we find the correct dataset of name varname...
             if (strcmp(varname, buffer) == 0)
             {
+                // Number of particles for this dataset
                 numValues = particle->numParticles;
+                // Number of components (2D or 3D)
                 numComponents = 3;
 
                 // Read component 1 from the file.
                 float *comp1 = new float[numValues];
                 // Reading of the first dataset
                 scalarDataSetId = particle->vectorDataSets[i].dataSetId[2];
-                err = openPMDFile.ReadScalarDataSet(comp1,numValues,H5T_FLOAT,particle->scalarDataSets[scalarDataSetId].path); 
+                // Multiplication factor
+                factor = particle->scalarDataSets[scalarDataSetId].unitSI;
+                // Reading of the dataset     
+                err = openPMDFile.ReadScalarDataSet(comp1,numValues,&factor,H5T_FLOAT,particle->scalarDataSets[scalarDataSetId].path); 
 
                 // Read component 2 from the file.
                 float *comp2 = new float[numValues];
                 // Reading of the first dataset
                 scalarDataSetId = particle->vectorDataSets[i].dataSetId[1];
-                err = openPMDFile.ReadScalarDataSet(comp2,numValues,H5T_FLOAT,particle->scalarDataSets[scalarDataSetId].path); 
+                // Multiplication factor
+                factor = particle->scalarDataSets[scalarDataSetId].unitSI;
+                // Reading of the dataset                
+                err = openPMDFile.ReadScalarDataSet(comp2,numValues,&factor,H5T_FLOAT,particle->scalarDataSets[scalarDataSetId].path); 
 
                 float *comp3;
                 if(numComponents > 2)
@@ -976,7 +1015,10 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate, int domain,const char *varname
                     comp3 = new float[numValues];
                     // Reading of the first dataset
                     scalarDataSetId = particle->vectorDataSets[i].dataSetId[0];
-                    err = openPMDFile.ReadScalarDataSet(comp3,numValues,H5T_FLOAT,particle->scalarDataSets[scalarDataSetId].path); 
+                    // Multiplication factor
+                    factor = particle->scalarDataSets[scalarDataSetId].unitSI;
+                    // Reading of the dataset                      
+                    err = openPMDFile.ReadScalarDataSet(comp3,numValues,&factor,H5T_FLOAT,particle->scalarDataSets[scalarDataSetId].path); 
                 }
 
                 // Allocate the return vtkFloatArray object. Note that

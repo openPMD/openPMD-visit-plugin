@@ -66,7 +66,7 @@ class PMDFile
         void                    ScanParticles();
         void                    Print();
         int                     GetNumberIterations();
-        int                     ReadScalarDataSet(void * array,int numValues,H5T_class_t dataSetClass,char * path);
+        int                     ReadScalarDataSet(void * array,int numValues,void * factor,H5T_class_t dataSetClass,char * path);
         void                    CloseFile();
         
     protected:

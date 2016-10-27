@@ -350,6 +350,7 @@ void PMDFile::CloseFile()
 
  \param array pointer to the array that will receive the content of the dataset
  \param numValues number of element to read
+ \param factor multiplication factor applied to all elements of array
  \param dataSetClass type of element to be read (H5T_FLOAT, H5T_INTEGER...)
  \param path path to the data set in the OpenPMD file
 
@@ -359,7 +360,7 @@ void PMDFile::CloseFile()
  Modifications:
 
  ____________________________________________________________________________ */
-int PMDFile::ReadScalarDataSet(void * array,int numValues,H5T_class_t dataSetClass,char * path)
+int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_class_t dataSetClass,char * path)
 {
 
 	int 	ndims;
@@ -402,6 +403,18 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,H5T_class_t dataSetCla
                     cerr << "Problem when reading the dataset: " << path << endl;
                     return -4;
                 }
+
+		        // Application of the factor to the data
+		        float factorTmp = *(float*) (factor);
+		        float * arrayTmp = (float*) (array);
+		        if (factorTmp != 1)
+		        {
+		        	for (int i=0;i<numValues;i++)
+		        	{
+		        		arrayTmp[i] *= factorTmp;
+		        	}
+		        }
+
 
             }
             else

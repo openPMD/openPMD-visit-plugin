@@ -30,6 +30,11 @@
 PMDField::PMDField()
 {
 	verbose=0;
+	unitSI=1;
+	gridUnitSI=1;
+	strcpy(this->name,"");
+	strcpy(this->datasetPath,"");
+	strcpy(this->groupPath,"");
 	strcpy(this->unitsLabel,"");
 	strcpy(this->axisLabels,"");
 	strcpy(this->dataOrder,"");
@@ -327,7 +332,7 @@ void PMDField::SetGridUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t at
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        err = H5Aread(attrId, attrType, &grid_unit_SI);
+        err = H5Aread(attrId, attrType, &gridUnitSI);
 
     }
 }

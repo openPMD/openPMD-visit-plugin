@@ -112,6 +112,8 @@ class PMDParticle
         double      mass;
         /// This flag is true when the momentum is available
         bool momentumAvailable;
+        /// ScalarDataSet index in scalarDataSets for the x positions
+        int         positionsId[3];
 
         /// Contain all the scalar for this particle group
         vector <scalarDataSet> scalarDataSets;

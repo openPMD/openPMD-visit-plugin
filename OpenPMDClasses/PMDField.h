@@ -70,7 +70,7 @@ class PMDField
         /// Units for the axis    
         double  unitSI;       
         /// Units for the grid        
-        double  grid_unit_SI;    
+        double  gridUnitSI;    
         /// Geometry of the grid     
         char    geometry[64];    
         /// Labels     

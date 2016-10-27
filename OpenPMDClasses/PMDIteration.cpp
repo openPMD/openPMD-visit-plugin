@@ -350,7 +350,7 @@ void PMDIteration::PrintInfo()
     	cout << " - nx: " << field->nbNodes[0]<< " ny: " << field->nbNodes[1] << " nz: " << field->nbNodes[2] << endl;
     	cout << " - xshift: " << field->gridPosition[0]<< " yshift: " << field->gridPosition[1] << " zshift: " << field->gridPosition[2] << endl;
     	cout << " - Unit SI: " << field->unitSI<< endl;
-    	cout << " - Grid Unit SI: " << field->grid_unit_SI<< endl;
+    	cout << " - Grid Unit SI: " << field->gridUnitSI<< endl;
     	cout << " - Geometry: " << field->geometry << endl;
     	cout << " - xlabel: " << field->axisLabels[0] << " ylabel: " << field->axisLabels[1] << " zlabel: " << field->axisLabels[2] << endl;
     	cout << " - Units: " << field->unitsLabel << endl;
