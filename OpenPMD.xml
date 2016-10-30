@@ -12,6 +12,7 @@
     <FilePatterns>
       *.pmd
       *.opmd
+      *.h5
     </FilePatterns>
     <Files components="M">
       avtOpenPMDFileFormat.C
