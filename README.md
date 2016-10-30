@@ -174,7 +174,7 @@ The libraries (`libEOpenPMDDatabase_par.so`, `libEOpenPMDDatabase_ser.so`, `libI
 ## To be implemented/improved
 -------------------------
 
-- The plugin is not reading all the group and dataset attributes. More attribute readers need to be implented although the necessary ones for visualization are present.
+- The plugin is not reading all the group and dataset attributes. More attribute readers need to be implemented although the necessary ones for visualization are present.
 - The plugin does not take into account dataset of mass or charge (it only works when these are constant).
 - Field axis labels, fieldBoudary conditions are not read properly.
 - The documentation (Doxygen) has to be completed.
