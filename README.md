@@ -182,6 +182,5 @@ The libraries (`libEOpenPMDDatabase_par.so`, `libEOpenPMDDatabase_ser.so`, `libI
 - Implementing the reading of curvilinear meshes for cylindrical geometry.
 - Implementing Fortran order, only C order is taken into account
 - Improving Exception output.
-- Detecting automatically the file format.
-- Read ADIOS format.
+- Read files in parallel using ADIOS.
 - Parallel access and treatment of the files.
