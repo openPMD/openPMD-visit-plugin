@@ -642,6 +642,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 else if (ndims==2)
                 {
 
+                    dims[0] = field->nbNodes[1];
+                    dims[1] = field->nbNodes[0];
+                    dims[2] = 1;
+
                     // Read the X coordinates from the file.
                     coords[0] = vtkFloatArray::New();
                     coords[0]->SetNumberOfTuples(field->nbNodes[1]);
@@ -674,7 +678,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // Create the vtkRectilinearGrid object and set its dimensions
                 // and coordinates.         
                 vtkRectilinearGrid *grid = vtkRectilinearGrid::New();
-                grid->SetDimensions(field->nbNodes);
+                grid->SetDimensions(dims);
                 grid->SetXCoordinates(coords[0]);
                 coords[0]->Delete();
                 grid->SetYCoordinates(coords[1]);
