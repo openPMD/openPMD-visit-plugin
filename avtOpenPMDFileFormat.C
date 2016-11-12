@@ -40,6 +40,8 @@
 //                            avtOpenPMDFileFormat.C                           //
 // ************************************************************************* //
 
+#include <unistd.h>
+
 #include <avtOpenPMDFileFormat.h>
 
 #include <vector>
@@ -117,6 +119,9 @@ avtOpenPMDFileFormat::Initialize()
 
     if(!this->initialized)
     {
+        // Activate verbose
+        openPMDFile.SetVerbose(1);
+
         // Open the OpenPMD file
         openPMDFile.OpenFile(filename);
 
@@ -284,10 +289,17 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int time
         // Topological Dimension
         mmd->topologicalDimension = field->ndims;
         // Mesh type
-        if (strstr(field->geometry,"cartesian")==0)
+        // Cartesian
+        if (strcmp(field->geometry,"cartesian")==0)
         {
             mmd->meshType = AVT_RECTILINEAR_MESH;
         }
+        // Curvilinear, thetaMode
+        else if (strcmp(field->geometry,"thetaMode")==0)
+        {
+            mmd->meshType = AVT_CURVILINEAR_MESH;
+        }
+
         // Number of blocks
         mmd->numBlocks = 1;
         // Add mesh
@@ -553,12 +565,14 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 
     int             ndims;
     int             dims[3];
-    int             i;
+    int             i,j,k,l;
     int             id;
     int             nnodes;
+    int             nmodes;
     char            bufferMeshName[128];
     char            bufferDataSetName[128];
     float           factor;
+    float           r,theta,dtheta;
     vtkFloatArray*  coords[3];
 
     // ________________________________________________________
@@ -581,64 +595,178 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
         // We have found the corresponding mesh in the vector of fields
         if (strcmp(meshname, bufferMeshName) == 0)
         {
- 
-            cerr << "Read mesh: " << bufferMeshName << endl;
 
-            // Read the ndims and number of X,Y,Z nodes from file.
-            ndims = field->ndims;
-            dims[0] = field->nbNodes[2];
-            dims[1] = field->nbNodes[1];
-            dims[2] = field->nbNodes[0];
-
-            // Read the X coordinates from the file.
-            coords[0] = vtkFloatArray::New();
-            coords[0]->SetNumberOfTuples(dims[0]);
-            float *xarray = (float *)coords[0]->GetVoidPointer(0);
-            for(i=0;i<dims[0];i++)
+            if (strcmp(field->geometry,"cartesian")==0)
             {
-                xarray[i] = ((i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2])*field->unitSI;
-            }
 
-            // Read the Y coordinates from the file.
-            coords[1] = vtkFloatArray::New();
-            coords[1]->SetNumberOfTuples(dims[1]);
-            float *yarray = (float *)coords[1]->GetVoidPointer(0);
-            for(i=0;i<dims[1];i++)
-            {
-                yarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->unitSI;
-            }
+                cerr << "Read mesh: " << bufferMeshName << ", " << field->geometry << endl;
 
-            // Read the Z coordinates from the file.
-            coords[2] = vtkFloatArray::New();
-            if(ndims > 2)
-            {
-                coords[2]->SetNumberOfTuples(dims[2]);
-                float *zarray = (float *)coords[2]->GetVoidPointer(0);
-                for(i=0;i<dims[2];i++)
+                // Read the ndims and number of X,Y,Z nodes from file.
+                ndims = field->ndims;
+                // 3D
+                if (ndims==3)
                 {
-                    zarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->unitSI;
+                    dims[0] = field->nbNodes[2];
+                    dims[1] = field->nbNodes[1];
+                    dims[2] = field->nbNodes[0];
+
+                    // Read the X coordinates from the file.
+                    coords[0] = vtkFloatArray::New();
+                    coords[0]->SetNumberOfTuples(dims[0]);
+                    float *xarray = (float *)coords[0]->GetVoidPointer(0);
+                    for(i=0;i<dims[0];i++)
+                    {
+                        xarray[i] = ((i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2])*field->gridUnitSI;
+                    }
+
+                    // Read the Y coordinates from the file.
+                    coords[1] = vtkFloatArray::New();
+                    coords[1]->SetNumberOfTuples(dims[1]);
+                    float *yarray = (float *)coords[1]->GetVoidPointer(0);
+                    for(i=0;i<dims[1];i++)
+                    {
+                        yarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
+                    }
+
+                    // Read the Z coordinates from the file.
+                    coords[2] = vtkFloatArray::New();
+                    coords[2]->SetNumberOfTuples(dims[2]);
+                    float *zarray = (float *)coords[2]->GetVoidPointer(0);
+                    for(i=0;i<dims[2];i++)
+                    {
+                        zarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->gridUnitSI;
+                    }
+
                 }
+                // 2D
+                else if (ndims==2)
+                {
+
+                    // Read the X coordinates from the file.
+                    coords[0] = vtkFloatArray::New();
+                    coords[0]->SetNumberOfTuples(field->nbNodes[1]);
+                    float *xarray = (float *)coords[0]->GetVoidPointer(0);
+                    for(i=0;i<field->nbNodes[1];i++)
+                    {
+                        xarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
+                    }
+
+                    // Read the Y coordinates from the file.
+                    coords[1] = vtkFloatArray::New();
+                    coords[1]->SetNumberOfTuples(field->nbNodes[0]);
+                    float *yarray = (float *)coords[1]->GetVoidPointer(0);
+                    for(i=0;i<field->nbNodes[0];i++)
+                    {
+                        yarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->gridUnitSI;
+                    }
+
+                    // No Z coordinates
+                    coords[2] = vtkFloatArray::New();
+                    coords[2]->SetNumberOfTuples(1);
+                    coords[2]->SetComponent(0, 0, 0.);
+                }
+                // No recognized dimension
+                else
+                {
+                    cerr << " Dimension of this field dataset is not recognized: " << ndims << endl;
+                }
+
+                // Create the vtkRectilinearGrid object and set its dimensions
+                // and coordinates.         
+                vtkRectilinearGrid *grid = vtkRectilinearGrid::New();
+                grid->SetDimensions(field->nbNodes);
+                grid->SetXCoordinates(coords[0]);
+                coords[0]->Delete();
+                grid->SetYCoordinates(coords[1]);
+                coords[1]->Delete();
+                grid->SetZCoordinates(coords[2]);
+                coords[2]->Delete();  
+
+                // We return the generated grid
+                return grid;
             }
-            else
+            else if (strcmp(field->geometry,"thetaMode")==0)
             {
-            coords[2]->SetNumberOfTuples(1);
-            coords[2]->SetComponent(0, 0, 0.);
+
+                cerr << "Read mesh: " << bufferMeshName << ", " << field->geometry << endl;
+
+                // Read the ndims and number of X,Y,Z nodes from file.
+                ndims = field->ndims;
+                dims[0] = field->nbNodes[2]; // z direction 
+                dims[1] = field->nbNodes[1]; // r direction
+                dims[2] = 10; // Theta direction
+
+                cerr << dims[0] << " " << dims[1] << " " << dims[2] << endl;
+
+                // Total number of nodes
+                nnodes = dims[0] * dims[1] * dims[2];
+                // Number of modes
+                nmodes = field->nbNodes[0];
+
+                // Read the X coordinates from the file.
+                float *xarray = new float[nnodes];
+                float *yarray = new float[nnodes];
+                float *zarray = new float[nnodes];
+
+                dtheta = 2*3.14159265359/(dims[2]-1);
+
+                // Build xarray,yarray,zarray
+                for(k = 0; k < dims[2]; ++k)
+                for(j = 0; j < dims[1]; ++j)
+                for(i = 0; i < dims[0]; ++i)
+                {
+                    // Absolute index
+                    l = i + j*dims[0] + k*dims[0]*dims[1];
+                    // Theta angle
+                    theta = k*dtheta;
+                    // Radius
+                    r = (j*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->unitSI;
+                    // Position of the point
+                    xarray[l] = (i*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
+                    yarray[l] = (r*cos(theta));
+                    zarray[l] = (r*sin(theta));
+                }
+
+                // Create the vtkStructuredGrid and vtkPoints objects.
+                vtkStructuredGrid *sgrid = vtkStructuredGrid::New();
+                vtkPoints *points = vtkPoints::New();
+                sgrid->SetPoints(points);
+                sgrid->SetDimensions(dims);
+                points->Delete();
+                points->SetNumberOfPoints(nnodes);               
+
+                // Copy the coordinate values into the vtkPoints object.
+                float *pts = (float *) points->GetVoidPointer(0);
+                float *xc = xarray;
+                float *yc = yarray;
+                float *zc = zarray;
+                if(ndims == 3)
+                {
+                    for(k = 0; k < dims[2]; ++k)
+                    for(j = 0; j < dims[1]; ++j)
+                    for(i = 0; i < dims[0]; ++i)
+                    {
+                        *pts++ = *xc++;
+                        *pts++ = *yc++;
+                        *pts++ = *zc++;
+                    }
+                }
+                else if(ndims == 2)
+                {
+                    for(j = 0; j < dims[1]; ++j)
+                    for(i = 0; i < dims[0]; ++i)
+                    {
+                        *pts++ = *xc++;
+                        *pts++ = *yc++;
+                        *pts++ = 0.;
+                    }
+                }
+                // Delete temporary arrays.
+                delete [] xarray;
+                delete [] yarray;
+                delete [] zarray;
+                return sgrid;
             }
-
-            
-            // Create the vtkRectilinearGrid object and set its dimensions
-            // and coordinates.         
-            vtkRectilinearGrid *grid = vtkRectilinearGrid::New();
-            grid->SetDimensions(dims);
-            grid->SetXCoordinates(coords[0]);
-            coords[0]->Delete();
-            grid->SetYCoordinates(coords[1]);
-            coords[1]->Delete();
-            grid->SetZCoordinates(coords[2]);
-            coords[2]->Delete();  
-
-            // We return the generated grid
-            return grid;
         }
     }
 
@@ -798,9 +926,10 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     cerr << "avtOpenPMDFileFormat::GetVar "
         << timestate << " " << varname << endl;
 
-    int     i;
+    int     i,j,k,l,m;
     int     numValues;
     int     err;
+    int     dims[3];
     char    buffer[128];
     hid_t   datasetId;
     hid_t   datasetType;
@@ -829,27 +958,92 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
         if (strcmp(varname, buffer) == 0)
         {
 
-            // Number of values
-            numValues = field->GetNumValues();
-            // Factor for SI units
-            factor = field->gridUnitSI;
-
-            // Allocate the return vtkFloatArray object. Note that
-            // you can use vtkFloatArray, vtkDoubleArray,
-            // vtkUnsignedCharArray, vtkIntArray, etc.
-            vtkFloatArray * vtkArray = vtkFloatArray::New();
-            vtkArray->SetNumberOfTuples(numValues);
-            float *data = (float *)vtkArray->GetVoidPointer(0);
-
-            cerr << " Dataset path: " << field->datasetPath << endl;
-
-            // Reading of the dataset
-            err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
-
-            // If no error, we return the array
-            if (err>=0)
+            if (strcmp(field->geometry,"cartesian")==0)
             {
-                return vtkArray;
+
+                // Number of values
+                numValues = field->GetNumValues();
+                // Factor for SI units
+                factor = field->unitSI;
+
+                // Allocate the return vtkFloatArray object. Note that
+                // you can use vtkFloatArray, vtkDoubleArray,
+                // vtkUnsignedCharArray, vtkIntArray, etc.
+                vtkFloatArray * vtkArray = vtkFloatArray::New();
+                vtkArray->SetNumberOfTuples(numValues);
+                float *data = (float *)vtkArray->GetVoidPointer(0);
+
+                cerr << " Reading dataset: " << field->datasetPath << endl;
+
+                // Reading of the dataset
+                err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
+
+                // If no error, we return the array
+                if (err>=0)
+                {
+                    return vtkArray;
+                }
+
+            }
+            else if (strcmp(field->geometry,"thetaMode")==0)
+            {
+                // Dimensions
+                dims[0] = field->nbNodes[2]; // z direction 
+                dims[1] = field->nbNodes[1]; // r direction
+                dims[2] = 10;               // Theta direction
+
+                // Factor for SI units
+                factor = field->unitSI;
+                cerr << " Factor: " << factor << endl;
+
+                // Total number of Values
+                numValues = dims[0]*dims[1]*dims[2];
+
+                // Allocate the dataset array with the different modes
+                float *dataSetArray = new float(dims[1]*dims[0]*3);
+
+                cerr << " Reading dataset: " << field->datasetPath << endl;
+
+                // Reading of the dataset
+                err = openPMDFile.ReadScalarDataSet(dataSetArray,dims[1]*dims[0]*3,&factor,H5T_FLOAT,field->datasetPath);
+
+                // Allocate the return vtkFloatArray object. Note that
+                // you can use vtkFloatArray, vtkDoubleArray,
+                // vtkUnsignedCharArray, vtkIntArray, etc.
+                vtkFloatArray * vtkArray = vtkFloatArray::New();
+                vtkArray->SetNumberOfTuples(numValues);
+                float *data = (float *)vtkArray->GetVoidPointer(0);
+
+                // Treatment of the data
+
+                // We first build the mode 0
+                cerr << " Build mode 0" << endl;
+                for(k = 0; k < dims[2]; ++k) // Loop theta
+                for(j = 0; j < dims[1]; ++j) // Loop r
+                for(i = 0; i < dims[0]; ++i) // Loop z
+                {
+                    // Absolute indexes
+                    l = i + j*dims[0];
+                    m = l + k*dims[0]*dims[1];
+
+                    // Update of data
+                    data[m] = dataSetArray[l];
+
+                    cerr << "m: " << m << "/" << numValues-1 << " l: " << l << "/" << dims[1]*dims[0]-1 << " data[m]: " << data[m] << " dataSetArray[l]: "<< dataSetArray[l] << endl;
+                }             
+
+                // If no error, we return the array
+                if (err>=0)
+                {
+                    cerr << " Return vtkArray" << endl;
+                    usleep(1000000);
+                    return vtkArray;
+                }
+
+                // Delete temporary arrays
+                //delete dataSetArray; 
+                //delete data;
+
             }        
 
         }

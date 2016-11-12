@@ -266,50 +266,59 @@ void PMDIteration::ScanParticles(hid_t fileId)
 
 	if (verbose) cerr << " Scanning particle groups in: "<< path << endl;
 
-	// Openning of the group "particles" of the current iteration
-	groupId = H5Gopen2(fileId, path , H5P_DEFAULT);
+	err = H5Gget_objinfo (fileId, path, 0, NULL);
 
-	// First we get the number of objects
-	err = H5Gget_num_objs(groupId, &numObjects);
-	if (verbose) cerr << " Number of objects in the particle group: "<< numObjects << endl;
-
-	// Iteration over the objects of the group "particles"
-	for (i = 0; i < numObjects; i++)
+	if (err!=0)
+	{
+		cerr << " No group named particles of path: " << path << endl;
+	}
+	else
 	{
 
-		// Create a temporary particle object
-		PMDParticle		particle;
+		// Openning of the group "particles" of the current iteration
+		groupId = H5Gopen2(fileId, path , H5P_DEFAULT);	
 
-		// Get the particle group name
-		length = H5Gget_objname_by_idx(groupId, (hsize_t)i, 
-			objectName, (size_t) 64);
+		// First we get the number of objects
+		err = H5Gget_num_objs(groupId, &numObjects);
+		if (verbose) cerr << " Number of objects in the particle group: "<< numObjects << endl;
 
-		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, objectName , &objectInfo, H5P_DEFAULT);
-
-		// Check that the object is well a group
-		if (H5O_TYPE_GROUP==objectInfo.type)
+		// Iteration over the objects of the group "particles"
+		for (i = 0; i < numObjects; i++)
 		{
-			// Openning of the particle group
-			particleGroupId = H5Gopen2(groupId, objectName, H5P_DEFAULT);
 
-			// Save the name
-			strcpy(particle.name,objectName);
+			// Create a temporary particle object
+			PMDParticle		particle;
 
-			// Save the path
-			strcpy(particle.path,path);
-			strcat(particle.path,"/");
-			strcat(particle.path,objectName);
+			// Get the particle group name
+			length = H5Gget_objname_by_idx(groupId, (hsize_t)i, 
+				objectName, (size_t) 64);
 
-			// Scan properties via datasets and attributes in this particle group
-			particle.ScanParticleGroup(particleGroupId);
+			// Get info in order to get the type: group, dataset...
+			err = H5Oget_info_by_name(groupId, objectName , &objectInfo, H5P_DEFAULT);
 
-			// Insert the particle object in the vector of particles
-			this->particles.push_back(particle);
+			// Check that the object is well a group
+			if (H5O_TYPE_GROUP==objectInfo.type)
+			{
+				// Openning of the particle group
+				particleGroupId = H5Gopen2(groupId, objectName, H5P_DEFAULT);
 
+				// Save the name
+				strcpy(particle.name,objectName);
+
+				// Save the path
+				strcpy(particle.path,path);
+				strcat(particle.path,"/");
+				strcat(particle.path,objectName);
+
+				// Scan properties via datasets and attributes in this particle group
+				particle.ScanParticleGroup(particleGroupId);
+
+				// Insert the particle object in the vector of particles
+				this->particles.push_back(particle);
+
+			}
 		}
 	}
-
 }
 
 /** ____________________________________________________________________________

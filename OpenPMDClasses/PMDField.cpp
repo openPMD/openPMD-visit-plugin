@@ -71,6 +71,8 @@ PMDField::~PMDField()
 void PMDField::ScanAttributes(hid_t objectId)
 {
 
+    if (verbose) cerr << " PMDField::ScanAttributes: " << endl;
+
 	int 	numAttr;
 	int 	i;
 	hid_t 	attrId;
@@ -191,11 +193,21 @@ void PMDField::SetGridDimensions(hid_t datasetId)
     // Dimension from the data space
     hsize_t dims[3] ;
     hsize_t maxdims[3] ;
-    ndims =  H5Sget_simple_extent_dims(dataset_space, dims, maxdims );
+    this->ndims =  H5Sget_simple_extent_dims(dataset_space, dims, maxdims );
 
-    nbNodes[0] = dims[0];
-    nbNodes[1] = dims[1];
-    nbNodes[2] = dims[2];
+    if (ndims==3)
+    {
+        this->nbNodes[0] = dims[0];
+        this->nbNodes[1] = dims[1];
+        this->nbNodes[2] = dims[2];
+    }
+    else if (ndims==2)
+    {
+        this->nbNodes[0] = dims[0];
+        this->nbNodes[1] = dims[1];
+        this->nbNodes[2] = 1;
+    }
+
 }
 
 /** ____________________________________________________________________________
@@ -208,7 +220,7 @@ void PMDField::SetGridDimensions(hid_t datasetId)
  \date Creation:   Fri Oct 14 2016
 
  Modifications:
-
+ - Nov 11 2016 - Mathieu - add 2d case
  ____________________________________________________________________________ */
 void PMDField::SetGridSpacing(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
 {
@@ -221,9 +233,18 @@ void PMDField::SetGridSpacing(char * name, hid_t attrId, hid_t attrType, hid_t a
 
         err = H5Aread(attrId, attrType, tmpArray);
 
-        gridSpacing[0] = tmpArray[0];
-        gridSpacing[1] = tmpArray[1];		        
-        gridSpacing[2] = tmpArray[2];
+        if (npoints == 3) 
+        {
+            this->gridSpacing[0] = tmpArray[0];
+            this->gridSpacing[1] = tmpArray[1];               
+            this->gridSpacing[2] = tmpArray[2];
+        }
+        else if (npoints == 2)
+        {
+            this->gridSpacing[0] = tmpArray[0];
+            this->gridSpacing[1] = tmpArray[1];               
+            this->gridSpacing[2] = 0;
+        }
 
         free(tmpArray);
     }
@@ -239,6 +260,7 @@ void PMDField::SetGridSpacing(char * name, hid_t attrId, hid_t attrType, hid_t a
  \date Creation:   Fri Oct 14 2016
 
  Modifications:
+ - Nov 11 2016 - Mathieu - add 2d case
 
  ____________________________________________________________________________ */
 void PMDField::SetGridGlobalOffset(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
@@ -252,9 +274,18 @@ void PMDField::SetGridGlobalOffset(char * name, hid_t attrId, hid_t attrType, hi
 
         err = H5Aread(attrId, attrType, tmpArray);
 
-        gridGlobalOffset[0] = tmpArray[0];
-        gridGlobalOffset[1] = tmpArray[1];		        
-        gridGlobalOffset[2] = tmpArray[2];
+        if (npoints==3)
+        {
+            this->gridGlobalOffset[0] = tmpArray[0];
+            this->gridGlobalOffset[1] = tmpArray[1];              
+            this->gridGlobalOffset[2] = tmpArray[2];
+        }
+        else if (npoints==2)
+        {
+            this->gridGlobalOffset[0] = tmpArray[0];
+            this->gridGlobalOffset[1] = tmpArray[1];              
+            this->gridGlobalOffset[2] = 0;
+        }        
 
         free(tmpArray);
     }
@@ -270,7 +301,7 @@ void PMDField::SetGridGlobalOffset(char * name, hid_t attrId, hid_t attrType, hi
  \date Creation:   Fri Oct 14 2016
 
  Modifications:
-
+ - Nov 11 2016 - Mathieu - add 2d case
  ____________________________________________________________________________ */
 void PMDField::SetGridPosition(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
 {
@@ -283,10 +314,18 @@ void PMDField::SetGridPosition(char * name, hid_t attrId, hid_t attrType, hid_t 
 
         err = H5Aread(attrId, attrType, tmpArray);
 
-        gridPosition[0] = tmpArray[0];
-        gridPosition[1] = tmpArray[1];		        
-        gridPosition[2] = tmpArray[2];
-
+        if (npoints==3)
+        {
+            gridPosition[0] = tmpArray[0];
+            gridPosition[1] = tmpArray[1];		        
+            gridPosition[2] = tmpArray[2];
+        }
+        else if (npoints==2)
+        {
+            gridPosition[0] = tmpArray[0];
+            gridPosition[1] = tmpArray[1];              
+            gridPosition[2] = 0;
+        }            
         free(tmpArray);
     }
 }
@@ -362,7 +401,10 @@ void PMDField::SetGeometry(char * name, hid_t attrId, hid_t attrType, hid_t attr
         {
         	strcpy(geometry,"cartesian");
         }
-
+        else if (strstr(tmpchar,"thetaMode")>0)
+        {
+            strcpy(geometry,"thetaMode");
+        }
     }
 }
 
@@ -547,9 +589,18 @@ void PMDField::SetDataOrder(char * name, hid_t attrId, hid_t attrType, hid_t att
  \date Creation:   Fri Oct 14 2016
 
  Modifications:
+ - Nov 11 2016 - Mathieu - add 2d case
 
  ____________________________________________________________________________ */
 int PMDField::GetNumValues()
 {
-	return this->nbNodes[0]*this->nbNodes[1]*this->nbNodes[2];
+    if (this->ndims==3)
+    {
+        return this->nbNodes[0]*this->nbNodes[1]*this->nbNodes[2];
+    }
+    else if (this->ndims==2)
+    {
+        return this->nbNodes[0]*this->nbNodes[1];
+    }
+    return 0;
 }

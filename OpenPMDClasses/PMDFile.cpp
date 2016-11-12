@@ -375,7 +375,7 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
         //char error[1024];
         //SNPRINTF(error, 1024, "Problem when opening the dataset %d",int(datasetId));
         //EXCEPTION2(InvalidFilesException, (const char *)filename,error);
-        cerr << "Problem when opening the dataset: " << path << endl;
+        cerr << " Problem when opening the dataset: " << path << endl;
         return -1;
     }  
     else
@@ -400,13 +400,14 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
                 if (H5Dread(datasetId, datasetType, H5S_ALL, H5S_ALL, H5P_DEFAULT, array) < 0)
                 {
                     //EXCEPTION1(InvalidVariableException, field->name);
-                    cerr << "Problem when reading the dataset: " << path << endl;
+                    cerr << " Problem when reading the dataset: " << path << endl;
                     return -4;
                 }
 
 		        // Application of the factor to the data
 		        float factorTmp = *(float*) (factor);
 		        float * arrayTmp = (float*) (array);
+                if (verbose) cerr << " Application of the factor: " << factorTmp << endl;               
 		        if (factorTmp != 1)
 		        {
 		        	for (int i=0;i<numValues;i++)
@@ -414,6 +415,7 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
 		        		arrayTmp[i] *= factorTmp;
 		        	}
 		        }
+                cerr << " End Application of the factor" << endl;
 
 
             }
@@ -422,7 +424,7 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
                 //char error[1024];
                 //SNPRINTF(error, 1024, "Invalid size for the current dataset (%d %ld)",numValues,long(datasetStorageSize));
                 //EXCEPTION2(InvalidFilesException, (const char *)filename,error);
-            	cerr << "Invalid size for the current dataset:" << numValues << " " << long(datasetStorageSize) << endl;
+            	cerr << " Invalid size for the current dataset:" << numValues << " " << long(datasetStorageSize) << endl;
                 return -3;
             }        	
         }
@@ -439,5 +441,22 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
         H5Tclose(datasetType); 
 
     }
+    cerr << " End ReadScalarDataSet" << endl;
    	return 0;
+}
+
+/** ____________________________________________________________________________
+ Method: PMDFile::SetVerbose
+
+ \brief This method activates the verbose behavior.
+
+ \author Programmer: Mathieu Lobet
+ \date Creation:     Nov 4 2016
+
+ Modifications:
+
+ ____________________________________________________________________________ */
+void PMDFile::SetVerbose(int value)
+{
+    this->verbose = value;
 }

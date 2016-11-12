@@ -17,7 +17,7 @@ int main(void)
 
 	// Path toward an OpenPMD file
 	char path[128];
-	strcpy(path, "../data00001000.pmd");
+	strcpy(path, "../../../OpenPMD/openPMD-example-datasets-draft/example-thetaMode/hdf5/data00000500.h5");
 
 	// Create the OpenPMD Container
 	PMDFile openPMDFile;
