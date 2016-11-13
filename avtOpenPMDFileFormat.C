@@ -405,15 +405,39 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int time
             strcat(buffer,"/gamma");
             e1->SetName(buffer);
 
-            // Create the definition
-            char px[128], py[128], pz[128];
-
-            sprintf(px,"Particles/%s/momentum/x",particle->name);
-            sprintf(py,"Particles/%s/momentum/y",particle->name);
-            sprintf(pz,"Particles/%s/momentum/z",particle->name);        
-
+            // Creation of the expression definition
             char definition[256];
-            sprintf(definition,"sqrt(1.0+<%s>^2+<%s>^2+<%s>^2/(299792458*%e)^2)",px,py,pz,particle->mass);
+
+            // If we have 3 momentum components
+            if (particle->numDimsMomenta==3)
+            {
+                // Create the definition
+                char px[128], py[128], pz[128];
+
+                // Expression 
+                sprintf(px,"Particles/%s/momentum/x",particle->name);
+                sprintf(py,"Particles/%s/momentum/y",particle->name);
+                sprintf(pz,"Particles/%s/momentum/z",particle->name);        
+
+                sprintf(definition,"sqrt(1.0+(<%s>^2+<%s>^2+<%s>^2)/(299792458*%e)^2)",px,py,pz,particle->mass);
+            }
+            // If we have only two momentum components, we suppose that the dimension is 2
+            else if (particle->numDimsMomenta==2)
+            {
+                // Create the definition
+                char px[128], pz[128];
+
+                // Expression: this is only valid if z is the main direction
+                sprintf(px,"Particles/%s/momentum/x",particle->name);
+                sprintf(pz,"Particles/%s/momentum/z",particle->name);        
+
+                sprintf(definition,"sqrt(1.0+(<%s>^2+<%s>^2)/(299792458*%e)^2)",px,pz,particle->mass);
+            }
+            // Invalid momentum dimension
+            else
+            {
+                cerr << " The gamma expression can not be created for such a momentum dimension: " << particle->numDimsMomenta << endl;
+            }
 
             e1->SetDefinition(definition);
             // Final type
@@ -794,8 +818,14 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             cerr << "Read mesh: " << bufferMeshName << endl;
 
             // Read the ndims and number of nodes from file.
-            ndims = 3;
+            ndims = particle->numDimsPositions;
             nnodes = particle->numParticles;
+
+            // Sanity check
+            if ((ndims <= 0)||(ndims >3))
+            {
+                cerr << "The number of position datasets is invalid: " << ndims << endl;
+            }
 
             // Read the X coordinates from the file.
             float *xarray = new float[nnodes];
@@ -1186,7 +1216,7 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate, int domain,const char *varname
                 // Number of particles for this dataset
                 numValues = particle->numParticles;
                 // Number of components (2D or 3D)
-                numComponents = 3;
+                numComponents = particle->numDimsMomenta;
 
                 // Read component 1 from the file.
                 float *comp1 = new float[numValues];

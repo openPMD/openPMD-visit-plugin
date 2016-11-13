@@ -178,8 +178,8 @@ The libraries (`libEOpenPMDDatabase_par.so`, `libEOpenPMDDatabase_ser.so`, `libI
 - The plugin does not take into account dataset of mass or charge (it only works when these are constant).
 - Field axis labels, fieldBoudary conditions are not read properly.
 - The documentation (Doxygen) has to be completed.
-- Create compatibility for 2D grids, only 3D grids can be read properly.
-- Implementing the reading of curvilinear meshes for cylindrical geometry.
+- 2D fields can be read. For Particles, 2D is partially implemented (depends on the components).
+- Debugging curvilinear meshes for cylindrical geometry.
 - Implementing Fortran order, only C order is taken into account
 - Improving Exception output.
 - Read files in parallel using ADIOS.

@@ -110,8 +110,12 @@ class PMDParticle
         double      charge;  
         /// Particle mass (when constant for all particles)     
         double      mass;
+        ///         position dimension
+        int         numDimsPositions;
+        ///         momentum dimension
+        int         numDimsMomenta;
         /// This flag is true when the momentum is available
-        bool momentumAvailable;
+        bool        momentumAvailable;
         /// ScalarDataSet index in scalarDataSets for the x positions
         int         positionsId[3];
 

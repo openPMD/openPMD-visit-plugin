@@ -32,12 +32,19 @@ PMDParticle::PMDParticle()
 {
 	int i;
 
-	verbose=0;
-	momentumAvailable = 0;
+	// Verbose behavior
+	this->verbose=0;
+	// If there is momentum datasets
+	this->momentumAvailable = 0;
+	// Index of the scalar position data sets
 	for(i=0;i<3;i++)
 	{
-		positionsId[i]=-1;
+		this->positionsId[i]=-1;
 	}
+	// Number of momentum dimensions
+	this->numDimsMomenta = 0;
+	// Number of position dimensions
+	this->numDimsPositions = 0;
 }
 
 /** ____________________________________________________________________________
@@ -420,15 +427,24 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 		// We store the index of the position datasets in positionsId to find them easily
 		if (strcmp(datasetName,"x")==0)
 		{
+			// index of the dataset x in the list of datsets
 			this->positionsId[0] = this->scalarDataSets.size()-1;
+			// Add a new dimension
+			this->numDimsPositions += 1;
 		}
 		if (strcmp(datasetName,"y")==0)
 		{
+			// index of the dataset y in the list of datsets
 			this->positionsId[1] = this->scalarDataSets.size()-1;
+			// Add a new dimension
+			this->numDimsPositions += 1;
 		}
 		if (strcmp(datasetName,"z")==0)
 		{
+			// index of the dataset z in the list of datsets
 			this->positionsId[2] = this->scalarDataSets.size()-1;
+			// Add a new dimension
+			this->numDimsPositions += 1;
 		}
 	}
 
@@ -530,14 +546,20 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 			if (strcmp(datasetName,"x")==0)
 			{
 				vector.dataSetId [0] = this->scalarDataSets.size()-1;
+				// Add a new dimension
+				this->numDimsMomenta += 1;
 			}
 			else if (strcmp(datasetName,"y")==0)
 			{
 				vector.dataSetId [1] = this->scalarDataSets.size()-1;
+				// Add a new dimension
+				this->numDimsMomenta += 1;
 			}
 			else if (strcmp(datasetName,"z")==0)
 			{
 				vector.dataSetId [2] = this->scalarDataSets.size()-1;
+				// Add a new dimension
+				this->numDimsMomenta += 1;
 			}
 		}
 	}
