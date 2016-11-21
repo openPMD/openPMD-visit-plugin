@@ -27,6 +27,17 @@
 
 using namespace std;
 
+/// Structure to store vector vtk metadata
+struct fieldBlockStruct
+{
+    int     ndims;                // Block dimension
+    int     nbNodes[3];         // number of nodes
+    int     minNode[3];         // minimum node index
+    int     maxNode[3];         // maximum node index
+    int     nbTotalNodes;       // Total number of nodes
+    char    dataSetPath[128];   // Path to the dataSet
+};
+
 /** ____________________________________________________________________________
  Class: PMDField
 
@@ -43,9 +54,6 @@ class PMDField
 	public:
             	PMDField();
             	~PMDField();
-        void    ScanAttributes(hid_t object_id);
-        void    SetGridDimensions(hid_t dataset_id);
-        int     GetNumValues();
 
         /// Activate verbose
         int     verbose; 
@@ -81,6 +89,11 @@ class PMDField
         char    fieldBoundary[64];
         /// Data order (C or Fortran)
         char    dataOrder[8];
+
+        void    ScanAttributes(hid_t object_id);
+        void    SetGridDimensions(hid_t dataset_id);
+        int     GetNumValues();
+        int     GetBlockProperties(int blockDim, int blockId, fieldBlockStruct * fieldBlock);
 
     protected:
 

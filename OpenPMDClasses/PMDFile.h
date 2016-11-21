@@ -68,6 +68,7 @@ class PMDFile
         void                    SetVerbose(int value);
         int                     GetNumberIterations();
         int                     ReadScalarDataSet(void * array,int numValues,void * factor,H5T_class_t dataSetClass,char * path);
+        int                     ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, fieldBlockStruct * fieldBlock);
         void                    CloseFile();
         
     protected:

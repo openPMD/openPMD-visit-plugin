@@ -40,6 +40,10 @@
 //                            avtOpenPMDFileFormat.h                           //
 // ************************************************************************* //
 
+#ifndef VERBOSE
+#define VERBOSE 0
+#endif
+
 #ifndef AVT_OpenPMD_FILE_FORMAT_H
 #define AVT_OpenPMD_FILE_FORMAT_H
 
@@ -98,6 +102,7 @@ class avtOpenPMDFileFormat : public avtMTMDFileFormat
     // DATA MEMBERS
 
     bool                   initialized;
+    bool                   parallel;
     PMDFile                openPMDFile;
 
     virtual void           PopulateDatabaseMetaData(avtDatabaseMetaData *, int);

@@ -115,8 +115,9 @@ avtOpenPMDFileFormat::~avtOpenPMDFileFormat()
 void
 avtOpenPMDFileFormat::Initialize()
 {
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::Initialize" << endl;
-
+#endif
     if(!this->initialized)
     {
         // Activate verbose
@@ -133,6 +134,8 @@ avtOpenPMDFileFormat::Initialize()
 
         // For each iteration, scan the particle groups
         openPMDFile.ScanParticles();
+
+        this->parallel = true;
 
         this->initialized = true;
     }
@@ -153,7 +156,9 @@ avtOpenPMDFileFormat::Initialize()
 int
 avtOpenPMDFileFormat::GetNTimesteps(void)
 {
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::GetNTimesteps" << endl;
+#endif
 
     // If not initialized, initialize...
     if(!this->initialized)
@@ -209,6 +214,9 @@ avtOpenPMDFileFormat::GetCycles(std::vector<int> &cycles)
 void
 avtOpenPMDFileFormat::GetTimes(std::vector<double> &times)
 {
+#ifdef VERBOSE
+    cerr << "avtOpenPMDFileFormat::GetTimes" << endl;    
+#endif
     // Shortcut pointer to the vector iterations
     vector<PMDIteration> * iterations = &(openPMDFile.iterations);
 
@@ -238,7 +246,9 @@ avtOpenPMDFileFormat::GetTimes(std::vector<double> &times)
 void
 avtOpenPMDFileFormat::FreeUpResources(void)
 {
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::FreeUpResources" << endl;
+#endif
 }
 
 
@@ -258,7 +268,9 @@ avtOpenPMDFileFormat::FreeUpResources(void)
 void
 avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int timeState)
 {
-    cerr << "avtOpenPMDFileFormat::PopulateDatabaseMetaData" << endl;
+#ifdef VERBOSE
+    cerr << "avtOpenPMDFileFormat::PopulateDatabaseMetaData(timeState=" << timeState << ")" << endl;
+#endif
 
     int i;
     char buffer[128];
@@ -301,7 +313,7 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int time
         }
 
         // Number of blocks
-        mmd->numBlocks = 1;
+        mmd->numBlocks = 4;
         // Add mesh
         md->Add(mmd);
 
@@ -585,11 +597,12 @@ vtkDataSet *
 avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 {
 
-    cerr << "avtOpenPMDFileFormat::GetMesh" << endl;
+    cerr << "avtOpenPMDFileFormat::GetMesh(timestate=" << timestate << ",domain=" << domain << ")" << endl;
 
     int             ndims;
     int             dims[3];
     int             i,j,k,l;
+    int             err;
     int             id;
     int             nnodes;
     int             nmodes;
@@ -630,35 +643,91 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // 3D
                 if (ndims==3)
                 {
-                    dims[0] = field->nbNodes[2];
-                    dims[1] = field->nbNodes[1];
-                    dims[2] = field->nbNodes[0];
-
-                    // Read the X coordinates from the file.
-                    coords[0] = vtkFloatArray::New();
-                    coords[0]->SetNumberOfTuples(dims[0]);
-                    float *xarray = (float *)coords[0]->GetVoidPointer(0);
-                    for(i=0;i<dims[0];i++)
+                    // Treatment of the file in parallel
+                    if (this->parallel)
                     {
-                        xarray[i] = ((i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2])*field->gridUnitSI;
+
+                        // Structure to store the block properties
+                        fieldBlockStruct fieldBlock;
+
+                        // We get the block properties
+                        err = field->GetBlockProperties(4, domain , &fieldBlock);
+
+                        cerr    << "fieldBlock.minNode[0]: " << fieldBlock.minNode[0] 
+                                << " " << fieldBlock.nbNodes[0] 
+                                << " " << fieldBlock.maxNode[0] << endl;
+
+                        cerr    << "fieldBlock.minNode[1]: " << fieldBlock.minNode[1] 
+                                << " " << fieldBlock.nbNodes[1] 
+                                << " " << fieldBlock.maxNode[1] << endl;
+                                
+                        cerr << "fieldBlock.minNode[2]: " << fieldBlock.minNode[2] << " " << fieldBlock.nbNodes[2] << " " << fieldBlock.maxNode[2] << endl;
+
+                        dims[0] = fieldBlock.nbNodes[2];
+                        dims[1] = fieldBlock.nbNodes[1];
+                        dims[2] = fieldBlock.nbNodes[0];
+
+                        // Read the X coordinates from the file.
+                        coords[0] = vtkFloatArray::New();
+                        coords[0]->SetNumberOfTuples(dims[0]);
+                        float *xarray = (float *)coords[0]->GetVoidPointer(0);
+                        for(i=fieldBlock.minNode[2];i<=fieldBlock.maxNode[2];i++)
+                        {
+                            xarray[i - fieldBlock.minNode[2]] = ((i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2])*field->gridUnitSI;
+                        }
+
+                        // Read the Y coordinates from the file.
+                        coords[1] = vtkFloatArray::New();
+                        coords[1]->SetNumberOfTuples(dims[1]);
+                        float *yarray = (float *)coords[1]->GetVoidPointer(0);
+                        for(i=fieldBlock.minNode[1];i<=fieldBlock.maxNode[1];i++)
+                        {
+                            yarray[i - fieldBlock.minNode[1]] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
+                        }
+
+                        // Read the Z coordinates from the file.
+                        coords[2] = vtkFloatArray::New();
+                        coords[2]->SetNumberOfTuples(dims[2]);
+                        float *zarray = (float *)coords[2]->GetVoidPointer(0);
+                        for(i=fieldBlock.minNode[0];i<=fieldBlock.maxNode[0];i++)
+                        {
+                            zarray[i - fieldBlock.minNode[0]] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->gridUnitSI;
+                        }
+
                     }
-
-                    // Read the Y coordinates from the file.
-                    coords[1] = vtkFloatArray::New();
-                    coords[1]->SetNumberOfTuples(dims[1]);
-                    float *yarray = (float *)coords[1]->GetVoidPointer(0);
-                    for(i=0;i<dims[1];i++)
+                    // Only one processor
+                    else
                     {
-                        yarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
-                    }
+                        dims[0] = field->nbNodes[2];
+                        dims[1] = field->nbNodes[1];
+                        dims[2] = field->nbNodes[0];
 
-                    // Read the Z coordinates from the file.
-                    coords[2] = vtkFloatArray::New();
-                    coords[2]->SetNumberOfTuples(dims[2]);
-                    float *zarray = (float *)coords[2]->GetVoidPointer(0);
-                    for(i=0;i<dims[2];i++)
-                    {
-                        zarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->gridUnitSI;
+                        // Read the X coordinates from the file.
+                        coords[0] = vtkFloatArray::New();
+                        coords[0]->SetNumberOfTuples(dims[0]);
+                        float *xarray = (float *)coords[0]->GetVoidPointer(0);
+                        for(i=0;i<dims[0];i++)
+                        {
+                            xarray[i] = ((i+field->gridPosition[2])*field->gridSpacing[2] + field->gridGlobalOffset[2])*field->gridUnitSI;
+                        }
+
+                        // Read the Y coordinates from the file.
+                        coords[1] = vtkFloatArray::New();
+                        coords[1]->SetNumberOfTuples(dims[1]);
+                        float *yarray = (float *)coords[1]->GetVoidPointer(0);
+                        for(i=0;i<dims[1];i++)
+                        {
+                            yarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
+                        }
+
+                        // Read the Z coordinates from the file.
+                        coords[2] = vtkFloatArray::New();
+                        coords[2]->SetNumberOfTuples(dims[2]);
+                        float *zarray = (float *)coords[2]->GetVoidPointer(0);
+                        for(i=0;i<dims[2];i++)
+                        {
+                            zarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->gridUnitSI;
+                        }
                     }
 
                 }
@@ -957,8 +1026,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 vtkDataArray *
 avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 {
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::GetVar "
-        << timestate << " " << varname << endl;
+        << timestate << "" << domain << " " << varname << endl;
+#endif
 
     int     i,j,k,l,m;
     int     numValues;
@@ -995,22 +1066,59 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
             if (strcmp(field->geometry,"cartesian")==0)
             {
 
-                // Number of values
-                numValues = field->GetNumValues();
-                // Factor for SI units
-                factor = field->unitSI;
-
                 // Allocate the return vtkFloatArray object. Note that
                 // you can use vtkFloatArray, vtkDoubleArray,
                 // vtkUnsignedCharArray, vtkIntArray, etc.
                 vtkFloatArray * vtkArray = vtkFloatArray::New();
-                vtkArray->SetNumberOfTuples(numValues);
-                float *data = (float *)vtkArray->GetVoidPointer(0);
 
-                cerr << " Reading dataset: " << field->datasetPath << endl;
+                // We treat the file in parallel by reading the scalar dataset by block
+                if (parallel)
+                {
 
-                // Reading of the dataset
-                err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
+                    // Structure to store the block properties
+                    fieldBlockStruct fieldBlock;
+
+                    // We get the block properties
+                    err = field->GetBlockProperties(4, domain , &fieldBlock);
+
+                    // Number of nodes
+                    numValues = fieldBlock.nbTotalNodes;
+
+                    // Factor for SI units
+                    factor = field->unitSI;
+
+                    // Allocate the return vtkFloatArray object
+                    vtkArray->SetNumberOfTuples(numValues);
+                    float *data = (float *)vtkArray->GetVoidPointer(0);
+
+#ifdef VERBOSE
+                    cerr << " Reading dataset: " << field->datasetPath << endl;
+#endif
+
+                    // Reading of the dataset block
+                    err = openPMDFile.ReadFieldScalarBlock(data,&factor,H5T_FLOAT,&fieldBlock);
+
+                }
+                // Sequential reading of the dataset
+                else
+                {
+                    // Number of values
+                    numValues = field->GetNumValues();
+                    // Factor for SI units
+                    factor = field->unitSI;
+
+                    // Allocate the return vtkFloatArray object
+                    vtkArray->SetNumberOfTuples(numValues);
+                    float *data = (float *)vtkArray->GetVoidPointer(0);
+
+#ifdef VERBOSE
+                    cerr << " Reading dataset: " << field->datasetPath << endl;
+#endif
+
+                    // Reading of the dataset
+                    err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
+                }
+
 
                 // If no error, we return the array
                 if (err>=0)
@@ -1181,8 +1289,9 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 vtkDataArray *
 avtOpenPMDFileFormat::GetVectorVar(int timestate, int domain,const char *varname)
 {
-
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::GetVectorVar"  << timestate << " " << varname << endl;
+#endif
 
     int     i;
     int     err;

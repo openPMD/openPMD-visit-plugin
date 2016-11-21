@@ -604,3 +604,89 @@ int PMDField::GetNumValues()
     }
     return 0;
 }
+
+/** ____________________________________________________________________________
+ Method: PMDField::GetDomainProperties
+
+ \brief This method returns the properties of the required block when the
+        fields are readed by block (parallel)
+
+ \author Programmer: Mathieu Lobet
+ \date Creation:   Mon Nov 14 2016
+
+ \param blockDim number of domains to divide the field
+ \param blockId index of the block
+ \param fieldBlock structure containing the properties of the block
+
+ Modifications:
+
+ ____________________________________________________________________________ */
+int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * fieldBlock)
+{
+
+    cerr << "PMDField::GetBlockProperties" << endl;
+
+    int nbBlockNodes[0];            // Number of nodes in each directions
+    int r;                          // division rest
+
+    // Copy the name of the dataset
+    strcpy(fieldBlock->dataSetPath,this->datasetPath);
+
+    if (this->ndims==3)
+    {
+
+        // Set the dimension of the block
+        fieldBlock->ndims=this->ndims;
+
+        // Computation of the number of Nodes
+        // We divide the field dataset into blocksnumDomains domains in the last direction
+        fieldBlock->nbNodes[0] = this->nbNodes[0] / blockDim;
+        r = this->nbNodes[0]%blockDim;
+        if (blockId < r )
+        {
+            fieldBlock->nbNodes[0] += 1;
+        }
+
+        fieldBlock->nbNodes[1] = this->nbNodes[1];
+        fieldBlock->nbNodes[2] = this->nbNodes[2];
+
+        // Computation of minimum idexes
+        if (blockId < r )
+        {
+            fieldBlock->minNode[0] = blockId*fieldBlock->nbNodes[0];
+        }
+        else
+        {
+            fieldBlock->minNode[0] = r*(fieldBlock->nbNodes[0]+1) + (blockId - r)*fieldBlock->nbNodes[0];
+        }
+        fieldBlock->minNode[1] = 0;
+        fieldBlock->minNode[2] = 0;
+
+        // Adjust so that the domains have a common node
+        if (blockId > 0)
+        {
+            fieldBlock->nbNodes[0] += 1;
+        }        
+        if (blockId > 0)
+        {
+            fieldBlock->minNode[0] -= 1;
+        }
+
+        // Total number of nodes
+        fieldBlock->nbTotalNodes = fieldBlock->nbNodes[0]*fieldBlock->nbNodes[1]*fieldBlock->nbNodes[2];
+
+        // Computation of maximum idexes
+        fieldBlock->maxNode[0] = fieldBlock->minNode[0] + fieldBlock->nbNodes[0] -1;
+        fieldBlock->maxNode[1] = fieldBlock->minNode[1] + fieldBlock->nbNodes[1] -1;
+        fieldBlock->maxNode[2] = fieldBlock->minNode[2] + fieldBlock->nbNodes[2] -1;
+    }
+    else
+    {
+        cerr << " This dimension, " << this->ndims << ", can not be read in parallel" << endl;
+        return -1;
+    }
+
+    // Return 0 if no error
+    return 0;
+}
+

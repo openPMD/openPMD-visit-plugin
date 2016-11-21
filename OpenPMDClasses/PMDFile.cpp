@@ -446,6 +446,122 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
 }
 
 /** ____________________________________________________________________________
+ Method: PMDFile::ReadFieldScalarBlock
+
+ \brief This method reads a block of data from a field dataset specified by fieldBlock.
+
+ \author Programmer: Mathieu Lobet
+ \date Creation:   Mon Nov 14 2016
+
+ \param numDomains number of domains to divide the field
+ \param
+
+ Modifications:
+
+ ____________________________________________________________________________ */
+int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, fieldBlockStruct * fieldBlock)
+{
+
+    int     ndims;
+    int     err;
+    hid_t   datasetId;
+    hid_t   datasetType;
+    hid_t   datasetSpace;
+    hsize_t datasetStorageSize;
+
+    // Open the corresponding dataset
+    if ((datasetId = H5Dopen(this->fileId,fieldBlock->dataSetPath,H5P_DEFAULT))<0)
+    {
+        cerr << " Problem when opening the dataset: " << fieldBlock->dataSetPath << endl;
+        return -1;
+    }  
+    else
+    {
+
+        // Data space
+        datasetSpace = H5Dget_space(datasetId);
+        // Data type
+        datasetType  = H5Dget_type(datasetId);
+        // Storage size
+        datasetStorageSize = H5Dget_storage_size(datasetId);
+        // Dimension from the data space
+        ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
+
+        // Check the class of the dataset
+        if ((H5Tget_class(datasetType) == dataSetClass)&&(dataSetClass==H5T_FLOAT))
+        {
+
+            // Parameters for the hyperslab
+            hsize_t start[3];
+            hsize_t block[3];
+            hsize_t stride[3];
+            hsize_t count[3];
+            hid_t   memspace; 
+
+            // Fill the parameters for the hyperslab using the fieldBlock properties
+            start[0] = fieldBlock->minNode[0];   start[1] = fieldBlock->minNode[1];   start[2] = fieldBlock->minNode[2];
+            block[0] = 1;   block[1] = 1;   block[2] = 1;
+            stride[0] = 1;  stride[1] = 1;  stride[2] = 1;
+            count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];  count[2] = fieldBlock->nbNodes[2];
+
+            //Define hyperslab in the dataset.
+            err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, start, stride, count, block);
+
+            // Create memory dataspace.
+            // Dimension sizes of the dataset in memory when we read selection from the dataset on the disk
+            hsize_t mdim[] = {fieldBlock->nbNodes[0], fieldBlock->nbNodes[1], fieldBlock->nbNodes[2]};
+
+            // Define the memory dataspace.
+            memspace = H5Screate_simple (fieldBlock->ndims, mdim, NULL);
+
+            start[0] = 0;   start[1] = 0;   start[2] = 0;
+            block[0] = 1;   block[1] = 1;   block[2] = 1;
+            stride[0] = 1;  stride[1] = 1;  stride[2] = 1;
+            count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];  count[2] = fieldBlock->nbNodes[2];
+
+            // Define memory hyperslab. 
+            err = H5Sselect_hyperslab (memspace, H5S_SELECT_SET, start, stride, count, block);
+
+            if (H5Dread(datasetId, datasetType, memspace, datasetSpace, H5P_DEFAULT, array) < 0)
+            {
+                //EXCEPTION1(InvalidVariableException, field->name);
+                cerr << " Problem when reading the dataset: " << fieldBlock->dataSetPath << endl;
+                return -4;
+            }
+
+            // Application of the factor to the data
+            float factorTmp = *(float*) (factor);
+            float * arrayTmp = (float*) (array);
+            if (verbose) cerr << " Application of the factor: " << factorTmp << endl;               
+            if (factorTmp != 1)
+            {
+                for (int i=0;i<fieldBlock->nbTotalNodes;i++)
+                {
+                    arrayTmp[i] *= factorTmp;
+                }
+            }
+            cerr << " End Application of the factor" << endl;
+         
+        }
+        else
+        {
+            //EXCEPTION2(InvalidFilesException, (const char *)filename,
+            //               "The current dataset is not a float dataset");
+            cerr << "The current dataset, " << fieldBlock->dataSetPath << ", is not of the specified class:" << H5T_FLOAT << endl;
+            return -2;
+        }
+
+        H5Dclose(datasetId);
+        H5Sclose(datasetSpace);
+        H5Tclose(datasetType); 
+
+    }
+    cerr << " End ReadScalarDataSet" << endl;
+
+    return 0;
+}
+
+/** ____________________________________________________________________________
  Method: PMDFile::SetVerbose
 
  \brief This method activates the verbose behavior.
