@@ -32,10 +32,14 @@ using namespace std;
 /// Structure to store particle block properties
 struct particleBlockStruct
 {
-    int     numParticles;       // Block dimension
-    int     minParticle;        // minimum node index
-    int     maxParticle;        // maximum node index
-    char    dataSetPath[128];   // Path to the dataSet
+    /// Block dimension
+    int     numParticles;
+    /// minimum node index
+    int     minParticle;
+    /// maximum node index
+    int     maxParticle;
+    /// Path to the dataSet
+    char    dataSetPath[128];
 };
 
 /** ____________________________________________________________________________

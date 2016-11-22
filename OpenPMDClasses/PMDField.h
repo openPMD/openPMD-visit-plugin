@@ -30,12 +30,18 @@ using namespace std;
 /// Structure to store field block properties
 struct fieldBlockStruct
 {
-    int     ndims;              // Block dimension
-    int     nbNodes[3];         // number of nodes
-    int     minNode[3];         // minimum node index
-    int     maxNode[3];         // maximum node index
-    int     nbTotalNodes;       // Total number of nodes
-    char    dataSetPath[128];   // Path to the dataSet
+    /// Block dimension
+    int     ndims; 
+    /// number of nodes
+    int     nbNodes[3];
+    /// minimum node index
+    int     minNode[3]; 
+    /// maximum node index
+    int     maxNode[3]; 
+    /// Total number of nodes
+    int     nbTotalNodes; 
+    /// Path to the dataSet
+    char    dataSetPath[128]; 
 };
 
 /** ____________________________________________________________________________

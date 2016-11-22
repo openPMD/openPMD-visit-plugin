@@ -170,17 +170,32 @@ The libraries (`libEOpenPMDDatabase_par.so`, `libEOpenPMDDatabase_ser.so`, `libI
 ```
 /global/homes/<first login letter>/<login>/.visit/<VisIt version>/linux-x86_64/plugins/databases/
 ```
+## Using Visit with openPMD
+-------------------------
+
+#### MacOs
+
+Once you have installed the OpenPMD viewer, Visit will automatically recognize it.
+
+To start Visit, you can use the launcher but we recommend to start Visit by command line:
+
+```
+/Applications/VisIt.app/Contents/MacOS/VisIt -np <number of cores>
+```
+
+You can specify the number of cores you want to use in parallel with VisIt. 
+OpenPMD files are read and treated in parallel if more than one core are used.
 
 ## To be implemented/improved
 -------------------------
 
 - The plugin is not reading all the group and dataset attributes. More attribute readers need to be implemented although the necessary ones for visualization are present.
 - The plugin does not take into account dataset of mass or charge (it only works when these are constant).
-- Field axis labels, fieldBoudary conditions are not read properly.
-- The documentation (Doxygen) has to be completed.
-- 2D fields can be read. For Particles, 2D is partially implemented (depends on the components).
+- Field axis labels, fieldBoudary conditions are not read properly. I used a char * instead of a list of char *. I didn't manage to do it properly (Mathieu)
+- For Particles, 2D is partially implemented (depends on the components).
 - Debugging curvilinear meshes for cylindrical geometry.
 - Implementing Fortran order, only C order is taken into account
 - Improving Exception output.
 - Read files in parallel using ADIOS.
-- Parallel access and treatment of the files.
+- Read 2D files in parallel using HDF5
+- Read particles in parallel with HDF5
