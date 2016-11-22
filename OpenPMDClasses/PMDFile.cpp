@@ -507,6 +507,12 @@ int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSet
             //Define hyperslab in the dataset.
             err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, start, stride, count, block);
 
+            if (err!=0)
+            {
+                cerr << " Problem when defining the hyperslab in the dataset" << endl;
+                return 0;
+            }
+
             // Create memory dataspace.
             // Dimension sizes of the dataset in memory when we read selection from the dataset on the disk
             hsize_t mdim[] = {fieldBlock->nbNodes[0], fieldBlock->nbNodes[1], fieldBlock->nbNodes[2]};

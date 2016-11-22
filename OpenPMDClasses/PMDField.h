@@ -27,10 +27,10 @@
 
 using namespace std;
 
-/// Structure to store vector vtk metadata
+/// Structure to store field block properties
 struct fieldBlockStruct
 {
-    int     ndims;                // Block dimension
+    int     ndims;              // Block dimension
     int     nbNodes[3];         // number of nodes
     int     minNode[3];         // minimum node index
     int     maxNode[3];         // maximum node index

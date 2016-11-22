@@ -29,6 +29,15 @@
 
 using namespace std;
 
+/// Structure to store particle block properties
+struct particleBlockStruct
+{
+    int     numParticles;       // Block dimension
+    int     minParticle;        // minimum node index
+    int     maxParticle;        // maximum node index
+    char    dataSetPath[128];   // Path to the dataSet
+};
+
 /** ____________________________________________________________________________
  Class: PMDParticle
 

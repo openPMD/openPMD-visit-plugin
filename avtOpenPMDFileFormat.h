@@ -48,6 +48,7 @@
 #define AVT_OpenPMD_FILE_FORMAT_H
 
 #include <avtMTMDFileFormat.h>
+#include <avtParallel.h>
 
 #include <vector>
 
@@ -103,6 +104,7 @@ class avtOpenPMDFileFormat : public avtMTMDFileFormat
 
     bool                   initialized;
     bool                   parallel;
+    int                    numTasks;
     PMDFile                openPMDFile;
 
     virtual void           PopulateDatabaseMetaData(avtDatabaseMetaData *, int);

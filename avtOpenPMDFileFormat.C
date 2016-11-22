@@ -135,8 +135,16 @@ avtOpenPMDFileFormat::Initialize()
         // For each iteration, scan the particle groups
         openPMDFile.ScanParticles();
 
-        this->parallel = true;
+        // Number of MPI tasks
+        numTasks = PAR_Size();
+        // If more than one task, we use a parallel treatment
+        if (numTasks > 1)
+        {
+            this->parallel = true;
+            cerr << " Parallel with " << numTasks << " tasks"<< endl;
+        }
 
+        // Initialization has been done
         this->initialized = true;
     }
 }
@@ -313,7 +321,7 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, int time
         }
 
         // Number of blocks
-        mmd->numBlocks = 4;
+        mmd->numBlocks = this->numTasks;
         // Add mesh
         md->Add(mmd);
 
@@ -660,7 +668,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         cerr    << "fieldBlock.minNode[1]: " << fieldBlock.minNode[1] 
                                 << " " << fieldBlock.nbNodes[1] 
                                 << " " << fieldBlock.maxNode[1] << endl;
-                                
+
                         cerr << "fieldBlock.minNode[2]: " << fieldBlock.minNode[2] << " " << fieldBlock.nbNodes[2] << " " << fieldBlock.maxNode[2] << endl;
 
                         dims[0] = fieldBlock.nbNodes[2];
