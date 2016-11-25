@@ -626,7 +626,6 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
 
     cerr << "PMDField::GetBlockProperties" << endl;
 
-    int nbBlockNodes[0];            // Number of nodes in each directions
     int r;                          // division rest
 
     // Copy the name of the dataset
@@ -639,7 +638,7 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
         fieldBlock->ndims=this->ndims;
 
         // Computation of the number of Nodes
-        // We divide the field dataset into blocksnumDomains domains in the last direction
+        // We divide the field dataset into blockDim domains in the last direction
         fieldBlock->nbNodes[0] = this->nbNodes[0] / blockDim;
         r = this->nbNodes[0]%blockDim;
         if (blockId < r )
@@ -675,7 +674,7 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
         // Total number of nodes
         fieldBlock->nbTotalNodes = fieldBlock->nbNodes[0]*fieldBlock->nbNodes[1]*fieldBlock->nbNodes[2];
 
-        // Computation of maximum idexes
+        // Computation of maximum indexes
         fieldBlock->maxNode[0] = fieldBlock->minNode[0] + fieldBlock->nbNodes[0] -1;
         fieldBlock->maxNode[1] = fieldBlock->minNode[1] + fieldBlock->nbNodes[1] -1;
         fieldBlock->maxNode[2] = fieldBlock->minNode[2] + fieldBlock->nbNodes[2] -1;

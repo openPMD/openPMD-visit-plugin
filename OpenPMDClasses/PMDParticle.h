@@ -106,7 +106,7 @@ class PMDParticle
         void        ScanMomenta(hid_t particleGroupId, char * objectName);
         void        ScanDataSet(hid_t particleGroupId,char * objectName);
         void        ScanGroup(hid_t particleGroupId,char * objectName);
-
+        int         GetBlockProperties(int scalarDataSetId, int blockDim, int blockId , particleBlockStruct * particleBlock);
         int         GetNumScalarDatasets();
         int         GetNumVectorDatasets();
 

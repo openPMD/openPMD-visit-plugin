@@ -453,8 +453,10 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
  \author Programmer: Mathieu Lobet
  \date Creation:   Mon Nov 14 2016
 
- \param numDomains number of domains to divide the field
- \param
+ \param array output array
+ \param factor multiply factor
+ \param dataSetClass Dataset type (H5T_FLOAT...)
+ \param fieldBlock field block properties
 
  Modifications:
 
@@ -468,6 +470,8 @@ int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSet
     hid_t   datasetType;
     hid_t   datasetSpace;
     hsize_t datasetStorageSize;
+
+    cerr  << "PMDFile::ReadFieldScalarBlock" << endl;
 
     // Open the corresponding dataset
     if ((datasetId = H5Dopen(this->fileId,fieldBlock->dataSetPath,H5P_DEFAULT))<0)
@@ -510,7 +514,7 @@ int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSet
             if (err!=0)
             {
                 cerr << " Problem when defining the hyperslab in the dataset" << endl;
-                return 0;
+                return -3;
             }
 
             // Create memory dataspace.
@@ -562,9 +566,137 @@ int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSet
         H5Tclose(datasetType); 
 
     }
-    cerr << " End ReadScalarDataSet" << endl;
+    cerr << " End ReadFieldScalarBlock" << endl;
 
     return 0;
+}
+
+/** ____________________________________________________________________________
+ Method: PMDFile::ReadParticleScalarBlock
+
+ \brief This method reads a block of data from a particle dataset specified by particleBlock.
+
+ \author Programmer: Mathieu Lobet
+ \date Creation:   Mon Nov 14 2016
+
+ \param array
+ \param factor
+ \param dataSetClass data set type (H5T_FLOAT...)
+ \param particleBlock
+
+ Modifications:
+
+ ____________________________________________________________________________ */
+int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, particleBlockStruct * particleBlock)
+{
+    int     ndims;
+    int     err;
+    hid_t   datasetId;
+    hid_t   datasetType;
+    hid_t   datasetSpace;
+    hsize_t datasetStorageSize;
+
+    cerr  << "PMDFile::ReadParticleScalarBlock" << endl;
+
+    // Open the corresponding dataset
+    if ((datasetId = H5Dopen(this->fileId,particleBlock->dataSetPath,H5P_DEFAULT))<0)
+    {
+        cerr << " Problem when opening the dataset: " << particleBlock->dataSetPath << endl;
+        return -1;
+    }  
+    else
+    {
+        // Parameters for the hyperslab
+        hsize_t start[1];
+        hsize_t block[1];
+        hsize_t stride[1];
+        hsize_t count[1];
+        hid_t   memspace; 
+
+        // Data space
+        datasetSpace = H5Dget_space(datasetId);
+        // Data type
+        datasetType  = H5Dget_type(datasetId);
+        // Storage size
+        datasetStorageSize = H5Dget_storage_size(datasetId);
+        // Dimension from the data space
+        ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
+
+        // Check the class of the dataset
+        if ((H5Tget_class(datasetType) == dataSetClass)&&(dataSetClass==H5T_FLOAT))
+        {
+
+            // Fill the parameters for the hyperslab using the particleBlock properties
+            start[0] = particleBlock->minParticle;
+            block[0] = 1;
+            stride[0] = 1;
+            count[0]  = particleBlock->numParticles;   
+
+            //Define hyperslab in the dataset.
+            err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, start, stride, count, block);
+
+            if (err!=0)
+            {
+                cerr << " Problem when defining the hyperslab in the dataset" << endl;
+                return -3;
+            }
+
+            // Create memory dataspace.
+            // Dimension sizes of the dataset in memory when we read selection from the dataset on the disk
+            hsize_t mdim[] = {particleBlock->numParticles};
+
+            // Define the memory dataspace.
+            memspace = H5Screate_simple (1, mdim, NULL);
+
+            start[0] = 0;
+            block[0] = 1;
+            stride[0] = 1;
+            count[0]  = particleBlock->numParticles;
+
+            // Define memory hyperslab. 
+            err = H5Sselect_hyperslab (memspace, H5S_SELECT_SET, start, stride, count, block);
+
+            if (H5Dread(datasetId, datasetType, memspace, datasetSpace, H5P_DEFAULT, array) < 0)
+            {
+                //EXCEPTION1(InvalidVariableException, field->name);
+                cerr << " Problem when reading the dataset: " << particleBlock->dataSetPath << endl;
+                return -4;
+            }
+
+            // Application of the factor to the data
+            float factorTmp = *(float*) (factor);
+            float * arrayTmp = (float*) (array);
+#ifdef VERBOSE
+            cerr << " Application of the factor: " << factorTmp << endl;
+#endif            
+            if (factorTmp != 1)
+            {
+                for (int i=0;i<particleBlock->numParticles;i++)
+                {
+                    arrayTmp[i] *= factorTmp;
+                }
+            }
+
+        }  
+        else
+        {
+            //EXCEPTION2(InvalidFilesException, (const char *)filename,
+            //               "The current dataset is not a float dataset");
+            cerr << "The current dataset, " << particleBlock->dataSetPath 
+                 << ", is not of the specified class:" << H5T_FLOAT 
+                 << endl;
+            return -2;
+        }
+
+        H5Dclose(datasetId);
+        H5Sclose(datasetSpace);
+        H5Tclose(datasetType);
+    }
+
+    cerr << " End PMDFile::ReadParticleScalarBlock" << endl;
+
+    return 0;
+
 }
 
 /** ____________________________________________________________________________

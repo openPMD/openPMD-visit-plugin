@@ -988,7 +988,7 @@ int PMDParticle::GetNumScalarDatasets()
 }
 
 /** ____________________________________________________________________________
- Method: PMDParticle::GetNumScalarDatasets
+ Method: PMDParticle::GetNumVectorDatasets
 
  \brief This method return the number of vector datasets stored in the vector 
  this->scalarDataSets.
@@ -1004,3 +1004,57 @@ int PMDParticle::GetNumVectorDatasets()
 	return this->vectorDataSets.size();
 }
 
+/** ____________________________________________________________________________
+ Method: PMDParticle::GetDomainProperties
+
+ \brief This method returns the properties of the required block when the
+        fields are readed by block (parallel)
+
+ \details This method returns an error code.
+
+ \author Programmer: Mathieu Lobet
+ \date Creation:   Nov 23 2016
+
+ \param scalarDataSetId index of the scalar data set in the vector scalarDataSets
+ \param blockDim number of domains to divide the dataset
+ \param blockId index of the block
+ \param particleBlock structure containing the properties of the block
+
+ Modifications:
+
+ ____________________________________________________________________________ */
+int PMDParticle::GetBlockProperties(int scalarDataSetId, int blockDim, int blockId , particleBlockStruct * particleBlock)
+{
+
+    cerr << "PMDParticle::GetBlockProperties(scalarDataSetId=" << scalarDataSetId << ")"<< endl;
+
+    // Parameters
+    int r;                          // division rest
+
+    // Copy the name of the dataset
+    strcpy(particleBlock->dataSetPath,this->scalarDataSets[scalarDataSetId].path);
+
+    // Computation of the number of Particles in this block
+    // We divide the particle dataset into blockDim subsets
+    particleBlock->numParticles = this->numParticles / blockDim;
+    r = this->numParticles%blockDim;
+    if (blockId < r )
+    {
+        particleBlock->numParticles += 1;
+    }    
+
+    // Computation of minimum idexes
+    if (blockId < r )
+    {
+        particleBlock->minParticle = blockId*particleBlock->numParticles;
+    }
+    else
+    {
+    	// the r first blocks share the rest (+1)
+        particleBlock->minParticle = r*(particleBlock->numParticles+1) + (blockId - r)*particleBlock->numParticles;
+    }
+
+    // Computation of maximum indexes
+    particleBlock->maxParticle = particleBlock->minParticle + particleBlock->numParticles -1;
+
+}
