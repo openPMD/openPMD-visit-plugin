@@ -660,10 +660,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 
             if (strcmp(field->geometry,"cartesian")==0)
             {
-
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << "Read mesh: " << bufferMeshName << ", " << field->geometry << endl;
-#endif
                 // Read the ndims and number of X,Y,Z nodes from file.
                 ndims = field->ndims;
 
@@ -767,37 +763,101 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 else if (ndims==2)
                 {
 
-                    dims[0] = field->nbNodes[1];
-                    dims[1] = field->nbNodes[0];
-                    dims[2] = 1;
-
-                    // Read the X coordinates from the file.
-                    coords[0] = vtkFloatArray::New();
-                    coords[0]->SetNumberOfTuples(field->nbNodes[1]);
-                    float *xarray = (float *)coords[0]->GetVoidPointer(0);
-                    for(i=0;i<field->nbNodes[1];i++)
+                    // Treatment of the file in parallel
+                    if (this->parallel)
                     {
-                        xarray[i] = ((i+field->gridPosition[1])*field->gridSpacing[1] + field->gridGlobalOffset[1])*field->gridUnitSI;
-                    }
 
-                    // Read the Y coordinates from the file.
-                    coords[1] = vtkFloatArray::New();
-                    coords[1]->SetNumberOfTuples(field->nbNodes[0]);
-                    float *yarray = (float *)coords[1]->GetVoidPointer(0);
-                    for(i=0;i<field->nbNodes[0];i++)
+                        // Structure to store the block properties
+                        fieldBlockStruct fieldBlock;
+
+                        // We get the block properties
+                        err = field->GetBlockProperties(this->numTasks, 
+                                                        domain, 
+                                                        &fieldBlock);
+
+                        cerr    << "fieldBlock.minNode[0]: " 
+                                << fieldBlock.minNode[0] 
+                                << " " << fieldBlock.nbNodes[0] 
+                                << " " << fieldBlock.maxNode[0] << endl;
+
+                        cerr    << "fieldBlock.minNode[1]: " 
+                                << fieldBlock.minNode[1] 
+                                << " " << fieldBlock.nbNodes[1] 
+                                << " " << fieldBlock.maxNode[1] << endl;
+
+                        dims[0] = fieldBlock.nbNodes[1];
+                        dims[1] = fieldBlock.nbNodes[0];
+                        dims[2] = 1;
+
+                        // Read the X coordinates from the file.
+                        coords[0] = vtkFloatArray::New();
+                        coords[0]->SetNumberOfTuples(dims[0]);
+                        float *xarray = (float *)coords[0]->GetVoidPointer(0);
+                        for(i=fieldBlock.minNode[1];i<=fieldBlock.maxNode[1];i++)
+                        {
+                            xarray[i - fieldBlock.minNode[1]] = 
+                            ((i+field->gridPosition[1])*field->gridSpacing[1]
+                            + field->gridGlobalOffset[1])*field->gridUnitSI;
+                        }
+
+                        // Read the Y coordinates from the file.
+                        coords[1] = vtkFloatArray::New();
+                        coords[1]->SetNumberOfTuples(dims[1]);
+                        float *yarray = (float *)coords[1]->GetVoidPointer(0);
+                        for(i=fieldBlock.minNode[0];i<=fieldBlock.maxNode[0];i++)
+                        {
+                            yarray[i - fieldBlock.minNode[0]] = 
+                            ((i+field->gridPosition[0])*field->gridSpacing[0] 
+                            + field->gridGlobalOffset[0])*field->gridUnitSI;
+                        }
+
+                        // No Z coordinates
+                        coords[2] = vtkFloatArray::New();
+                        coords[2]->SetNumberOfTuples(1);
+                        coords[2]->SetComponent(0, 0, 0.);
+
+                    }
+                    // Only one processor
+                    else
                     {
-                        yarray[i] = ((i+field->gridPosition[0])*field->gridSpacing[0] + field->gridGlobalOffset[0])*field->gridUnitSI;
-                    }
 
-                    // No Z coordinates
-                    coords[2] = vtkFloatArray::New();
-                    coords[2]->SetNumberOfTuples(1);
-                    coords[2]->SetComponent(0, 0, 0.);
+                        dims[0] = field->nbNodes[1];
+                        dims[1] = field->nbNodes[0];
+                        dims[2] = 1;
+
+                        // Read the X coordinates from the file.
+                        coords[0] = vtkFloatArray::New();
+                        coords[0]->SetNumberOfTuples(field->nbNodes[1]);
+                        float *xarray = (float *)coords[0]->GetVoidPointer(0);
+                        for(i=0;i<field->nbNodes[1];i++)
+                        {
+                            xarray[i] = 
+                            ((i+field->gridPosition[1])*field->gridSpacing[1]
+                            + field->gridGlobalOffset[1])*field->gridUnitSI;
+                        }
+
+                        // Read the Y coordinates from the file.
+                        coords[1] = vtkFloatArray::New();
+                        coords[1]->SetNumberOfTuples(field->nbNodes[0]);
+                        float *yarray = (float *)coords[1]->GetVoidPointer(0);
+                        for(i=0;i<field->nbNodes[0];i++)
+                        {
+                            yarray[i] = 
+                            ((i+field->gridPosition[0])*field->gridSpacing[0] 
+                            + field->gridGlobalOffset[0])*field->gridUnitSI;
+                        }
+
+                        // No Z coordinates
+                        coords[2] = vtkFloatArray::New();
+                        coords[2]->SetNumberOfTuples(1);
+                        coords[2]->SetComponent(0, 0, 0.);
+                    }
                 }
                 // No recognized dimension
                 else
                 {
-                    cerr << " Dimension of this field dataset is not recognized: " << ndims << endl;
+                    cerr << " Dimension of this field "
+                    "dataset is not recognized: " << ndims << endl;
                 }
 
                 // Create the vtkRectilinearGrid object and set its dimensions
@@ -817,29 +877,25 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             else if (strcmp(field->geometry,"thetaMode")==0)
             {
 
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << "Read mesh: " << bufferMeshName << ", " << field->geometry << endl;
-#endif
-
                 // Read the ndims and number of X,Y,Z nodes from file.
                 ndims = field->ndims;
                 dims[0] = field->nbNodes[2]; // z direction 
                 dims[1] = field->nbNodes[1]; // r direction
                 dims[2] = 10; // Theta direction
-
-                cerr << dims[0] << " " << dims[1] << " " << dims[2] << endl;
+                //cerr << dims[0] << " " << dims[1] << " " << dims[2] << endl;
 
                 // Total number of nodes
                 nnodes = dims[0] * dims[1] * dims[2];
                 // Number of modes
                 nmodes = field->nbNodes[0];
 
-                // Read the X coordinates from the file.
+                // Allocate coordinate arrays
                 float *xarray = new float[nnodes];
                 float *yarray = new float[nnodes];
                 float *zarray = new float[nnodes];
 
-                dtheta = 2*3.14159265359/(dims[2]-1);
+                // Step in for the theta discretization
+                dtheta = 2.*3.14159265359/(dims[2]);
 
                 // Build xarray,yarray,zarray
                 for(k = 0; k < dims[2]; ++k)
@@ -918,10 +974,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
         if (strcmp(meshname, bufferMeshName) == 0)
         {
 
-#if defined(VERSOSE)&&(VERBOSE==1)
-            cerr << "Read mesh: " << bufferMeshName << endl;
-#endif
-
             // Read the dimension ndims
             ndims = particle->numDimsPositions;
 
@@ -957,15 +1009,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 float *xarray = new float[particleBlock.numParticles];
 
                 // Read the dataset
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << "Read dataset: " << bufferDataSetName << endl;
-#endif
                 openPMDFile.ReadParticleScalarBlock(xarray,&factor,H5T_FLOAT,&particleBlock);
-
-                // for(int j=0;j<particleBlock.numParticles;j++)
-                // {
-                //     cerr << xarray[i]<< endl;
-                // }
 
                 /* ____ Read the Y coordinates from the file _________ */
 
@@ -985,9 +1029,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 float *yarray = new float[particleBlock.numParticles];
 
                 // Read the dataset
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << "Read dataset: " << bufferDataSetName << endl;
-#endif
                 openPMDFile.ReadParticleScalarBlock(yarray,&factor,H5T_FLOAT,&particleBlock);
 
                 /* ____ Read the Z coordinates from the file _________ */
@@ -1011,9 +1052,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     zarray = new float[particleBlock.numParticles];
 
                     // Read the dataset
-#if defined(VERSOSE)&&(VERBOSE==1)
-                    cerr << "Read dataset: " << bufferDataSetName << endl;
-#endif
                     openPMDFile.ReadParticleScalarBlock(zarray,&factor,H5T_FLOAT,&particleBlock);
 
                 }
@@ -1083,9 +1121,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 factor = particle->scalarDataSets[id].unitSI;
 
                 // Read the dataset
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << "Read dataset: " << bufferDataSetName << endl;
-#endif
                 openPMDFile.ReadScalarDataSet(xarray,nnodes,&factor,H5T_FLOAT,bufferDataSetName);
 
                 // Read the Y coordinates from the file.
@@ -1101,9 +1136,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 factor = particle->scalarDataSets[id].unitSI;
 
                 // Read the dataset
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << "Read dataset: " << bufferDataSetName << endl;
-#endif
                 openPMDFile.ReadScalarDataSet(yarray,nnodes,&factor,H5T_FLOAT,bufferDataSetName);
 
                 float *zarray = 0;
@@ -1122,9 +1154,6 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     factor = particle->scalarDataSets[id].unitSI;
 
                     // Read the dataset
-#if defined(VERSOSE)&&(VERBOSE==1)
-                    cerr << "Read dataset: " << bufferDataSetName << endl;
-#endif
                     openPMDFile.ReadScalarDataSet(zarray,nnodes,&factor,H5T_FLOAT,bufferDataSetName);
                 }
 
@@ -1277,10 +1306,6 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     vtkArray->SetNumberOfTuples(numValues);
                     float *data = (float *)vtkArray->GetVoidPointer(0);
 
-#if defined(VERSOSE)&&(VERBOSE==1)
-                    cerr << " Reading dataset: " << field->datasetPath << endl;
-#endif
-
                     // Reading of the dataset block
                     err = openPMDFile.ReadFieldScalarBlock(data,&factor,H5T_FLOAT,&fieldBlock);
 
@@ -1297,10 +1322,6 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     vtkArray->SetNumberOfTuples(numValues);
                     float *data = (float *)vtkArray->GetVoidPointer(0);
 
-#if defined(VERSOSE)&&(VERBOSE==1)
-                    cerr << " Reading dataset: " << field->datasetPath << endl;
-#endif
-
                     // Reading of the dataset
                     err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
                 }
@@ -1315,43 +1336,46 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
             }
             else if (strcmp(field->geometry,"thetaMode")==0)
             {
-                // Dimensions
-                dims[0] = field->nbNodes[2]; // z direction 
-                dims[1] = field->nbNodes[1]; // r direction
-                dims[2] = 10;               // Theta direction
-
-                // Factor for SI units
-                factor = field->unitSI;
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << " Factor: " << factor << endl;
-#endif
-
-                // Total number of Values
-                numValues = dims[0]*dims[1]*dims[2];
-
-                // Allocate the dataset array with the different modes
-                float *dataSetArray = new float(dims[1]*dims[0]*3);
-
-#if defined(VERSOSE)&&(VERBOSE==1)
-                cerr << " Reading dataset: " << field->datasetPath << endl;
-#endif
-
-                // Reading of the dataset
-                err = openPMDFile.ReadScalarDataSet(dataSetArray,dims[1]*dims[0]*3,&factor,H5T_FLOAT,field->datasetPath);
 
                 // Allocate the return vtkFloatArray object. Note that
                 // you can use vtkFloatArray, vtkDoubleArray,
                 // vtkUnsignedCharArray, vtkIntArray, etc.
                 vtkFloatArray * vtkArray = vtkFloatArray::New();
+                cerr << " vtkFloatArray * vtkArray = vtkFloatArray::New();" << endl;
+
+                // Dimensions
+                dims[0] = field->nbNodes[2]; // z direction 
+                dims[1] = field->nbNodes[1]; // r direction
+                dims[2] = 10;                // Theta direction
+
+                // Factor for SI units
+                factor = field->unitSI;
+                cerr << " Factor: " << factor << endl;
+
+                // Values to be read from the dataset
+                numValues = dims[1]*dims[0]*3;
+
+                // Allocate the dataset array with the different modes
+                float *dataSetArray = new float(numValues);
+
+                cerr << " Reading dataset: " << field->datasetPath << endl;
+
+                // Reading of the dataset
+                err = openPMDFile.ReadScalarDataSet(dataSetArray,numValues,&factor,H5T_FLOAT,field->datasetPath);
+
+                // Total number of Values in the vtkarray
+                numValues = dims[0]*dims[1]*dims[2];
+                cerr << " Total number of values: " << numValues << endl;
+
                 vtkArray->SetNumberOfTuples(numValues);
+                cerr << " vtkArray->SetNumberOfTuples(numValues);" << endl;
                 float *data = (float *)vtkArray->GetVoidPointer(0);
+                cerr << " float *data = (float *)vtkArray->GetVoidPointer(0);" << endl;
 
                 // Treatment of the data
-
                 // We first build the mode 0
-#if defined(VERSOSE)&&(VERBOSE==1)
                 cerr << " Build mode 0" << endl;
-#endif
+
                 for(k = 0; k < dims[2]; ++k) // Loop theta
                 for(j = 0; j < dims[1]; ++j) // Loop r
                 for(i = 0; i < dims[0]; ++i) // Loop z
@@ -1363,21 +1387,16 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // Update of data
                     data[m] = dataSetArray[l];
 
-#if defined(VERSOSE)&&(VERBOSE==1)
-                    cerr << "m: " << m << "/" << numValues-1 
+                    cerr << " m: " << m << "/" << numValues-1 
                          << " l: " << l << "/" << dims[1]*dims[0]-1 
                          << " data[m]: " << data[m] 
                          << " dataSetArray[l]: "<< dataSetArray[l] << endl;
-#endif
                 }             
 
                 // If no error, we return the array
                 if (err>=0)
                 {
-#if defined(VERSOSE)&&(VERBOSE==1)
                     cerr << " Return vtkArray" << endl;
-#endif
-                    usleep(1000000); // for debug purposes
                     return vtkArray;
                 }
 
@@ -1456,10 +1475,6 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     vtkFloatArray * vtkArray = vtkFloatArray::New();
                     vtkArray->SetNumberOfTuples(numValues);
                     float *data = (float *)vtkArray->GetVoidPointer(0);
-
-#if defined(VERSOSE)&&(VERBOSE==1)
-                    cerr << " Dataset path: " << particle->scalarDataSets[i].path << endl;
-#endif
 
                     // Reading of the dataset
                     err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,particle->scalarDataSets[i].path);

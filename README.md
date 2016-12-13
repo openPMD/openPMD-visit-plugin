@@ -189,13 +189,11 @@ OpenPMD files are read and treated in parallel if more than one core are used.
 ## To be implemented/improved
 -------------------------
 
-- The plugin is not reading all the group and dataset attributes. More attribute readers need to be implemented although the necessary ones for visualization are present.
+- The plugin does not read all group and dataset attributes. More attribute readers need to be implemented although the necessary ones for visualization are present.
 - The plugin does not take into account dataset of mass or charge (it only works when these are constant).
-- Field axis labels, fieldBoudary conditions are not read properly. I used a char * instead of a list of char *. I didn't manage to do it properly (Mathieu)
+- Field axis labels, fieldBoudary conditions are not read properly.
 - For Particles, 2D is partially implemented (depends on the components).
 - Debugging curvilinear meshes for cylindrical geometry.
 - Implementing Fortran order, only C order is taken into account
 - Improving Exception output.
 - Read files in parallel using ADIOS.
-- Read 2D files in parallel using HDF5
-- Read particles in parallel with HDF5

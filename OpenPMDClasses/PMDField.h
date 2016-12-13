@@ -14,6 +14,9 @@
 
  ____________________________________________________________________________ */
 
+#ifndef PMDFIELD_H
+#define PMDFIELD_H
+
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
@@ -115,3 +118,5 @@ class PMDField
         void    SetFieldBoundary(char * name, hid_t attr_id, hid_t attr_type, hid_t attr_space);
         void    SetDataOrder(char * name, hid_t attr_id, hid_t attr_type, hid_t attr_space);
 };
+
+#endif

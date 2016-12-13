@@ -1,3 +1,7 @@
+
+#ifndef PMDITERATION_H
+#define PMDITERATION_H
+
 #include "PMDField.h"
 #include "PMDParticle.h"
 #include <vector>
@@ -59,3 +63,4 @@ class PMDIteration
 
 };
 
+#endif

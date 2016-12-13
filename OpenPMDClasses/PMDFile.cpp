@@ -1,21 +1,61 @@
-/** ____________________________________________________________________________
+/*****************************************************************************
+*
+* Copyright (c) 2000 - 2015, Lawrence Livermore National Security, LLC
+* Produced at the Lawrence Livermore National Laboratory
+* LLNL-CODE-442911
+* All rights reserved.
+*
+* This file is  part of VisIt. For  details, see https://visit.llnl.gov/.  The
+* full copyright notice is contained in the file COPYRIGHT located at the root
+* of the VisIt distribution or at http://www.llnl.gov/visit/copyright.html.
+*
+* Redistribution  and  use  in  source  and  binary  forms,  with  or  without
+* modification, are permitted provided that the following conditions are met:
+*
+*  - Redistributions of  source code must  retain the above  copyright notice,
+*    this list of conditions and the disclaimer below.
+*  - Redistributions in binary form must reproduce the above copyright notice,
+*    this  list of  conditions  and  the  disclaimer (as noted below)  in  the
+*    documentation and/or other materials provided with the distribution.
+*  - Neither the name of  the LLNS/LLNL nor the names of  its contributors may
+*    be used to endorse or promote products derived from this software without
+*    specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT  HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR  IMPLIED WARRANTIES, INCLUDING,  BUT NOT  LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND  FITNESS FOR A PARTICULAR  PURPOSE
+* ARE  DISCLAIMED. IN  NO EVENT  SHALL LAWRENCE  LIVERMORE NATIONAL  SECURITY,
+* LLC, THE  U.S.  DEPARTMENT OF  ENERGY  OR  CONTRIBUTORS BE  LIABLE  FOR  ANY
+* DIRECT,  INDIRECT,   INCIDENTAL,   SPECIAL,   EXEMPLARY,  OR   CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT  LIMITED TO, PROCUREMENT OF  SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF  USE, DATA, OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER
+* CAUSED  AND  ON  ANY  THEORY  OF  LIABILITY,  WHETHER  IN  CONTRACT,  STRICT
+* LIABILITY, OR TORT  (INCLUDING NEGLIGENCE OR OTHERWISE)  ARISING IN ANY  WAY
+* OUT OF THE  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+* DAMAGE.
+*
+*****************************************************************************/
 
-\file PMDFile.cpp
-
-\brief 
-PMDFile class method
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 14 2016
-
-\warning READ BEFORE MODIFY:
-\n This file should be modified/maintained only when located in its original repository.
-\n Else, this file is a copy and may not be the lastest version.
-\n The modifications will not be considered.
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+//                                 PMDFile.cpp
+// Purposes:
+// this file contains the PMDFile class method.
+//
+// Programmer: Mathieu Lobet
+//
+// Creation:   Fri Oct 14 2016
+//
+// ***************************************************************************
 
 #include "PMDFile.h"
+
+#include <snprintf.h>
+
+#include <InvalidVariableException.h>
+#include <InvalidDBTypeException.h>
+#include <InvalidFilesException.h>
+#include <InvalidTimeStepException.h>
+#include <InvalidDBTypeException.h>
 
 /** ____________________________________________________________________________
  Method: PMDFile::PMDFile
@@ -104,8 +144,6 @@ void PMDFile::ScanFileAttributes()
 	// Number of attributes
 	nbAttr = H5Aget_num_attrs(groupId);
 
-	if (verbose) cout << "    Number of file attributes: " << nbAttr << endl;
-
 	// Loop over the attributes
     for (iAttr = 0; iAttr < nbAttr; iAttr++)
     {
@@ -167,8 +205,6 @@ void PMDFile::ScanIterations()
 
 	//H5Gget_num_objs(group_iterations->getId(), &nobj);
 	H5Gget_num_objs(groupId, &nbIterations);
-
-	if (verbose) cout << "    Number of iterations: " << nbIterations << endl;
 
 	// We scan by "hand" all groups in the group data that corresponds to the different iterations 
 
@@ -372,9 +408,9 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
     // Open the corresponding dataset
     if ((datasetId = H5Dopen(this->fileId,path,H5P_DEFAULT))<0)
     {
-        //char error[1024];
-        //SNPRINTF(error, 1024, "Problem when opening the dataset %d",int(datasetId));
-        //EXCEPTION2(InvalidFilesException, (const char *)filename,error);
+        char error[1024];
+        SNPRINTF(error, 1024, "Problem when opening the dataset %d",int(datasetId));
+        EXCEPTION2(InvalidFilesException, (const char *) path,error);
         cerr << " Problem when opening the dataset: " << path << endl;
         return -1;
     }  
@@ -399,17 +435,18 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
 
                 if (H5Dread(datasetId, datasetType, H5S_ALL, H5S_ALL, H5P_DEFAULT, array) < 0)
                 {
-                    //EXCEPTION1(InvalidVariableException, field->name);
+                    EXCEPTION1(InvalidVariableException, path);
                     cerr << " Problem when reading the dataset: " << path << endl;
                     return -4;
                 }
-
-		        // Application of the factor to the data
-		        float factorTmp = *(float*) (factor);
-		        float * arrayTmp = (float*) (array);
-                if (verbose) cerr << " Application of the factor: " << factorTmp << endl;               
+            
+                // Application of the factor to the data
+                float factorTmp = *(float*) (factor);
 		        if (factorTmp != 1)
 		        {
+                    float * arrayTmp = (float*) (array);
+                    cerr << " Application of the factor: " << factorTmp << endl;   
+
 		        	for (int i=0;i<numValues;i++)
 		        	{
 		        		arrayTmp[i] *= factorTmp;
@@ -421,24 +458,29 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
             }
             else
             {
-                //char error[1024];
-                //SNPRINTF(error, 1024, "Invalid size for the current dataset (%d %ld)",numValues,long(datasetStorageSize));
-                //EXCEPTION2(InvalidFilesException, (const char *)filename,error);
-            	cerr << " Invalid size for the current dataset:" << numValues << " " << long(datasetStorageSize) << endl;
+                char error[1024];
+                SNPRINTF(error, 1024,
+                         "Invalid size for the current dataset (%d %ld)",
+                         numValues,long(datasetStorageSize));
+
+                EXCEPTION2(InvalidFilesException, (const char *) path,error);
+            	cerr << " Invalid size for the current dataset:" << numValues
+                     << " " << long(datasetStorageSize) << endl;
                 return -3;
             }        	
         }
         else
         {
-            //EXCEPTION2(InvalidFilesException, (const char *)filename,
-            //               "The current dataset is not a float dataset");
-            cerr << "The current dataset, " << path << ", is not of the specified class:" << H5T_FLOAT << endl;
+            EXCEPTION2(InvalidFilesException, (const char *) path,
+                       "The current dataset is not a float dataset");           
+            cerr << "The current dataset, " << path 
+                 << ", is not of the specified class:" << H5T_FLOAT << endl;
             return -2;
         }
 
-        H5Dclose(datasetId);
-        H5Sclose(datasetSpace);
-        H5Tclose(datasetType); 
+        //H5Dclose(datasetId);
+        //H5Tclose(datasetType);        
+        //H5Sclose(datasetSpace);
 
     }
     cerr << " End ReadScalarDataSet" << endl;
@@ -461,7 +503,11 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
  Modifications:
 
  ____________________________________________________________________________ */
-int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, fieldBlockStruct * fieldBlock)
+int 
+PMDFile::ReadFieldScalarBlock(void * array,
+                              void * factor,
+                              H5T_class_t dataSetClass, 
+                              fieldBlockStruct * fieldBlock)
 {
 
     int     ndims;
@@ -476,7 +522,11 @@ int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSet
     // Open the corresponding dataset
     if ((datasetId = H5Dopen(this->fileId,fieldBlock->dataSetPath,H5P_DEFAULT))<0)
     {
-        cerr << " Problem when opening the dataset: " << fieldBlock->dataSetPath << endl;
+        char error[1024];
+        SNPRINTF(error, 1024, "Problem when opening the dataset %d",int(datasetId));
+        EXCEPTION2(InvalidFilesException, (const char *) fieldBlock->dataSetPath,error);
+        cerr << " Problem when opening the dataset: " 
+             << fieldBlock->dataSetPath << endl;
         return -1;
     }  
     else
@@ -492,72 +542,152 @@ int PMDFile::ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSet
         ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
 
         // Check the class of the dataset
-        if ((H5Tget_class(datasetType) == dataSetClass)&&(dataSetClass==H5T_FLOAT))
+        if ((H5Tget_class(datasetType) == dataSetClass)
+           &&(dataSetClass==H5T_FLOAT))
         {
 
-            // Parameters for the hyperslab
-            hsize_t start[3];
-            hsize_t block[3];
-            hsize_t stride[3];
-            hsize_t count[3];
-            hid_t   memspace; 
-
-            // Fill the parameters for the hyperslab using the fieldBlock properties
-            start[0] = fieldBlock->minNode[0];   start[1] = fieldBlock->minNode[1];   start[2] = fieldBlock->minNode[2];
-            block[0] = 1;   block[1] = 1;   block[2] = 1;
-            stride[0] = 1;  stride[1] = 1;  stride[2] = 1;
-            count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];  count[2] = fieldBlock->nbNodes[2];
-
-            //Define hyperslab in the dataset.
-            err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, start, stride, count, block);
-
-            if (err!=0)
+            // ___ Read the dataset __________________________________________
+            // 3D dataset
+            if (ndims==3)
             {
-                cerr << " Problem when defining the hyperslab in the dataset" << endl;
-                return -3;
-            }
 
-            // Create memory dataspace.
-            // Dimension sizes of the dataset in memory when we read selection from the dataset on the disk
-            hsize_t mdim[] = {fieldBlock->nbNodes[0], fieldBlock->nbNodes[1], fieldBlock->nbNodes[2]};
+                // Parameters for the hyperslab
+                hsize_t start[3];
+                hsize_t block[3];
+                hsize_t stride[3];
+                hsize_t count[3];
+                hid_t   memspace; 
 
-            // Define the memory dataspace.
-            memspace = H5Screate_simple (fieldBlock->ndims, mdim, NULL);
+                // Fill the parameters for the hyperslab using the fieldBlock properties
+                start[0] = fieldBlock->minNode[0];   start[1] = fieldBlock->minNode[1];   start[2] = fieldBlock->minNode[2];
+                block[0] = 1;   block[1] = 1;   block[2] = 1;
+                stride[0] = 1;  stride[1] = 1;  stride[2] = 1;
+                count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];  count[2] = fieldBlock->nbNodes[2];
 
-            start[0] = 0;   start[1] = 0;   start[2] = 0;
-            block[0] = 1;   block[1] = 1;   block[2] = 1;
-            stride[0] = 1;  stride[1] = 1;  stride[2] = 1;
-            count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];  count[2] = fieldBlock->nbNodes[2];
+                //Define hyperslab in the dataset.
+                err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, start, stride, count, block);
 
-            // Define memory hyperslab. 
-            err = H5Sselect_hyperslab (memspace, H5S_SELECT_SET, start, stride, count, block);
-
-            if (H5Dread(datasetId, datasetType, memspace, datasetSpace, H5P_DEFAULT, array) < 0)
-            {
-                //EXCEPTION1(InvalidVariableException, field->name);
-                cerr << " Problem when reading the dataset: " << fieldBlock->dataSetPath << endl;
-                return -4;
-            }
-
-            // Application of the factor to the data
-            float factorTmp = *(float*) (factor);
-            float * arrayTmp = (float*) (array);
-            if (verbose) cerr << " Application of the factor: " << factorTmp << endl;               
-            if (factorTmp != 1)
-            {
-                for (int i=0;i<fieldBlock->nbTotalNodes;i++)
+                if (err!=0)
                 {
-                    arrayTmp[i] *= factorTmp;
+                    cerr << " Problem when defining the hyperslab in the dataset" << endl;
+                    return -3;
+                }
+
+                // Create memory dataspace.
+                // Dimension sizes of the dataset in memory when we read selection from the dataset on the disk
+                hsize_t mdim[] = {fieldBlock->nbNodes[0], fieldBlock->nbNodes[1], fieldBlock->nbNodes[2]};
+
+                // Define the memory dataspace.
+                memspace = H5Screate_simple (fieldBlock->ndims, mdim, NULL);
+
+                start[0] = 0;   start[1] = 0;   start[2] = 0;
+                block[0] = 1;   block[1] = 1;   block[2] = 1;
+                stride[0] = 1;  stride[1] = 1;  stride[2] = 1;
+                count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];  count[2] = fieldBlock->nbNodes[2];
+
+                // Define memory hyperslab. 
+                err = H5Sselect_hyperslab (memspace, H5S_SELECT_SET, start, stride, count, block);
+
+                if (H5Dread(datasetId, datasetType, memspace, datasetSpace, H5P_DEFAULT, array) < 0)
+                {
+                    EXCEPTION1(InvalidVariableException, fieldBlock->dataSetPath);
+                    cerr << " Problem when reading the dataset: " << fieldBlock->dataSetPath << endl;
+                    return -4;
                 }
             }
-            cerr << " End Application of the factor" << endl;
+            // 2D Dataset
+            else if (ndims==2)
+            {
+
+                // Parameters for the hyperslab
+                hsize_t start[2];
+                hsize_t block[2];
+                hsize_t stride[2];
+                hsize_t count[2];
+                hid_t   memspace; 
+
+                // Fill the parameters for the hyperslab using the fieldBlock properties
+                start[0] = fieldBlock->minNode[0];   start[1] = fieldBlock->minNode[1];
+                block[0] = 1;   block[1] = 1;   
+                stride[0] = 1;  stride[1] = 1;  
+                count[0]  = fieldBlock->nbNodes[0];  count[1]  = fieldBlock->nbNodes[1];
+
+                //Define hyperslab in the dataset.
+                err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, 
+                                          start, stride, count, block);
+
+                if (err!=0)
+                {
+                    cerr << " Problem when defining the "
+                            "hyperslab in the dataset" << endl;
+                    return -3;
+                }
+
+                // Create memory dataspace.
+                // Dimension sizes of the dataset in memory when 
+                // we read selection from the dataset on the disk
+                hsize_t mdim[] = {fieldBlock->nbNodes[0], fieldBlock->nbNodes[1]};
+
+                // Define the memory dataspace.
+                memspace = H5Screate_simple (fieldBlock->ndims, mdim, NULL);
+
+                start[0] = 0;   start[1] = 0;
+                block[0] = 1;   block[1] = 1;   
+                stride[0] = 1;  stride[1] = 1; 
+                count[0]  = fieldBlock->nbNodes[0];
+                count[1]  = fieldBlock->nbNodes[1];
+
+                // Define memory hyperslab. 
+                err = H5Sselect_hyperslab (memspace, H5S_SELECT_SET, start, stride, count, block);
+
+                // Reading of the dataset
+                if (H5Dread(datasetId, datasetType, memspace, 
+                            datasetSpace, H5P_DEFAULT, array) < 0)
+                {
+                    EXCEPTION1(InvalidVariableException, 
+                               fieldBlock->dataSetPath);
+                    cerr << " Problem when reading the dataset: " 
+                         << fieldBlock->dataSetPath
+                         << endl;
+                    return -4;
+                }
+
+            }
+
+            // ___ Application of the factor to the data _____________________
+
+            if (dataSetClass==H5T_FLOAT)
+            {
+                float factorTmp = *(float*) (factor);          
+                if (factorTmp != 1)
+                {
+                    float * arrayTmp = (float*) (array);  
+                    for (int i=0;i<fieldBlock->nbTotalNodes;i++)
+                    {
+                        arrayTmp[i] *= factorTmp;
+                    }
+                }
+            }
+            else if (dataSetClass==H5T_NATIVE_DOUBLE)
+            {
+                double factorTmp = *(double*) (factor);          
+                if (factorTmp != 1)
+                {
+                    double * arrayTmp = (double*) (array);  
+                    for (int i=0;i<fieldBlock->nbTotalNodes;i++)
+                    {
+                        arrayTmp[i] *= factorTmp;
+                    }
+                }            
+            }
          
         }
         else
         {
-            //EXCEPTION2(InvalidFilesException, (const char *)filename,
-            //               "The current dataset is not a float dataset");
-            cerr << "The current dataset, " << fieldBlock->dataSetPath << ", is not of the specified class:" << H5T_FLOAT << endl;
+            EXCEPTION2(InvalidFilesException, (const char *)fieldBlock->dataSetPath,
+                           "The current dataset is not of a valid class.");
+            cerr << "The current dataset, " << fieldBlock->dataSetPath 
+                 << ", is not of the specified class: " << dataSetClass << endl;
             return -2;
         }
 
@@ -658,7 +788,7 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
 
             if (H5Dread(datasetId, datasetType, memspace, datasetSpace, H5P_DEFAULT, array) < 0)
             {
-                //EXCEPTION1(InvalidVariableException, field->name);
+                EXCEPTION1(InvalidVariableException, particleBlock->dataSetPath);
                 cerr << " Problem when reading the dataset: " << particleBlock->dataSetPath << endl;
                 return -4;
             }
@@ -666,9 +796,7 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
             // Application of the factor to the data
             float factorTmp = *(float*) (factor);
             float * arrayTmp = (float*) (array);
-#ifdef VERBOSE
-            cerr << " Application of the factor: " << factorTmp << endl;
-#endif            
+       
             if (factorTmp != 1)
             {
                 for (int i=0;i<particleBlock->numParticles;i++)
@@ -680,8 +808,8 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
         }  
         else
         {
-            //EXCEPTION2(InvalidFilesException, (const char *)filename,
-            //               "The current dataset is not a float dataset");
+            EXCEPTION2(InvalidFilesException, (const char *) particleBlock->dataSetPath,
+                           "The current dataset is not a float dataset");
             cerr << "The current dataset, " << particleBlock->dataSetPath 
                  << ", is not of the specified class:" << H5T_FLOAT 
                  << endl;
@@ -692,8 +820,6 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
         H5Sclose(datasetSpace);
         H5Tclose(datasetType);
     }
-
-    cerr << " End PMDFile::ReadParticleScalarBlock" << endl;
 
     return 0;
 
