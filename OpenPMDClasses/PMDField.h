@@ -47,17 +47,19 @@ struct fieldBlockStruct
     char    dataSetPath[128]; 
 };
 
-/** ____________________________________________________________________________
- Class: PMDField
-
- \brief This class represents the field datasets in the OpenPMD file.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Class: PMDField
+//
+// Purpose:
+//      This class represents the field datasets in the OpenPMD file.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//      Mathieu Lobet, Tue Dec 13 2016
+//      I added the reading of the parameter dataSize and dataClass
+// ***************************************************************************
 class PMDField
 {
 	public:
@@ -98,6 +100,10 @@ class PMDField
         char    fieldBoundary[64];
         /// Data order (C or Fortran)
         char    dataOrder[8];
+        /// Data size in number of bytes (4,8)
+        int    dataSize;
+        /// Data Class (H5T_FLOAT, H5T_INTEGER...)
+        H5T_class_t dataClass;
 
         void    ScanAttributes(hid_t object_id);
         void    SetGridDimensions(hid_t dataset_id);

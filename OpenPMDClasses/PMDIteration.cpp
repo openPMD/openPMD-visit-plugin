@@ -88,24 +88,27 @@ PMDIteration::~PMDIteration()
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDIteration::ScanFields
-
- \brief This method analyzes the group "fields" for the current iteration 
- and gathers all the found datasets in the vector "fields".
-
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDIteration::ScanFields
+//
+// Purpose:
+// 		This method analyzes the group "fields" for the current iteration 
+// 		and gathers all the found datasets in the vector "fields".
+//
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//   	Mathieu Lobet, Tue Dec 13 2016
+//   	I added the reading of the data Class and type size
+// ***************************************************************************
 void PMDIteration::ScanFields(hid_t fileId)
 {
     hid_t    		groupId;
-    hid_t    		sub_groupId;
-    hid_t			dataset_id;
+    hid_t    		subGroupId;
+    hid_t			datasetId;
+    hid_t           datasetType;
 	char 			path[64];
 	hsize_t 		nb_objects;
 	hsize_t 		nb_sub_objects;
@@ -172,25 +175,24 @@ void PMDIteration::ScanFields(hid_t fileId)
 		{
 		// If group...
 		case H5O_TYPE_GROUP:
-			if (verbose) cout << " - Object #" << i <<": " << object_name << " (group)"<< endl;
 
 			// Openning of the group
-			sub_groupId = H5Gopen2(groupId, object_name, H5P_DEFAULT);
+			subGroupId = H5Gopen2(groupId, object_name, H5P_DEFAULT);
 
 			// Save the first part of the name
 			strcpy(tmp_name,object_name);
 
 			// Get useful attributes from the group
-			field.ScanAttributes(sub_groupId);
+			field.ScanAttributes(subGroupId);
 
 			// Get the number of datasets 
-			err = H5Gget_num_objs(sub_groupId, &nb_sub_objects);
+			err = H5Gget_num_objs(subGroupId, &nb_sub_objects);
 
 			// Then, we iterate over the datasets in this group
 			for (i_sub_object = 0; i_sub_object < nb_sub_objects; i_sub_object++)
 			{
 				// Get the dataset name
-				length = H5Gget_objname_by_idx(sub_groupId, (hsize_t) i_sub_object, 
+				length = H5Gget_objname_by_idx(subGroupId, (hsize_t) i_sub_object, 
 					subObjectName, (size_t) 64);
 
 				// Save the name
@@ -210,33 +212,37 @@ void PMDIteration::ScanFields(hid_t fileId)
 				strcat(field.datasetPath,subObjectName);
 
 				// Openning of the dataset
-				dataset_id = H5Dopen2(sub_groupId, subObjectName, H5P_DEFAULT);
+				datasetId = H5Dopen2(subGroupId, subObjectName, H5P_DEFAULT);
 
 				// Get useful attributes from the group
-				field.ScanAttributes(dataset_id);
+				field.ScanAttributes(datasetId);
 
 				// Set the grid dimension from the dataset
-				field.SetGridDimensions(dataset_id);
+				field.SetGridDimensions(datasetId);
+
+				// Get the class and size of data (float, integer...)
+				datasetType = H5Dget_type(datasetId);
+				field.dataSize = H5Tget_size(datasetType);
+				field.dataClass = H5Tget_class(datasetType);
 
 				// Insert the field in the list of files
 				fields.push_back(field);
 
-				H5Dclose(dataset_id);
+				H5Dclose(datasetId);
 
 			}
 
-			H5Gclose(sub_groupId);
+			H5Gclose(subGroupId);
 
 		break;
 		// If dataset...
 		case H5O_TYPE_DATASET:
-			if (verbose) cout << " - Object #" << i <<": " << object_name << " (dataset)"<< endl;
 
 			// Let's get the useful attributes of this dataset, since it is localized in "fields"
 			// it owns all its useful attributes.
 
 			// Openning of the dataset
-			dataset_id = H5Dopen2(groupId, object_name, H5P_DEFAULT);
+			datasetId = H5Dopen2(groupId, object_name, H5P_DEFAULT);
 
 			// Save the name
 			strcpy(field.name,object_name);
@@ -252,13 +258,18 @@ void PMDIteration::ScanFields(hid_t fileId)
 			strcat(field.datasetPath,object_name);
 
 			// Scan useful attributes
-			field.ScanAttributes(dataset_id);
+			field.ScanAttributes(datasetId);
+
+			// Get the class and size of data (float, integer...)
+			datasetType = H5Dget_type(datasetId);
+			field.dataSize = H5Tget_size(datasetType);
+			field.dataClass = H5Tget_class(datasetType);
 
 			// Insert the field in the vector of fields
 			fields.push_back(field);
 
 			// Close the current dataset
-			H5Dclose(dataset_id);
+			H5Dclose(datasetId);
 
 		break;
 

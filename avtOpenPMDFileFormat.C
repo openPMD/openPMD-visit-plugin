@@ -104,7 +104,7 @@ avtOpenPMDFileFormat::~avtOpenPMDFileFormat()
 
 
 // ****************************************************************************
-//  Method: Initialize
+//  Method: avtOpenPMDFileFormat::Initialize
 //
 //  Initialization: the OpenPMD file is read and analyze
 //
@@ -1302,12 +1302,24 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // Factor for SI units
                     factor = field->unitSI;
 
-                    // Allocate the return vtkFloatArray object
-                    vtkArray->SetNumberOfTuples(numValues);
-                    float *data = (float *)vtkArray->GetVoidPointer(0);
-
-                    // Reading of the dataset block
-                    err = openPMDFile.ReadFieldScalarBlock(data,&factor,H5T_FLOAT,&fieldBlock);
+                    // Float simple precision
+                    if (field->dataSize == 4)
+                    {
+                        // Allocate the return vtkFloatArray object
+                        vtkArray->SetNumberOfTuples(numValues);
+                        float *data = (float *)vtkArray->GetVoidPointer(0);
+                        // Reading of the dataset block
+                        err = openPMDFile.ReadFieldScalarBlock(data,&factor,field->dataClass,&fieldBlock);
+                    }
+                    // Float double precision
+                    else if (field->dataSize == 8)
+                    {
+                        // Allocate the return vtkFloatArray object
+                        vtkArray->SetNumberOfTuples(numValues);                        
+                        double *data = (double *)vtkArray->GetVoidPointer(0);  
+                        // Reading of the dataset block
+                        err = openPMDFile.ReadFieldScalarBlock(data,&factor,field->dataClass,&fieldBlock);                     
+                    }
 
                 }
                 // Sequential reading of the dataset
@@ -1318,14 +1330,27 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // Factor for SI units
                     factor = field->unitSI;
 
-                    // Allocate the return vtkFloatArray object
-                    vtkArray->SetNumberOfTuples(numValues);
-                    float *data = (float *)vtkArray->GetVoidPointer(0);
-
-                    // Reading of the dataset
-                    err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,field->datasetPath);
+                    // Float simple precision
+                    if (field->dataSize == 4)
+                    {
+                        // Allocate the return vtkFloatArray object
+                        vtkArray->SetNumberOfTuples(numValues);
+                        float *data = (float *)vtkArray->GetVoidPointer(0);
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(data,numValues,
+                            &factor,field->dataClass,field->datasetPath);  
+                    }
+                    // Float double precision
+                    else if (field->dataSize == 8)
+                    {
+                        // Allocate the return vtkFloatArray object
+                        vtkArray->SetNumberOfTuples(numValues);
+                        double *data = (double *)vtkArray->GetVoidPointer(0);         
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(data,numValues,
+                            &factor,field->dataClass,field->datasetPath);    
+                    }
                 }
-
 
                 // If no error, we return the array
                 if (err>=0)

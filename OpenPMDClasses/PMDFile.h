@@ -108,8 +108,15 @@ class PMDFile
         void                    Print();
         void                    SetVerbose(int value);
         int                     GetNumberIterations();
-        int                     ReadScalarDataSet(void * array,int numValues,void * factor,H5T_class_t dataSetClass,char * path);
-        int                     ReadFieldScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, fieldBlockStruct * fieldBlock);
+        int                     ReadScalarDataSet(void * array,
+                                        int numValues,
+                                        void * factor,
+                                        H5T_class_t fieldDataClass,
+                                        char * path);
+        int                     ReadFieldScalarBlock(void * array,
+                                        void * factor, 
+                                        H5T_class_t fieldDataClass, 
+                                        fieldBlockStruct * fieldBlock);
         int                     ReadParticleScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, particleBlockStruct * particleBlock);
         void                    CloseFile();
         

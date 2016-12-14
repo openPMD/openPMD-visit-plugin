@@ -57,17 +57,20 @@
 #include <InvalidTimeStepException.h>
 #include <InvalidDBTypeException.h>
 
-/** ____________________________________________________________________________
- Method: PMDFile::PMDFile
-
- \brief Constructor: Initialize the object
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDFile::PMDFile
+//
+// Purpose:
+//   Constructor: Initialize the object
+//
+// Notes:     Any special notes for users of the class.
+//
+// Programmer: Mathieu Lobet
+// Creation: Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDFile::PMDFile()
 {
 	verbose=0;
@@ -75,17 +78,20 @@ PMDFile::PMDFile()
 	strcpy(this->version,"");
 }
 
-/** ____________________________________________________________________________
- Method: PMDFile::~PMDFile
-
- \brief Destructor of the container PMDFile 
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDFile::~PMDFile
+//
+// Purpose:
+//   Destructor of the container PMDFile 
+//
+// Notes:     Any special notes for users of the class.
+//
+// Programmer: Mathieu Lobet
+// Creation: Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDFile::~PMDFile()
 {
 
@@ -375,31 +381,44 @@ void PMDFile::CloseFile()
 	H5Fclose(fileId);
 }
 
-/** ____________________________________________________________________________
- Method: PMDFile::ReadScalarDataSet
-
- \brief This method reads the specified scalar dataset given by path 
- and returns the resulting array.
-
- \details
- This methods returns an error integer code equal to 0 if success.
-
- \param array pointer to the array that will receive the content of the dataset
- \param numValues number of element to read
- \param factor multiplication factor applied to all elements of array
- \param dataSetClass type of element to be read (H5T_FLOAT, H5T_INTEGER...)
- \param path path to the data set in the OpenPMD file
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_class_t dataSetClass,char * path)
+// ***************************************************************************
+// Method: PMDFile::ReadScalarDataSet
+//
+// Purpose
+//      This method reads the specified scalar dataset given by path 
+//      and returns the resulting array.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Arguments:
+//      array pointer to the array that will receive the content of the dataset
+//      numValues number of element to read
+//      factor multiplication factor applied to all elements of array
+//      fieldDataClass Dataset type (H5T_FLOAT...)
+//      path path to the data set in the OpenPMD file
+//
+// Returns:  <0 on failure, 0 on success.
+//
+// Modifications:
+//      Mathieu Lobet, Tue Dec 13 2016
+//      I added double dataset and double multiplication factor.
+// ***************************************************************************
+int
+PMDFile::ReadScalarDataSet(void * array,
+                           int numValues,
+                           void * factor,
+                           H5T_class_t fieldDataClass,
+                           char * path)
 {
 
+    cerr << "PMDFile::ReadScalarDataSet(" 
+         << "numValues=" << numValues << ","
+         << "path=" << path << ")"
+         << endl;
+
 	int 	ndims;
+    int     dataSize;
     hid_t   datasetId;
     hid_t   datasetType;
     hid_t   datasetSpace;
@@ -421,16 +440,18 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
         datasetSpace = H5Dget_space(datasetId);
         // Data type
         datasetType  = H5Dget_type(datasetId);
+        // Data size
+        dataSize = H5Tget_size(datasetType);
         // Storage size
         datasetStorageSize = H5Dget_storage_size(datasetId);
         // Dimension from the data space
         ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
 
         // Check the class of the dataset
-        if ((H5Tget_class(datasetType) == dataSetClass)&&(dataSetClass==H5T_FLOAT))
+        if (fieldDataClass==H5T_FLOAT)
         {
             // Correct number of values in the dataset
-            if (numValues == int(datasetStorageSize/4))
+            if (numValues == int(datasetStorageSize/dataSize))
             {
 
                 if (H5Dread(datasetId, datasetType, H5S_ALL, H5S_ALL, H5P_DEFAULT, array) < 0)
@@ -440,18 +461,38 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
                     return -4;
                 }
             
-                // Application of the factor to the data
-                float factorTmp = *(float*) (factor);
-		        if (factorTmp != 1)
-		        {
-                    float * arrayTmp = (float*) (array);
-                    cerr << " Application of the factor: " << factorTmp << endl;   
+                // ___ Application of the factor to the data _____________________
 
-		        	for (int i=0;i<numValues;i++)
-		        	{
-		        		arrayTmp[i] *= factorTmp;
-		        	}
-		        }
+                if (dataSize == 4)
+                { 
+                    float factorTmp = *(float*) (factor);
+    		        if (factorTmp != 1)
+    		        {
+                        float * arrayTmp = (float*) (array);
+                        cerr << " Application of the factor: " 
+                             << factorTmp << endl;   
+
+    		        	for (int i=0;i<numValues;i++)
+    		        	{
+    		        		arrayTmp[i] *= factorTmp;
+    		        	}
+    		        }
+                }
+                else if (dataSize == 8)
+                {
+                    double factorTmp = *(double*) (factor);
+                    if (factorTmp != 1)
+                    {
+                        double * arrayTmp = (double*) (array);
+                        cerr << " Application of the factor: " 
+                             << factorTmp << endl;   
+
+                        for (int i=0;i<numValues;i++)
+                        {
+                            arrayTmp[i] *= factorTmp;
+                        }
+                    }
+                }
                 cerr << " End Application of the factor" << endl;
 
 
@@ -471,10 +512,11 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
         }
         else
         {
-            EXCEPTION2(InvalidFilesException, (const char *) path,
-                       "The current dataset is not a float dataset");           
+            EXCEPTION2(InvalidFilesException, 
+                       (const char *) path,
+                        "The current dataset is not of a valid class.");
             cerr << "The current dataset, " << path 
-                 << ", is not of the specified class:" << H5T_FLOAT << endl;
+                 << ", is not a valid class: " << fieldDataClass << endl;
             return -2;
         }
 
@@ -487,31 +529,38 @@ int PMDFile::ReadScalarDataSet(void * array,int numValues,void * factor,H5T_clas
    	return 0;
 }
 
-/** ____________________________________________________________________________
- Method: PMDFile::ReadFieldScalarBlock
-
- \brief This method reads a block of data from a field dataset specified by fieldBlock.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Mon Nov 14 2016
-
- \param array output array
- \param factor multiply factor
- \param dataSetClass Dataset type (H5T_FLOAT...)
- \param fieldBlock field block properties
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDFile::ReadFieldScalarBlock
+//
+// Purpose
+//      This method reads a block of data from a field dataset specified by fieldBlock.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Mon Nov 14 2016
+//
+// Arguments:
+//      array output array
+//      factor multiply factor
+//      dataSetClass Dataset type (H5T_FLOAT...)
+//      ieldBlock field block properties
+//
+// Returns:  <0 on failure, 0 on success.
+//
+// Modifications:
+//      Mathieu Lobet, Tue Dec 13 2016
+//      I added the parallel reading of 2D datasets.
+//      I added double dataset and double multiplication factor.
+// ***************************************************************************
 int 
 PMDFile::ReadFieldScalarBlock(void * array,
                               void * factor,
-                              H5T_class_t dataSetClass, 
+                              H5T_class_t fieldDataClass, 
                               fieldBlockStruct * fieldBlock)
 {
 
     int     ndims;
     int     err;
+    int     dataSize;
     hid_t   datasetId;
     hid_t   datasetType;
     hid_t   datasetSpace;
@@ -536,14 +585,15 @@ PMDFile::ReadFieldScalarBlock(void * array,
         datasetSpace = H5Dget_space(datasetId);
         // Data type
         datasetType  = H5Dget_type(datasetId);
+        // Data size
+        dataSize = H5Tget_size(datasetType);
         // Storage size
         datasetStorageSize = H5Dget_storage_size(datasetId);
         // Dimension from the data space
         ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
 
         // Check the class of the dataset
-        if ((H5Tget_class(datasetType) == dataSetClass)
-           &&(dataSetClass==H5T_FLOAT))
+        if (fieldDataClass == H5T_FLOAT)
         {
 
             // ___ Read the dataset __________________________________________
@@ -629,7 +679,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
                 hsize_t mdim[] = {fieldBlock->nbNodes[0], fieldBlock->nbNodes[1]};
 
                 // Define the memory dataspace.
-                memspace = H5Screate_simple (fieldBlock->ndims, mdim, NULL);
+                memspace = H5Screate_simple(fieldBlock->ndims, mdim, NULL);
 
                 start[0] = 0;   start[1] = 0;
                 block[0] = 1;   block[1] = 1;   
@@ -656,7 +706,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
 
             // ___ Application of the factor to the data _____________________
 
-            if (dataSetClass==H5T_FLOAT)
+            if (dataSize == 4)
             {
                 float factorTmp = *(float*) (factor);          
                 if (factorTmp != 1)
@@ -668,7 +718,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
                     }
                 }
             }
-            else if (dataSetClass==H5T_NATIVE_DOUBLE)
+            else if (dataSize == 8)
             {
                 double factorTmp = *(double*) (factor);          
                 if (factorTmp != 1)
@@ -687,7 +737,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
             EXCEPTION2(InvalidFilesException, (const char *)fieldBlock->dataSetPath,
                            "The current dataset is not of a valid class.");
             cerr << "The current dataset, " << fieldBlock->dataSetPath 
-                 << ", is not of the specified class: " << dataSetClass << endl;
+                 << ", is not a valid class: " << fieldDataClass << endl;
             return -2;
         }
 
@@ -714,7 +764,9 @@ PMDFile::ReadFieldScalarBlock(void * array,
  \param dataSetClass data set type (H5T_FLOAT...)
  \param particleBlock
 
- Modifications:
+// Modifications:
+//      Mathieu Lobet, Tue Dec 13 2016
+//      I added double dataset and double multiplication factor.
 
  ____________________________________________________________________________ */
 int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, particleBlockStruct * particleBlock)
@@ -753,7 +805,9 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
         ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
 
         // Check the class of the dataset
-        if ((H5Tget_class(datasetType) == dataSetClass)&&(dataSetClass==H5T_FLOAT))
+        if ((H5Tget_class(datasetType) == dataSetClass)
+            &&((dataSetClass==H5T_FLOAT)
+            ||(dataSetClass==H5T_NATIVE_DOUBLE)))
         {
 
             // Fill the parameters for the hyperslab using the particleBlock properties
@@ -793,15 +847,30 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
                 return -4;
             }
 
-            // Application of the factor to the data
-            float factorTmp = *(float*) (factor);
-            float * arrayTmp = (float*) (array);
-       
-            if (factorTmp != 1)
+            // ___ Application of the factor to the data _____________________
+
+            if (dataSetClass==H5T_FLOAT)
             {
-                for (int i=0;i<particleBlock->numParticles;i++)
+                float factorTmp = *(float*) (factor);
+                if (factorTmp != 1)
                 {
-                    arrayTmp[i] *= factorTmp;
+                    float * arrayTmp = (float*) (array);
+                    for (int i=0;i<particleBlock->numParticles;i++)
+                    {
+                        arrayTmp[i] *= factorTmp;
+                    }
+                }
+            }
+            else if (dataSetClass==H5T_NATIVE_DOUBLE)
+            {
+                double factorTmp = *(double*) (factor);
+                if (factorTmp != 1)
+                {
+                    double * arrayTmp = (double*) (array);
+                    for (int i=0;i<particleBlock->numParticles;i++)
+                    {
+                        arrayTmp[i] *= factorTmp;
+                    }
                 }
             }
 
