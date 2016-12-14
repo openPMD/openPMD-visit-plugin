@@ -121,9 +121,6 @@ avtOpenPMDFileFormat::Initialize()
 #endif
     if(!this->initialized)
     {
-        // Activate verbose
-        openPMDFile.SetVerbose(1);
-
         // Open the OpenPMD file
         openPMDFile.OpenFile(filename);
 

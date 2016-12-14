@@ -67,7 +67,6 @@
  ____________________________________________________________________________ */
 PMDField::PMDField()
 {
-	verbose=0;
 	unitSI=1;
 	gridUnitSI=1;
 	strcpy(this->name,"");
@@ -108,8 +107,9 @@ PMDField::~PMDField()
  ____________________________________________________________________________ */
 void PMDField::ScanAttributes(hid_t objectId)
 {
-
-    if (verbose) cerr << " PMDField::ScanAttributes: " << endl;
+#ifdef VERBOSE
+    cerr << " PMDField::ScanAttributes: " << endl;
+#endif
 
 	int 	numAttr;
 	int 	i;
@@ -123,7 +123,6 @@ void PMDField::ScanAttributes(hid_t objectId)
 
 	// Number of attributes
 	numAttr = H5Aget_num_attrs(objectId);
-	if (verbose) cout << "    Number of attributes: " << numAttr << endl;
 
 	// This solution with H5Aiterate2 does not work because GetAttributeInfo needs to  
 	// be static and therefore field attribute can not be modified

@@ -36,21 +36,17 @@
 *
 *****************************************************************************/
 
-/** ____________________________________________________________________________
-
-\file PMDFile.h
-
-\brief Definition of the class PMDFile
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 14 2016
-
-\warning READ BEFORE MODIFY:
-\n This file should be modified/maintained only when located in its original repository.
-\n Else, this file is a copy and may not be the lastest version.
-\n The modifications will not be considered.
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+//
+// file PMDFile.h
+//
+// Purpose:
+//      Definition of the class PMDFile
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// ***************************************************************************
 
 #ifndef PMDFILE_H
 #define PMDFILE_H
@@ -69,35 +65,33 @@
 
 using namespace std;
 
-/** ____________________________________________________________________________
- Class: PMDFile
-
- \brief The class PMDFile enables to read the structure of an OpenPMD file.
-
- \details
- This class constitutes the main one to read OpenPMD files.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Class: PMDFile
+//
+// Purpose:
+//      The class PMDFile enables to read the structure of an OpenPMD file.
+//      This class constitutes the main one to read OpenPMD files.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 class PMDFile
 {
 	public:
             	PMDFile();
             	~PMDFile();
 
-        /// Activate the verbose
-        int                     verbose;
         /// File path
         char                    filePath[128];
         /// OpenPMD version
         char                    version[8];
         /// Id of the file after opening
         hid_t                   fileId;
-        /// vector of PMDIteration objects that contains the OpenPMD iterations
+        /// vector of PMDIteration objects 
+        /// that contains the OpenPMD iterations
         vector <PMDIteration>   iterations;
 
         void                    OpenFile(char * path);
@@ -106,7 +100,6 @@ class PMDFile
         void                    ScanFields();
         void                    ScanParticles();
         void                    Print();
-        void                    SetVerbose(int value);
         int                     GetNumberIterations();
         int                     ReadScalarDataSet(void * array,
                                         int numValues,
@@ -117,7 +110,10 @@ class PMDFile
                                         void * factor, 
                                         H5T_class_t fieldDataClass, 
                                         fieldBlockStruct * fieldBlock);
-        int                     ReadParticleScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, particleBlockStruct * particleBlock);
+        int                     ReadParticleScalarBlock(void * array,
+                                                        void * factor,
+                                                    H5T_class_t dataSetClass, 
+                                        particleBlockStruct * particleBlock);
         void                    CloseFile();
         
     protected:

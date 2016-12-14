@@ -70,8 +70,6 @@ PMDParticle::PMDParticle()
 {
 	int i;
 
-	// Verbose behavior
-	this->verbose=0;
 	// If there is momentum datasets
 	this->momentumAvailable = 0;
 	// Index of the scalar position data sets
@@ -224,8 +222,6 @@ void PMDParticle::ScanCharge(hid_t particleGroupId, char * objectName)
 	herr_t 			err;
 	hsize_t 		sdim[64];
 
-	if (verbose) cerr << " Get attributes from: " << objectName << endl;
-
 	// Openning of the group charge
 	chargeGroupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
@@ -322,8 +318,6 @@ void PMDParticle::ScanMass(hid_t particleGroupId, char * objectName)
 	herr_t 			err;
 	hsize_t 		sdim[64];
 
-	if (verbose) cerr << " Get attributes from: " << objectName << endl;
-
 	// Openning of the group charge
 	chargeGroupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
@@ -398,6 +392,10 @@ void PMDParticle::ScanMass(hid_t particleGroupId, char * objectName)
 void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 {
 
+#ifdef VERBOSE
+	cerr << " PMDParticle::SetPositions(" << objectName << ")" << endl;
+#endif
+
 	int 			i;
     char 			bufferName[64];
     char 			datasetName[64];	
@@ -409,8 +407,6 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
     scalarDataSet 	scalar;	
 	herr_t 			err;
 	H5O_info_t 		objectInfo;
-
-	if (verbose) cerr << " PMDParticle::SetPositions(" << objectName << ")" << endl;
 
 	strcpy(bufferName,this->name);
 	strcat(bufferName,"/position/");
@@ -516,6 +512,10 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 {
 
+#ifdef VERBOSE
+	cerr << " PMDParticle::SetMomenta(" << objectName << ")" << endl;
+#endif
+
 	int 			i;
 	int 			vectorDataSetId[3] = {-1,-1,-1};
     char 			bufferName[64];
@@ -529,8 +529,6 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 	hsize_t 		numObjects;
 	herr_t 			err;
 	H5O_info_t 		objectInfo;
-
-	if (verbose) cerr << " PMDParticle::SetMomenta(" << objectName << ")" << endl;
 
 	// Momenta become available
 	this->momentumAvailable = 1;
@@ -645,6 +643,10 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 {
 
+#ifdef VERBOSE
+	cerr << " PMDParticle::ScanGroup(" << objectName << ")" << endl;
+#endif
+
 	int 			i;
 	int 			vectorDataSetId[3] = {-1,-1,-1};
     char 			datasetName[128];
@@ -657,8 +659,6 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 	hsize_t 		numObjects;
 	herr_t 			err;
 	H5O_info_t 		objectInfo;
-
-	if (verbose) cerr << " PMDParticle::ScanGroup(" << objectName << ")" << endl;
 
 	// Openning of the corresponding group
 	groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
@@ -718,7 +718,8 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 			// We add this scalar object to the vector of scalar datasets
 			this->scalarDataSets.push_back(scalar);
 
-			// We keep the position of the datasets for the vector construction
+			// We keep the position of the datasets for the vector 
+			// construction
 			// First vector dimension
 			if (strcmp(datasetName,"x")==0)
 			{
@@ -770,11 +771,13 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 void PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 {
 
+#ifdef VERBOSE
+	cerr << " PMDParticle::ScanDataSet(" << objectName << ")" << endl;
+#endif
+
     scalarDataSet 	scalar;
     hid_t    		dataSetId;
     hid_t    		datasetType;   
-
-	if (verbose) cerr << " PMDParticle::ScanDataSet(" << objectName << ")" << endl;
 
 	// Openning of the dataset
 	dataSetId = H5Dopen2(particleGroupId, objectName , H5P_DEFAULT);
@@ -815,16 +818,20 @@ void PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
  Modifications:
 
  ____________________________________________________________________________ */
-void PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
+void
+PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
 {
+
+#ifdef VERBOSE
+	cerr << " PMDParticle::SetVarAttributes" << endl;
+#endif
+
 	int 			i;
 	int 			numAttr;
 	char 			attrName[64];
 	hid_t 			attrId;
 	hid_t 			attrType;
 	hid_t 			attrSpace;
-
-	if (verbose) cerr << " PMDParticle::SetVarAttributes" << endl;
 
 	// Number of attributes
 	numAttr = H5Aget_num_attrs(objectId);
@@ -847,11 +854,13 @@ void PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObje
 		if (strcmp(attrName,"unitDimension")==0)
 		{
 			strcpy(scalarObject->unitLabel,"");
-			strcat(scalarObject->unitLabel,this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
+			strcat(scalarObject->unitLabel,
+			this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
 		}
 		else if (strcmp(attrName,"unitSI")==0)		
 		{
-			scalarObject->unitSI = SetUnitSI(attrName, attrId, attrType, attrSpace);
+			scalarObject->unitSI = SetUnitSI(attrName, 
+				                             attrId, attrType, attrSpace);
 		}
     }
 }
@@ -868,16 +877,20 @@ void PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObje
  Modifications:
 
 // ____________________________________________________________________________ */
-void PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
+void
+PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 {
+
+#ifdef VERBOSE
+	cerr << " PMDParticle::SetVectorAttributes" << endl;
+#endif
+
 	int 			i;
 	int 			numAttr;
 	char 			attrName[64];
 	hid_t 			attrId;
 	hid_t 			attrType;
 	hid_t 			attrSpace;
-
-	if (verbose) cerr << " PMDParticle::SetVarAttributes" << endl;
 
 	// Number of attributes
 	numAttr = H5Aget_num_attrs(objectId);
@@ -899,7 +912,8 @@ void PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObje
 		if (strcmp(attrName,"unitDimension")==0)
 		{
 			strcpy(vectorObject->unitLabel,"");
-			strcat(vectorObject->unitLabel,SetUnitDimension(attrName, attrId, attrType, attrSpace));
+			strcat(vectorObject->unitLabel,
+			this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
 		}
 
     }
@@ -916,7 +930,11 @@ void PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObje
  Modifications:
 
  ____________________________________________________________________________ */
-double PMDParticle::SetUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+double
+PMDParticle::SetUnitSI(char * name, 
+	  				   hid_t attrId, 
+	  				   hid_t attrType, 
+	  				   hid_t attrSpace)
 {
 	herr_t 	err;
 	double unitSI = 0;
@@ -946,7 +964,11 @@ double PMDParticle::SetUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t a
  Modifications:
 
  ____________________________________________________________________________ */
-char* PMDParticle::SetUnitDimension(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+char* 
+PMDParticle::SetUnitDimension(char * name, 
+							  hid_t attrId, 
+							  hid_t attrType, 
+							  hid_t attrSpace)
 {
 	herr_t 	err;
 	int 	i;
@@ -1092,7 +1114,11 @@ int PMDParticle::GetNumVectorDatasets()
 int PMDParticle::GetBlockProperties(int scalarDataSetId, int blockDim, int blockId , particleBlockStruct * particleBlock)
 {
 
-    cerr << "PMDParticle::GetBlockProperties(scalarDataSetId=" << scalarDataSetId << ")"<< endl;
+#ifdef VERBOSE
+    cerr << "PMDParticle::GetBlockProperties(scalarDataSetId=" 
+         << scalarDataSetId 
+         << ")"<< endl;
+#endif
 
     // Parameters
     int r;                          // division rest
