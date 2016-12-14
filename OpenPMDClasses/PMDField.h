@@ -58,7 +58,7 @@ struct fieldBlockStruct
 //
 // Modifications:
 //      Mathieu Lobet, Tue Dec 13 2016
-//      I added the reading of the parameter dataSize and dataClass
+//      I added the parameter dataSize and dataClass
 // ***************************************************************************
 class PMDField
 {

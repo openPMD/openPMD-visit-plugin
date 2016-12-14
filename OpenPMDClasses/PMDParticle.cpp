@@ -405,6 +405,7 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 	hsize_t 		numObjects;
     hid_t    		groupId;
     hid_t			dataSetId;
+    hid_t			datasetType;
     scalarDataSet 	scalar;	
 	herr_t 			err;
 	H5O_info_t 		objectInfo;
@@ -455,6 +456,12 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 			strcat(scalar.path,objectName);
 			strcat(scalar.path,"/");	
 			strcat(scalar.path,datasetName);
+
+			// data Size
+			datasetType = H5Dget_type(dataSetId);
+			scalar.dataSize = H5Tget_size(datasetType);
+			// data Class
+			scalar.dataClass = H5Tget_class(datasetType);
 
 			H5Dclose(dataSetId);
 		}
@@ -516,6 +523,7 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 	ssize_t 		length;
     hid_t    		groupId;
     hid_t    		dataSetId;
+    hid_t    		datasetType;
     scalarDataSet 	scalar;
     vectorDataSet	vector;
 	hsize_t 		numObjects;
@@ -577,6 +585,12 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 			strcat(scalar.path,"/");	
 			strcat(scalar.path,datasetName);
 
+			// data Size
+			datasetType = H5Dget_type(dataSetId);
+			scalar.dataSize = H5Tget_size(datasetType);
+			// data Class
+			scalar.dataClass = H5Tget_class(datasetType);
+
 			// We add this scalar object to the vector of scalar datasets
 			this->scalarDataSets.push_back(scalar);
 
@@ -637,6 +651,7 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 	ssize_t 		length;	
     hid_t    		groupId;
     hid_t    		dataSetId;
+    hid_t    		datasetType;
     scalarDataSet 	scalar;
     vectorDataSet	vector;
 	hsize_t 		numObjects;
@@ -693,6 +708,12 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 			strcat(scalar.path,objectName);
 			strcat(scalar.path,"/");	
 			strcat(scalar.path,datasetName);
+
+			// data Size
+			datasetType = H5Dget_type(dataSetId);
+			scalar.dataSize = H5Tget_size(datasetType);
+			// data Class
+			scalar.dataClass = H5Tget_class(datasetType);
 
 			// We add this scalar object to the vector of scalar datasets
 			this->scalarDataSets.push_back(scalar);
@@ -751,6 +772,7 @@ void PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 
     scalarDataSet 	scalar;
     hid_t    		dataSetId;
+    hid_t    		datasetType;   
 
 	if (verbose) cerr << " PMDParticle::ScanDataSet(" << objectName << ")" << endl;
 
@@ -769,6 +791,12 @@ void PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 	strcpy(scalar.path,this->path);
 	strcat(scalar.path,"/");
 	strcat(scalar.path,objectName);
+
+	// data Size
+	datasetType = H5Dget_type(dataSetId);
+	scalar.dataSize = H5Tget_size(datasetType);
+	// data Class
+	scalar.dataClass = H5Tget_class(datasetType);
 
 	// We add this scalar object to the vector of scalar datasets
 	this->scalarDataSets.push_back(scalar);

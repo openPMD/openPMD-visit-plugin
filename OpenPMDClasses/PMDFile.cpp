@@ -408,7 +408,7 @@ int
 PMDFile::ReadScalarDataSet(void * array,
                            int numValues,
                            void * factor,
-                           H5T_class_t fieldDataClass,
+                           H5T_class_t dataClass,
                            char * path)
 {
 
@@ -448,7 +448,7 @@ PMDFile::ReadScalarDataSet(void * array,
         ndims        = H5Sget_simple_extent_ndims(datasetSpace);  
 
         // Check the class of the dataset
-        if (fieldDataClass==H5T_FLOAT)
+        if (dataClass==H5T_FLOAT)
         {
             // Correct number of values in the dataset
             if (numValues == int(datasetStorageSize/dataSize))
@@ -516,7 +516,7 @@ PMDFile::ReadScalarDataSet(void * array,
                        (const char *) path,
                         "The current dataset is not of a valid class.");
             cerr << "The current dataset, " << path 
-                 << ", is not a valid class: " << fieldDataClass << endl;
+                 << ", is not a valid class: " << dataClass << endl;
             return -2;
         }
 
@@ -769,10 +769,14 @@ PMDFile::ReadFieldScalarBlock(void * array,
 //      I added double dataset and double multiplication factor.
 
  ____________________________________________________________________________ */
-int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t dataSetClass, particleBlockStruct * particleBlock)
+int PMDFile::ReadParticleScalarBlock(void * array,
+                                     void * factor,
+                                     H5T_class_t dataSetClass, 
+                                     particleBlockStruct * particleBlock)
 {
     int     ndims;
     int     err;
+    int     dataSize;
     hid_t   datasetId;
     hid_t   datasetType;
     hid_t   datasetSpace;
@@ -793,12 +797,14 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
         hsize_t block[1];
         hsize_t stride[1];
         hsize_t count[1];
-        hid_t   memspace; 
+        hid_t   memspace;
 
         // Data space
         datasetSpace = H5Dget_space(datasetId);
         // Data type
         datasetType  = H5Dget_type(datasetId);
+        // Data size
+        dataSize = H5Tget_size(datasetType);
         // Storage size
         datasetStorageSize = H5Dget_storage_size(datasetId);
         // Dimension from the data space
@@ -806,18 +812,23 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
 
         // Check the class of the dataset
         if ((H5Tget_class(datasetType) == dataSetClass)
-            &&((dataSetClass==H5T_FLOAT)
-            ||(dataSetClass==H5T_NATIVE_DOUBLE)))
+            &&((dataSetClass==H5T_FLOAT)))
         {
 
-            // Fill the parameters for the hyperslab using the particleBlock properties
+            // Fill the parameters for the hyperslab 
+            // using the particleBlock properties
             start[0] = particleBlock->minParticle;
             block[0] = 1;
             stride[0] = 1;
             count[0]  = particleBlock->numParticles;   
 
             //Define hyperslab in the dataset.
-            err = H5Sselect_hyperslab(datasetSpace, H5S_SELECT_SET, start, stride, count, block);
+            err = H5Sselect_hyperslab(datasetSpace, 
+                                      H5S_SELECT_SET, 
+                                      start, 
+                                      stride, 
+                                      count, 
+                                      block);
 
             if (err!=0)
             {
@@ -849,7 +860,7 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
 
             // ___ Application of the factor to the data _____________________
 
-            if (dataSetClass==H5T_FLOAT)
+            if (dataSize==4)
             {
                 float factorTmp = *(float*) (factor);
                 if (factorTmp != 1)
@@ -861,7 +872,7 @@ int PMDFile::ReadParticleScalarBlock(void * array,void * factor,H5T_class_t data
                     }
                 }
             }
-            else if (dataSetClass==H5T_NATIVE_DOUBLE)
+            else if (dataSize==8)
             {
                 double factorTmp = *(double*) (factor);
                 if (factorTmp != 1)

@@ -52,6 +52,7 @@
 #include <string>
 
 #include <vtkFloatArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkRectilinearGrid.h>
 #include <vtkStructuredGrid.h>
 #include <vtkUnstructuredGrid.h>
@@ -1232,7 +1233,11 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 //  Creation:   Tue Oct 18 11:49:37 PDT 2016
 //
 //  Modifications:
-//  - Nov 25 2016 - Mathieu Lobet - Add parallel reading for the particles
+//      Mathieu Lobet, Dec 13 2016
+//      I added the reading of single and double precision float datasets
+//
+//      Mathieu Lobet, Nov 25 2016
+//      I added the parallel reading for the particles
 //
 // ****************************************************************************
 
@@ -1473,16 +1478,37 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // Allocate the return vtkFloatArray object. Note that
                     // you can use vtkFloatArray, vtkDoubleArray,
                     // vtkUnsignedCharArray, vtkIntArray, etc.
-                    vtkFloatArray * vtkArray = vtkFloatArray::New();
-                    vtkArray->SetNumberOfTuples(particleBlock.numParticles);
-                    float *data = (float *)vtkArray->GetVoidPointer(0);          
-
-                    err = openPMDFile.ReadParticleScalarBlock(data,&factor,H5T_FLOAT, &particleBlock);
-
-                    // If no error, we return the array
-                    if (err>=0)
+                    if (particle->scalarDataSets[i].dataSize==4)
                     {
-                        return vtkArray;
+                        vtkFloatArray * vtkArray = vtkFloatArray::New();
+                        vtkArray->SetNumberOfTuples(particleBlock.numParticles);
+                        float *data = (float *)vtkArray->GetVoidPointer(0);          
+                        // Read particles
+                        err = openPMDFile.ReadParticleScalarBlock(data,
+                            &factor,
+                            particle->scalarDataSets[i].dataClass,
+                            &particleBlock);
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
+                    }
+                    else if (particle->scalarDataSets[i].dataSize==8)
+                    {
+                        vtkDoubleArray * vtkArray = vtkDoubleArray::New();
+                        vtkArray->SetNumberOfTuples(particleBlock.numParticles);
+                        double *data = (double *)vtkArray->GetVoidPointer(0);          
+                        // Read particles
+                        err = openPMDFile.ReadParticleScalarBlock(data,
+                            &factor,
+                            particle->scalarDataSets[i].dataClass,
+                            &particleBlock);
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
                     }
 
                 }
@@ -1497,17 +1523,39 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // Allocate the return vtkFloatArray object. Note that
                     // you can use vtkFloatArray, vtkDoubleArray,
                     // vtkUnsignedCharArray, vtkIntArray, etc.
-                    vtkFloatArray * vtkArray = vtkFloatArray::New();
-                    vtkArray->SetNumberOfTuples(numValues);
-                    float *data = (float *)vtkArray->GetVoidPointer(0);
-
-                    // Reading of the dataset
-                    err = openPMDFile.ReadScalarDataSet(data,numValues,&factor,H5T_FLOAT,particle->scalarDataSets[i].path);
-
-                    // If no error, we return the array
-                    if (err>=0)
+                    if (particle->scalarDataSets[i].dataSize==4)
                     {
-                        return vtkArray;
+                        vtkFloatArray * vtkArray = vtkFloatArray::New();
+                        vtkArray->SetNumberOfTuples(numValues);
+                        float *data = (float *)vtkArray->GetVoidPointer(0);
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(data,
+                            numValues,
+                            &factor,
+                            particle->scalarDataSets[i].dataClass,
+                            particle->scalarDataSets[i].path);
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
+                    }
+                        else if (particle->scalarDataSets[i].dataSize==8)
+                    {
+                        vtkDoubleArray * vtkArray = vtkDoubleArray::New();
+                        vtkArray->SetNumberOfTuples(numValues);
+                        double *data = (double *)vtkArray->GetVoidPointer(0);
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(data,
+                            numValues,
+                            &factor,
+                            particle->scalarDataSets[i].dataClass,
+                            particle->scalarDataSets[i].path);
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
                     }
                 }
             }

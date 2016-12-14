@@ -82,18 +82,19 @@ struct particleBlockStruct
     char    dataSetPath[128];
 };
 
-/** ____________________________________________________________________________
- Class: PMDParticle
-
- \brief
- This class represents the Particle groups in the OpenPMD files.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Class: PMDParticle
+//
+// Purpose:
+//      This class represents the Particle groups in the OpenPMD files.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//      Mathieu Lobet, Tue Dec 13 2016
+//      I added the parameter dataSize and dataClass
+// ***************************************************************************
 class PMDParticle
 {
 	public:
@@ -115,6 +116,10 @@ class PMDParticle
             double  timeOffset;
             /// Macro-weighted read from OpenPMD file
             int     macroWeighted;
+            /// Data size in number of bytes (4,8)
+            int    dataSize;
+            /// Data Class (H5T_FLOAT, H5T_INTEGER...)
+            H5T_class_t dataClass;
         };
 
         /// Structure to store vector vtk metadata
