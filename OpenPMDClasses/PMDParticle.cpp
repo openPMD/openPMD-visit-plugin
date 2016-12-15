@@ -36,36 +36,32 @@
 *
 *****************************************************************************/
 
-/** ____________________________________________________________________________
-
-\file PMDParticle.cpp
-
-\brief PMDParticle Class methods
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 14 2016
-
-\warning READ BEFORE MODIFY:
-\n This file should be modified/maintained only when located in its original repository.
-\n Else, this file is a copy and may not be the lastest version.
-\n The modifications will not be considered.
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+//
+// file PMDParticle.cpp
+//
+// Purpose:
+// 		PMDParticle Class methods
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// ***************************************************************************
 
 #include "PMDParticle.h"
 
-/** ____________________________________________________________________________
- Method: PMDParticle::PMDParticle
-
-\brief constructor
-
-\author Programmer: Mathieu Lobet
-
-\date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::PMDParticle
+// Purpose:
+// 		Constructor
+//
+// Programmer: Mathieu Lobet
+//
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDParticle::PMDParticle()
 {
 	int i;
@@ -83,36 +79,38 @@ PMDParticle::PMDParticle()
 	this->numDimsPositions = 0;
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::~PMDParticle
-
-\brief destructor
-
-\author Programmer: Mathieu Lobet
-
-\date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::~PMDParticle
+//
+// Purpose:
+// 		Destructor
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDParticle::~PMDParticle()
 {
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanProperties(hid_t particleGroupId)
-
- \brief This method scans the attributes, the groups and datasets contained 
- 		in a given particle group to build all properties of the particle object.
-
- \author Programmer: Mathieu Lobet
-
- \date 	Creation: Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::ScanProperties(hid_t particleGroupId)
+//
+// Purpose:
+// 		This method scans the attributes, the groups and datasets contained 
+// 		in a given particle group to build all properties of the 
+//		particle object.
+//
+// Programmer: Mathieu Lobet
+//
+// Creation: Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 {
 	// Local variables
@@ -134,7 +132,8 @@ void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 			objectName, (size_t) 64);	
 			
 		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(particleGroupId, objectName , &objectInfo, H5P_DEFAULT);
+		err = H5Oget_info_by_name(particleGroupId, objectName,
+		                          &objectInfo, H5P_DEFAULT);
 
 		// Checking of the type
 		switch(objectInfo.type)
@@ -179,13 +178,16 @@ void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 		// If the object is a dataset...
 		case H5O_TYPE_DATASET:
 
-			// Datasets at the root of the particle group are treated as scalar data
+			// Datasets at the root of the particle group are treated 
+			// as scalar data
 			this->ScanDataSet(particleGroupId,objectName);
 			break;
 
 		default:
 
-			cerr << " Non-valid object type while scanning the 'particles' group: " << objectName << ", this object is ignored." << endl;
+			cerr << " Non-valid object type while "
+			        "scanning the 'particles' group: " 
+			     << objectName << ", this object is ignored." << endl;
 
 			break;
 		}
@@ -194,19 +196,20 @@ void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanCharge
-
- \brief This method scans the group `charge` contained in the particle groups and get 
- the useful attributes.
-
- \author Programmer: Mathieu Lobet
-
- \date 	Creation: Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::ScanCharge
+//
+// Purpose:
+// 		This method scans the group `charge` contained in 
+// 		the particle groups and get the useful attributes.
+//
+// Programmer: Mathieu Lobet
+//
+// Creation: Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDParticle::ScanCharge(hid_t particleGroupId, char * objectName)
 {
 
@@ -291,19 +294,20 @@ void PMDParticle::ScanCharge(hid_t particleGroupId, char * objectName)
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanMass
-
- \brief This method scans the group `charge` contained in the particle groups and get 
- the useful attributes.
-
- \author Programmer: Mathieu Lobet
-
- \date Creation:   Fri Oct 14  2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::ScanMass
+//
+// Purpose:
+// 		This method scans the group `charge` contained in the particle 
+// 		groups and get the useful attributes.
+//
+// Programmer: Mathieu Lobet
+//
+// Creation:   Fri Oct 14  2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDParticle::ScanMass(hid_t particleGroupId, char * objectName)
 {
 	int 			i;
@@ -373,22 +377,25 @@ void PMDParticle::ScanMass(hid_t particleGroupId, char * objectName)
 	}
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanPositions
-
- \brief This method scans the group `Position` located in the particle 
- groups for each iteration.
-
- \details This method reads and store the useful attributes from the 
- group itself and the datasets. A `scalarDataSet` structure object is created for each dataset 
- and is put in the vector of *scalar* data `this->scalarDataSets` (member of the class `Particle`).
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::ScanPositions
+//
+// Purpose:
+// 		This method scans the group `Position` located in the particle 
+// 		groups for each iteration.
+//
+// 		This method reads and store the useful attributes from the 
+// 		group itself and the datasets. A `scalarDataSet` structure object is 
+//		created for each dataset 
+// 		and is put in the vector of *scalar* data `this->scalarDataSets` 
+//		(member of the class `Particle`).
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 {
 
@@ -430,9 +437,11 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 			datasetName, (size_t) 64);	
 			
 		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo, H5P_DEFAULT);
+		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo, 
+			                      H5P_DEFAULT);
 
-		// We check that the object is well a dataset, else, this object is ignored
+		// We check that the object is well a dataset, else, 
+		// this object is ignored
 		if (objectInfo.type == H5O_TYPE_DATASET)
 		{
 
@@ -465,7 +474,8 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 		// We add this scalar object to the list of scalar datasets
 		this->scalarDataSets.push_back(scalar);
 
-		// We store the index of the position datasets in positionsId to find them easily
+		// We store the index of the position datasets in positionsId to 
+		// find them easily
 		if (strcmp(datasetName,"x")==0)
 		{
 			// index of the dataset x in the list of datsets
@@ -492,23 +502,25 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 	H5Gclose(groupId);
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanMomenta
-
- \brief This method scans the group `Momentum` located in the particle 
- groups for each iteration.
-
- \details This method analyzes the group `momentum` for a given particle group.
- The group `Momentum`, when existing, provides 3 datasets: x, y, z in 3D.
- These datasets can be used to build vtk scalar lists, vtk vectors (p) 
- and vtk expressions (|p| and gamma).
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::ScanMomenta
+//
+// Purpose:
+// 		This method scans the group `Momentum` located in the particle 
+// 		groups for each iteration.
+//
+// 		This method analyzes the group `momentum` for a given particle group.
+// 		The group `Momentum`, when existing, provides 3 datasets: x, y, z 
+//		in 3D.
+// 		These datasets can be used to build vtk scalar lists, vtk vectors (p) 
+// 		and vtk expressions (|p| and gamma).
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 {
 
@@ -559,9 +571,11 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 			datasetName, (size_t) 64);
 
 		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo, H5P_DEFAULT);
+		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo, 
+			                      H5P_DEFAULT);
 
-		// We check that the object is well a dataset, else, this object is ignored
+		// We check that the object is well a dataset, else, 
+		// this object is ignored
 		if (objectInfo.type == H5O_TYPE_DATASET)
 		{
 
@@ -592,7 +606,8 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 			// We add this scalar object to the vector of scalar datasets
 			this->scalarDataSets.push_back(scalar);
 
-			// We keep the position of the datasets for the vector construction
+			// We keep the position of the datasets 
+			// for the vector construction
 			if (strcmp(datasetName,"x")==0)
 			{
 				vector.dataSetId [0] = this->scalarDataSets.size()-1;
@@ -628,18 +643,20 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanGroup
-
-\brief This method scans a particle group and add the resulting scalar and vector data 
-		respectively to the vectors `scalarDataSets` and `vectorDataSets`.
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 21 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::ScanGroup
+//
+// Purpose:
+//      This method scans a particle group and add the resulting scalar 
+//      and vector data respectively to the vectors `scalarDataSets`
+//		and `vectorDataSets`.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 21 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 {
 
@@ -683,9 +700,11 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 			datasetName, (size_t) 64);	
 
 		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo, H5P_DEFAULT);
+		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo, 
+			                      H5P_DEFAULT);
 
-		// We check that the object is well a dataset, else, this object is ignored
+		// We check that the object is well a dataset, else, 
+		// this object is ignored
 		if (objectInfo.type == H5O_TYPE_DATASET)
 		{
 
@@ -756,19 +775,20 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::ScanDataSet
-
-\brief This method scans a particle dataset and add the resulting scalar data 
-		to the vector scalarDataSets.
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 21 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
+// ***************************************************************************
+// Method: PMDParticle::ScanDataSet
+//
+//		This method scans a particle dataset and add the resulting scalar data 
+//		to the vector scalarDataSets.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 21 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 {
 
 #ifdef VERBOSE
@@ -806,18 +826,19 @@ void PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::SetScalarAttributes
-
-\brief This method scans the attributes of the object of id objectId and return it 
- in the scalarDataSet data structure scalarObject.
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::SetScalarAttributes
+//
+// Purpose:
+// 		This method scans the attributes of the object of id objectId and  
+// 		return it in the scalarDataSet data structure scalarObject.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void
 PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
 {
@@ -865,18 +886,19 @@ PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::SetVectorAttributes
-
- This method scan the attributes of the object of id objectId and return it 
- in the vectorDataSet data structure vectorObject.
-
- Programmer: Mathieu Lobet
- Creation:   Fri Oct 21 2016
-
- Modifications:
-
-// ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::SetVectorAttributes
+//
+// Purpose:
+// 		This method scan the attributes of the object of id objectId and
+// 		return it in the vectorDataSet data structure vectorObject.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 21 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void
 PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 {
@@ -919,17 +941,18 @@ PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::SetUnitSI
-
- \brief this method captures the arrtibute unitSI from a group or a dataset.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::SetUnitSI
+//
+// Purpose:
+// 		This method captures the arrtibute unitSI from a group or a dataset.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 double
 PMDParticle::SetUnitSI(char * name, 
 	  				   hid_t attrId, 
@@ -952,18 +975,19 @@ PMDParticle::SetUnitSI(char * name,
     return unitSI;
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::GetUnitDimension
-
- \brief This method reads the UnitDimension attributes and returns
- the unitsLabel paramerer.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::GetUnitDimension
+//
+// Purpose:
+// 		This method reads the UnitDimension attributes and returns
+// 		the unitsLabel paramerer.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 char* 
 PMDParticle::SetUnitDimension(char * name, 
 							  hid_t attrId, 
@@ -1058,60 +1082,67 @@ PMDParticle::SetUnitDimension(char * name,
     return unitLabel;
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::GetNumScalarDatasets
-
- \brief This method return the number of scalar datasets stored in the vector 
- this->scalarDataSets.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::GetNumScalarDatasets
+//
+// Purpose:
+// 		This method return the number of scalar datasets stored in the vector 
+// 		this->scalarDataSets.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 int PMDParticle::GetNumScalarDatasets()
 {
 	return this->scalarDataSets.size();
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::GetNumVectorDatasets
-
- \brief This method return the number of vector datasets stored in the vector 
- this->scalarDataSets.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDParticle::GetNumVectorDatasets
+//
+// Purpose:
+// 		This method return the number of vector datasets stored in the vector 
+// 		this->scalarDataSets.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 int PMDParticle::GetNumVectorDatasets()
 {
 	return this->vectorDataSets.size();
 }
 
-/** ____________________________________________________________________________
- Method: PMDParticle::GetDomainProperties
-
- \brief This method returns the properties of the required block when the
-        fields are readed by block (parallel)
-
- \details This method returns an error code.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Nov 23 2016
-
- \param scalarDataSetId index of the scalar data set in the vector scalarDataSets
- \param blockDim number of domains to divide the dataset
- \param blockId index of the block
- \param particleBlock structure containing the properties of the block
-
- Modifications:
-
- ____________________________________________________________________________ */
-int PMDParticle::GetBlockProperties(int scalarDataSetId, int blockDim, int blockId , particleBlockStruct * particleBlock)
+// ***************************************************************************
+// Method: PMDParticle::GetDomainProperties
+//
+// Purpose:
+// 		  This method returns the properties of the required block when the
+//        fields are readed by block (parallel)
+//
+// This method returns an error code.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Nov 23 2016
+//
+// scalarDataSetId : index of the scalar data set in the vector scalarDataSets
+// blockDim : number of domains to divide the dataset
+// blockId : index of the block
+// particleBlock : structure containing the properties of the block
+//
+// Modifications:
+//
+// ***************************************************************************
+int
+PMDParticle::GetBlockProperties(int scalarDataSetId, 
+	                            int blockDim,
+	                            int blockId,
+	                            particleBlockStruct * particleBlock)
 {
 
 #ifdef VERBOSE
@@ -1124,7 +1155,8 @@ int PMDParticle::GetBlockProperties(int scalarDataSetId, int blockDim, int block
     int r;                          // division rest
 
     // Copy the name of the dataset
-    strcpy(particleBlock->dataSetPath,this->scalarDataSets[scalarDataSetId].path);
+    strcpy(particleBlock->dataSetPath,
+    	   this->scalarDataSets[scalarDataSetId].path);
 
     // Computation of the number of Particles in this block
     // We divide the particle dataset into blockDim subsets
@@ -1143,10 +1175,12 @@ int PMDParticle::GetBlockProperties(int scalarDataSetId, int blockDim, int block
     else
     {
     	// the r first blocks share the rest (+1)
-        particleBlock->minParticle = r*(particleBlock->numParticles+1) + (blockId - r)*particleBlock->numParticles;
+        particleBlock->minParticle = r*(particleBlock->numParticles+1) 
+                                + (blockId - r)*particleBlock->numParticles;
     }
 
     // Computation of maximum indexes
-    particleBlock->maxParticle = particleBlock->minParticle + particleBlock->numParticles -1;
+    particleBlock->maxParticle = particleBlock->minParticle 
+                                + particleBlock->numParticles -1;
 
 }

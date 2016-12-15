@@ -36,21 +36,16 @@
 *
 *****************************************************************************/
 
-/** ____________________________________________________________________________
-
-\file PMDParticle.h
-
-\brief PMDParticle Class definition
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 14 2016
-
-\warning READ BEFORE MODIFY:
-\n This file should be modified/maintained only when located in its original repository.
-\n Else, this file is a copy and may not be the lastest version.
-\n The modifications will not be considered.
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+//
+// file PMDParticle.h
+//
+// PMDParticle Class definition
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// ***************************************************************************
 
 #ifndef PMDPARTICLE_H
 #define PMDPARTICLE_H
@@ -131,7 +126,8 @@ class PMDParticle
             char    path[128];
             /// Units computed from the OpenPMD file
             char    unitLabel[64];
-            /// Corresponding scalarDataSet objects in scalarDataSets for each vector component
+            /// Corresponding scalarDataSet objects in scalarDataSets 
+            /// for each vector component
             int     dataSetId[3];  
             /// Time offset read from OpenPMD files
             double  timeOffset;
@@ -151,7 +147,10 @@ class PMDParticle
         void        ScanMomenta(hid_t particleGroupId, char * objectName);
         void        ScanDataSet(hid_t particleGroupId,char * objectName);
         void        ScanGroup(hid_t particleGroupId,char * objectName);
-        int         GetBlockProperties(int scalarDataSetId, int blockDim, int blockId , particleBlockStruct * particleBlock);
+        int         GetBlockProperties(int scalarDataSetId, 
+                                       int blockDim, 
+                                       int blockId, 
+                                       particleBlockStruct * particleBlock);
         int         GetNumScalarDatasets();
         int         GetNumVectorDatasets();
 
@@ -187,10 +186,15 @@ class PMDParticle
 
     private:
 
-        void        SetScalarAttributes(hid_t objectId,scalarDataSet * scalar);
-        void        SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject);
-        char*       SetUnitDimension(char* name, hid_t attrId, hid_t attrType, hid_t attrSpace);
-        double      SetUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace);        
+        void        SetScalarAttributes(hid_t objectId,
+                                        scalarDataSet * scalar);
+        void        SetVectorAttributes(hid_t objectId,
+                                        vectorDataSet * vectorObject);
+        char*       SetUnitDimension(char* name, hid_t attrId,
+                                     hid_t attrType, 
+                                     hid_t attrSpace);
+        double      SetUnitSI(char * name, hid_t attrId, 
+                              hid_t attrType, hid_t attrSpace);        
 
 };
 
