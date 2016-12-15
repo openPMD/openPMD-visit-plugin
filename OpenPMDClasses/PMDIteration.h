@@ -55,19 +55,21 @@
 
 using namespace std;
 
-/** ____________________________________________________________________________
- Class: PMDIteration
-
- \brief This class enables to manage the different iterations of an OpenPMD file.
-
- \details When an OpenPMD file is read, a PMDIteration is created for each iteration.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Class: PMDIteration
+//
+// Purpose:
+//      This class enables to manage the different iterations of 
+//      an OpenPMD file.
+//      When an OpenPMD file is read, a PMDIteration is created 
+//      for each iteration.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 class PMDIteration
 {
 	public:
@@ -77,8 +79,6 @@ class PMDIteration
         void    ScanFields(hid_t fileId);
         void    ScanParticles(hid_t fileId);
         void	PrintInfo();
-
-        int 	verbose;
 
         // Vector of field objects from the datasets
     	vector <PMDField> fields;

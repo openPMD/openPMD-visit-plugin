@@ -36,53 +36,53 @@
 *
 *****************************************************************************/
 
-/** ____________________________________________________________________________
-
-\file PMDiteration.cpp
-
-\brief PMDIteration class methods
-
-\author Programmer: Mathieu Lobet
-\date Creation:   Fri Oct 14 2016
-
-\warning READ BEFORE MODIFY:
-\n This file should be modified/maintained only when located in its original repository.
-\n Else, this file is a copy and may not be the lastest version.
-\n The modifications will not be considered.
-
- _______________________________________________________________________________ */
+// ***************************************************************************
+//
+// file PMDiteration.cpp
+//
+// Purpose:
+//		 PMDIteration class methods
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// ***************************************************************************
 
 #include "PMDiteration.h"
 
 vector <PMDIteration> iterations;
 
-/** ____________________________________________________________________________
- Method: PMDIteration::PMDIteration
-
- \brief Constructor
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDIteration::PMDIteration
+//
+// Purpose:
+// 		Constructor
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDIteration::PMDIteration()
 {
-	verbose = 0;
+	this->dt         = 0;
+	this->time       =0;
+	this->timeUnitSI = 1;
 }
 
-/** ____________________________________________________________________________
- Method: PMDIteration::~PMDIteration
-
- \brief Destructor
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDIteration::~PMDIteration
+//
+// Purpose:
+// 		Destructor
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDIteration::~PMDIteration()
 {
 
@@ -95,6 +95,8 @@ PMDIteration::~PMDIteration()
 // 		This method analyzes the group "fields" for the current iteration 
 // 		and gathers all the found datasets in the vector "fields".
 //
+// Arguments:
+//		fileId : file id of the openPMD file used by hdf5
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -128,8 +130,6 @@ void PMDIteration::ScanFields(hid_t fileId)
 	strcat (path,name);	
 	strcat (path,"/fields");
 
-	if (verbose) cout << " Scanning field datasets in: "<< path << endl;
-
 	// Openning of the group "fields" of the current iteration
 	groupId = H5Gopen2(fileId, path , H5P_DEFAULT);
 
@@ -153,7 +153,6 @@ void PMDIteration::ScanFields(hid_t fileId)
 
 	// First we get the number of objects
 	err = H5Gget_num_objs(groupId, &nb_objects);
-	if (verbose) cout << " Number of objects in the fields group: "<< nb_objects << endl;
 
 	// Iteration over the objects
 	for (i = 0; i < nb_objects; i++)
@@ -168,7 +167,8 @@ void PMDIteration::ScanFields(hid_t fileId)
 
 		// Get the type: group, dataset...
 		// int object_type =  H5Gget_objtype_by_idx(groupId, (size_t)i );
-		err = H5Oget_info_by_name(groupId, object_name , &object_info, H5P_DEFAULT);
+		err = H5Oget_info_by_name(groupId, object_name , &object_info, 
+			                      H5P_DEFAULT);
 
 		// Checking of the type
 		switch(object_info.type)
@@ -189,11 +189,13 @@ void PMDIteration::ScanFields(hid_t fileId)
 			err = H5Gget_num_objs(subGroupId, &nb_sub_objects);
 
 			// Then, we iterate over the datasets in this group
-			for (i_sub_object = 0; i_sub_object < nb_sub_objects; i_sub_object++)
+			for (i_sub_object = 0; i_sub_object < nb_sub_objects;
+				 i_sub_object++)
 			{
 				// Get the dataset name
-				length = H5Gget_objname_by_idx(subGroupId, (hsize_t) i_sub_object, 
-					subObjectName, (size_t) 64);
+				length = H5Gget_objname_by_idx(subGroupId, (hsize_t) 
+					                           i_sub_object, 
+					                           subObjectName, (size_t) 64);
 
 				// Save the name
 				strcpy(field.name,tmp_name);
@@ -238,7 +240,8 @@ void PMDIteration::ScanFields(hid_t fileId)
 		// If dataset...
 		case H5O_TYPE_DATASET:
 
-			// Let's get the useful attributes of this dataset, since it is localized in "fields"
+			// Let's get the useful attributes of this dataset, 
+		    // since it is localized in "fields"
 			// it owns all its useful attributes.
 
 			// Openning of the dataset
@@ -274,7 +277,7 @@ void PMDIteration::ScanFields(hid_t fileId)
 		break;
 
 		default:
-		cout << "visitLinks: node '" << name <<
+		cerr << "visitLinks: node '" << name <<
 		"' has an unknown type " << object_info.type << std::endl;
 		break;
 		}
@@ -283,18 +286,18 @@ void PMDIteration::ScanFields(hid_t fileId)
 	H5Gclose(groupId);
 }
 
-/** ____________________________________________________________________________
- Method: PMDIteration::ScanParticles
-
- \brief This method analyzes the group "particles" for the current iteration.
-
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDIteration::ScanParticles
+//
+// \brief This method analyzes the group "particles" for the current iteration.
+//
+//
+// \author Programmer: Mathieu Lobet
+// \date Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDIteration::ScanParticles(hid_t fileId)
 {
 
@@ -313,8 +316,6 @@ void PMDIteration::ScanParticles(hid_t fileId)
 	strcat (path,this->name);	
 	strcat (path,"/particles");
 
-	if (verbose) cerr << " Scanning particle groups in: "<< path << endl;
-
 	err = H5Gget_objinfo (fileId, path, 0, NULL);
 
 	if (err!=0)
@@ -329,7 +330,6 @@ void PMDIteration::ScanParticles(hid_t fileId)
 
 		// First we get the number of objects
 		err = H5Gget_num_objs(groupId, &numObjects);
-		if (verbose) cerr << " Number of objects in the particle group: "<< numObjects << endl;
 
 		// Iteration over the objects of the group "particles"
 		for (i = 0; i < numObjects; i++)
@@ -343,7 +343,10 @@ void PMDIteration::ScanParticles(hid_t fileId)
 				objectName, (size_t) 64);
 
 			// Get info in order to get the type: group, dataset...
-			err = H5Oget_info_by_name(groupId, objectName , &objectInfo, H5P_DEFAULT);
+			err = H5Oget_info_by_name(groupId,
+				                      objectName, 
+				                      &objectInfo, 
+				                      H5P_DEFAULT);
 
 			// Check that the object is well a group
 			if (H5O_TYPE_GROUP==objectInfo.type)
@@ -359,7 +362,8 @@ void PMDIteration::ScanParticles(hid_t fileId)
 				strcat(particle.path,"/");
 				strcat(particle.path,objectName);
 
-				// Scan properties via datasets and attributes in this particle group
+				// Scan properties via datasets and attributes 
+				// in this particle group
 				particle.ScanParticleGroup(particleGroupId);
 
 				// Insert the particle object in the vector of particles
@@ -370,22 +374,20 @@ void PMDIteration::ScanParticles(hid_t fileId)
 	}
 }
 
-/** ____________________________________________________________________________
- Method: PMDIteration::PrintInfo
-
- \brief This method prints the content of an object PMDIteration.
-
-
- \details This method prints the content of an object PMDIteration: 
- - field datasets
- - particle datasets
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDIteration::PrintInfo
+//
+// Purpose:
+// 		This method prints the content of an object PMDIteration: 
+// 		- field datasets
+// 		- particle datasets
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDIteration::PrintInfo()
 {
 
@@ -397,35 +399,52 @@ void PMDIteration::PrintInfo()
     cout << " - timeUnitSI: "<< timeUnitSI << endl;
     cout << endl;
 	cout << " Number of field datasets: " << fields.size() << endl;
-	for (std::vector<PMDField>::iterator field = fields.begin() ; field != fields.end(); ++field)
+	for (std::vector<PMDField>::iterator field = fields.begin() ; 
+		 field != fields.end(); ++field)
     {
     	cout << " Field name: " << field->name << endl;
     	cout << " - dataset path: " << field->datasetPath << endl;
     	cout << " - group path: " << field->groupPath << endl;
-    	cout << " - dx: " << field->gridSpacing[0]<< " dy: " << field->gridSpacing[1] << " dz: " << field->gridSpacing[2] << endl;
-    	cout << " - xmin: " << field->gridGlobalOffset[0]<< " ymin: " << field->gridGlobalOffset[1] << " zmin: " << field->gridGlobalOffset[2] << endl;
-    	cout << " - number of dimensions: " << field->ndims << endl;
-    	cout << " - nx: " << field->nbNodes[0]<< " ny: " << field->nbNodes[1] << " nz: " << field->nbNodes[2] << endl;
-    	cout << " - xshift: " << field->gridPosition[0]<< " yshift: " << field->gridPosition[1] << " zshift: " << field->gridPosition[2] << endl;
+    	cout << " - dx: " << field->gridSpacing[0]
+    	     << " dy: " << field->gridSpacing[1] 
+    	     << " dz: " << field->gridSpacing[2] << endl;
+    	cout << " - xmin: " << field->gridGlobalOffset[0] 
+    	     << " ymin: " << field->gridGlobalOffset[1] 
+    	     << " zmin: " << field->gridGlobalOffset[2] << endl;
+    	cout << " - number of dimensions: " 
+    	     << field->ndims << endl;
+    	cout << " - nx: " << field->nbNodes[0]
+    	     << " ny: " << field->nbNodes[1] 
+    	     << " nz: " << field->nbNodes[2] << endl;
+    	cout << " - xshift: " << field->gridPosition[0]
+    	     << " yshift: " << field->gridPosition[1] 
+    	     << " zshift: " << field->gridPosition[2] << endl;
     	cout << " - Unit SI: " << field->unitSI<< endl;
     	cout << " - Grid Unit SI: " << field->gridUnitSI<< endl;
     	cout << " - Geometry: " << field->geometry << endl;
-    	cout << " - xlabel: " << field->axisLabels[0] << " ylabel: " << field->axisLabels[1] << " zlabel: " << field->axisLabels[2] << endl;
+    	cout << " - xlabel: " << field->axisLabels[0] 
+    	     << " ylabel: " << field->axisLabels[1] 
+    	     << " zlabel: " << field->axisLabels[2] << endl;
     	cout << " - Units: " << field->unitsLabel << endl;
     	cout << " - Data order: " << field->dataOrder << endl;
     	cout << endl;
     }
     cout << endl;
 	cout << " Number of particle groups: " << particles.size() << endl;
-	for (std::vector<PMDParticle>::iterator particle = particles.begin() ; particle != particles.end(); ++particle)
+	for (std::vector<PMDParticle>::iterator particle = particles.begin() ; 
+		 particle != particles.end(); ++particle)
     {
     	cout << endl;
     	cout << " Particle name: " << particle->name << endl;
     	cout << " - charge: " << particle->charge << endl;
     	cout << " - mass: " << particle->mass << endl;
     	cout << " - number of particles: " << particle->numParticles << endl;
-    	cout << " - Position datasets: " << particle->positionsId[0] << " " << particle->positionsId[1] << " "<< particle->positionsId[2]  << endl; 
-    	cout << " Number of scalar datasets: " << particle->GetNumScalarDatasets() << endl;
+    	cout << " - Position datasets: " << particle->positionsId[0] 
+    	     << " " << particle->positionsId[1] 
+    	     << " "<< particle->positionsId[2]  
+    	     << endl; 
+    	cout << " Number of scalar datasets: " 
+    	     << particle->GetNumScalarDatasets() << endl;
 		for (i=0;i<particle->GetNumScalarDatasets();i++)
 	    {
 	    	cout << " - Name: " << particle->scalarDataSets[i].name 
@@ -434,13 +453,15 @@ void PMDIteration::PrintInfo()
 	    		 << ", unitSI: " << particle->scalarDataSets[i].unitSI
 	    		 << endl;
 	    }
-    	cout << " Number of vector datasets: " << particle->GetNumVectorDatasets() << endl;
+    	cout << " Number of vector datasets: "
+    	     << particle->GetNumVectorDatasets() << endl;
 		for (i=0;i<particle->GetNumVectorDatasets();i++)
 	    {
 	    	cout << " - Name: " << particle->vectorDataSets[i].name 
 	    	     << ", Unit Label: " << particle->vectorDataSets[i].unitLabel 
 	    	     << ", path: " << particle->vectorDataSets[i].path
-	    	     << ", scalar datasets: " << particle->vectorDataSets[i].dataSetId[0] 
+	    	     << ", scalar datasets: " 
+	    	     << particle->vectorDataSets[i].dataSetId[0] 
 	    	     << " " << particle->vectorDataSets[i].dataSetId[1] 
 	    	     << " " << particle->vectorDataSets[i].dataSetId[2] 
 	    	     << endl;

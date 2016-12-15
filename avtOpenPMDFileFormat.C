@@ -84,7 +84,9 @@ using     std::string;
 avtOpenPMDFileFormat::avtOpenPMDFileFormat(const char *filename)
     : avtMTMDFileFormat(filename)
 {
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::avtOpenPMDFileFormat "  << filename << endl;
+#endif
 
     // Boolean to check that the initialization has been done
     this->initialized = false;
@@ -100,7 +102,9 @@ avtOpenPMDFileFormat::avtOpenPMDFileFormat(const char *filename)
 // ****************************************************************************
 avtOpenPMDFileFormat::~avtOpenPMDFileFormat()
 {
+#ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::~avtOpenPMDFileFormat" << endl;
+#endif
 }
 
 

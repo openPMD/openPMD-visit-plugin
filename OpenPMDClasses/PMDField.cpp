@@ -36,35 +36,31 @@
 *
 *****************************************************************************/
 
-/** ____________________________________________________________________________
-
-\file PMDField.cpp
-
-\brief Methods of the PMDField class
-
-\author Programmer: Mathieu Lobet
-\date Creation: Fri Oct 14 2016
-
-\warning READ BEFORE MODIFY:
-\n This file should be modified/maintained only when located in its original repository.
-\n Else, this file is a copy and may not be the lastest version.
-\n The modifications will not be considered.
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+//
+// file PMDField.cpp
+//
+// Methods of the PMDField class
+//
+// Programmer: Mathieu Lobet
+// Creation: Fri Oct 14 2016
+//
+// ***************************************************************************
 
 #include "PMDField.h"
 
-/** ____________________________________________________________________________
- Method: PMDField::PMDField
-
- \brief Constructor
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDField::PMDField
+//
+// Purpose:
+//       Constructor
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDField::PMDField()
 {
 	unitSI=1;
@@ -77,34 +73,36 @@ PMDField::PMDField()
 	strcpy(this->dataOrder,"");
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::~PMDField
-
- \brief Destructor
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDField::~PMDField
+//
+// Purpose:
+//      Destructor
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 PMDField::~PMDField()
 {
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::ScanAttributes
-
- \brief This method scans from a group or a dataset the attributes that the current 
- PMDField object needs.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDField::ScanAttributes
+//
+// Purpose:
+//      This method scans from a group or a dataset the attributes
+//      that the current PMDField object needs.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDField::ScanAttributes(hid_t objectId)
 {
 #ifdef VERBOSE
@@ -124,9 +122,10 @@ void PMDField::ScanAttributes(hid_t objectId)
 	// Number of attributes
 	numAttr = H5Aget_num_attrs(objectId);
 
-	// This solution with H5Aiterate2 does not work because GetAttributeInfo needs to  
-	// be static and therefore field attribute can not be modified
-	// err = H5Aiterate2(objectId, H5_INDEX_NAME, H5_ITER_INC, NULL ,GetAttributeInfo, NULL);
+	// This solution with H5Aiterate2 does not work because GetAttributeInfo
+	// needs to be static and therefore field attribute can not be modified
+	// err = H5Aiterate2(objectId, H5_INDEX_NAME, H5_ITER_INC, NULL, 
+    // GetAttributeInfo, NULL);
 	// But I am not an expert in C++, Mathieu
 
 	// iteration over the attributes
@@ -207,18 +206,19 @@ void PMDField::ScanAttributes(hid_t objectId)
 	}
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetGridDimensions
-
- \brief This method opens the given dataset to determine the number of 
- points/nodes each direction for the field grid.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDField::SetGridDimensions
+//
+// Purpose:
+//      This method opens the given dataset to determine the number of 
+//      points/nodes each direction for the field grid.
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
 void PMDField::SetGridDimensions(hid_t datasetId)
 {
     // Data space
@@ -247,19 +247,31 @@ void PMDField::SetGridDimensions(hid_t datasetId)
 
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetGridSpacing
-
- \brief This method reads from the dataset attributes GridSpacing the grid
- spacing (dx, dy, dz) of the field grid.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
- - Nov 11 2016 - Mathieu - add 2d case
- ____________________________________________________________________________ */
-void PMDField::SetGridSpacing(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetGridSpacing
+//
+// Purpose:
+//      This method reads from the dataset attributes GridSpacing the grid
+//      spacing (dx, dy, dz) of the field grid.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+// - Nov 11 2016 - Mathieu - add 2d case
+//
+// ***************************************************************************
+void
+PMDField::SetGridSpacing(char * name,
+                         hid_t attrId,
+                         hid_t attrType, 
+                         hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
@@ -287,20 +299,32 @@ void PMDField::SetGridSpacing(char * name, hid_t attrId, hid_t attrType, hid_t a
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetGridGlobalOffset
-
- \brief This method reads from the dataset attributes GridGlobalOffset 
- the relative offset of the field grid (usually relative to the rho grid).
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
- - Nov 11 2016 - Mathieu - add 2d case
-
- ____________________________________________________________________________ */
-void PMDField::SetGridGlobalOffset(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetGridGlobalOffset
+//
+// Purpose:
+//      This method reads from the dataset attributes GridGlobalOffset 
+//      the relative offset of the field grid (usually relative to the 
+//      rho grid).
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+// - Nov 11 2016 - Mathieu - add 2d case
+//
+// ***************************************************************************
+void
+PMDField::SetGridGlobalOffset(char * name, 
+                              hid_t attrId, 
+                              hid_t attrType,
+                              hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
@@ -328,19 +352,30 @@ void PMDField::SetGridGlobalOffset(char * name, hid_t attrId, hid_t attrType, hi
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetGridPosition
-
- \brief This method reads from the dataset attributes GridPosition 
- the origin of the grid (xmin, ymin, zmin).
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
- - Nov 11 2016 - Mathieu - add 2d case
- ____________________________________________________________________________ */
-void PMDField::SetGridPosition(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetGridPosition
+//
+// Purpore:
+//      This method reads from the dataset attributes GridPosition 
+//      the origin of the grid (xmin, ymin, zmin).
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+// - Nov 11 2016 - Mathieu - add 2d case
+// ***************************************************************************
+void
+PMDField::SetGridPosition(char * name, 
+                          hid_t attrId,
+                          hid_t attrType,
+                          hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
@@ -367,18 +402,29 @@ void PMDField::SetGridPosition(char * name, hid_t attrId, hid_t attrType, hid_t 
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetUnitSI
-
- \brief this method captures the arrtibute unitSI from a group or a dataset.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetUnitSI
+//
+// Purpose:
+//      this method captures the arrtibute unitSI from a group or a dataset.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void 
+PMDField::SetUnitSI(char * name, 
+                    hid_t attrId,
+                    hid_t attrType,
+                    hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
@@ -390,18 +436,28 @@ void PMDField::SetUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t attrSp
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetGridUnitSI
-
- \brief This method reads from attribute GridUnitSI the factor to get the grid units in SI.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetGridUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetGridUnitSI
+//
+// Purpose:
+//      This method reads from attribute GridUnitSI the factor to get the 
+//      grid units in SI.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDField::SetGridUnitSI(char * name, 
+                        hid_t attrId, hid_t attrType, hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
@@ -413,18 +469,29 @@ void PMDField::SetGridUnitSI(char * name, hid_t attrId, hid_t attrType, hid_t at
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetGeometry
-
- \brief This method reads from attribute geometry the type of grid.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetGeometry(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetGeometry
+//
+// Purpose:
+//      This method reads from attribute geometry the type of grid.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDField::SetGeometry(char * name, 
+                      hid_t attrId, 
+                      hid_t attrType,
+                      hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_STRING == H5Tget_class(attrType)) {
@@ -445,18 +512,29 @@ void PMDField::SetGeometry(char * name, hid_t attrId, hid_t attrType, hid_t attr
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetAxisLabels
-
- \brief This method reads from attribute axisLabel the labels for each axis.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetAxisLabels(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetAxisLabels
+//
+// Purpose:
+//      This method reads from attribute axisLabel the labels for each axis.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDField::SetAxisLabels(char * name,
+                        hid_t attrId,
+                        hid_t attrType,
+                        hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_STRING == H5Tget_class(attrType)) {
@@ -467,19 +545,29 @@ void PMDField::SetAxisLabels(char * name, hid_t attrId, hid_t attrType, hid_t at
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::GetUnitDimension
-
- \brief This method reads the UnitDimension attributes and generates
- the unitsLabel paramerer.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetUnitDimension(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::GetUnitDimension
+//
+// Purpose:
+//      This method reads the UnitDimension attributes and generates
+//      the unitsLabel paramerer.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void PMDField::SetUnitDimension(char * name, 
+                                hid_t attrId,
+                                hid_t attrType,
+                                hid_t attrSpace)
 {
 	herr_t 	err;
 	int 	i;
@@ -565,18 +653,29 @@ void PMDField::SetUnitDimension(char * name, hid_t attrId, hid_t attrType, hid_t
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetFieldBoundary
-
- \brief This method reads the field boundaries
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetFieldBoundary(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetFieldBoundary
+//
+// Purpose:
+//      This method reads the field boundaries
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDField::SetFieldBoundary(char * name, 
+                           hid_t attrId,
+                           hid_t attrType, 
+                           hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_STRING == H5Tget_class(attrType)) {
@@ -591,18 +690,29 @@ void PMDField::SetFieldBoundary(char * name, hid_t attrId, hid_t attrType, hid_t
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::SetFieldBoundary
-
- \brief This method reads the field boundaries
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
-
- ____________________________________________________________________________ */
-void PMDField::SetDataOrder(char * name, hid_t attrId, hid_t attrType, hid_t attrSpace)
+// ***************************************************************************
+// Method: PMDField::SetFieldBoundary
+//
+// Purpose:
+//      This method reads the field boundaries
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDField::SetDataOrder(char * name, 
+                       hid_t attrId, 
+                       hid_t attrType, 
+                       hid_t attrSpace)
 {
 	herr_t 	err;
     if (H5T_STRING == H5Tget_class(attrType)) {
@@ -617,18 +727,26 @@ void PMDField::SetDataOrder(char * name, hid_t attrId, hid_t attrType, hid_t att
     }
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::GetNumValues
-
- \brief This method returns the total number of nodes/points that compose a grid.
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Fri Oct 14 2016
-
- Modifications:
- - Nov 11 2016 - Mathieu - add 2d case
-
- ____________________________________________________________________________ */
+// ***************************************************************************
+// Method: PMDField::GetNumValues
+//
+// Purpose:
+//      This method returns the total number of nodes/points that 
+//      compose a grid.
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space 
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+// - Nov 11 2016 - Mathieu - add 2d case
+//
+// ***************************************************************************
 int PMDField::GetNumValues()
 {
     if (this->ndims==3)
@@ -642,29 +760,36 @@ int PMDField::GetNumValues()
     return 0;
 }
 
-/** ____________________________________________________________________________
- Method: PMDField::GetDomainProperties
-
- \brief This method returns the properties of the required block when the
-        fields are readed by block (parallel)
-
- \author Programmer: Mathieu Lobet
- \date Creation:   Mon Nov 14 2016
-
- \param blockDim number of domains to divide the field
- \param blockId index of the block
- \param fieldBlock structure containing the properties of the block
-
- Modifications:
-
- ____________________________________________________________________________ */
-int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * fieldBlock)
+// ***************************************************************************
+// Method: PMDField::GetDomainProperties
+//
+// Purpose:
+//      This method returns the properties of the required block when the
+//      fields are readed by block (parallel)
+//
+// Programmer: Mathieu Lobet
+// Creation:   Mon Nov 14 2016
+//
+// Arguments:
+//      blockDim : number of domains to divide the field
+//      blockId : index of the block
+//      fieldBlock : structure containing the properties of the block
+//
+// Modifications:
+//
+// ***************************************************************************
+int
+PMDField::GetBlockProperties(int blockDim, 
+                             int blockId,
+                             fieldBlockStruct * fieldBlock)
 {
 
+#ifdef VERBOSE
     cerr << "PMDField::GetBlockProperties"
          << "(blockDim=" << blockDim 
          << ", blockId=" << blockId
          << ")" << endl;
+#endif
 
     // Parameter declaration
     int r;                          // division rest
@@ -679,7 +804,8 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
         fieldBlock->ndims=this->ndims;
 
         // Computation of the number of Nodes
-        // We divide the field dataset into blockDim domains in the last direction
+        // We divide the field dataset into blockDim domains 
+        // in the last direction
         fieldBlock->nbNodes[0] = this->nbNodes[0] / blockDim;
         r = this->nbNodes[0]%blockDim;
         if (blockId < r )
@@ -719,9 +845,12 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
                                    *fieldBlock->nbNodes[2];
 
         // Computation of maximum indexes
-        fieldBlock->maxNode[0] = fieldBlock->minNode[0] + fieldBlock->nbNodes[0] -1;
-        fieldBlock->maxNode[1] = fieldBlock->minNode[1] + fieldBlock->nbNodes[1] -1;
-        fieldBlock->maxNode[2] = fieldBlock->minNode[2] + fieldBlock->nbNodes[2] -1;
+        fieldBlock->maxNode[0] = fieldBlock->minNode[0] 
+                               + fieldBlock->nbNodes[0] -1;
+        fieldBlock->maxNode[1] = fieldBlock->minNode[1] 
+                               + fieldBlock->nbNodes[1] -1;
+        fieldBlock->maxNode[2] = fieldBlock->minNode[2] 
+                               + fieldBlock->nbNodes[2] -1;
     }
     // 2D datasets
     else if (this->ndims==2)
@@ -731,7 +860,8 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
         fieldBlock->ndims=this->ndims;
 
         // Computation of the number of Nodes
-        // We divide the field dataset into blockDim domains in the last direction
+        // We divide the field dataset into blockDim domains 
+        // in the last direction
         fieldBlock->nbNodes[0] = this->nbNodes[0] / blockDim;
         r = this->nbNodes[0]%blockDim;
         if (blockId < r )
@@ -772,13 +902,17 @@ int PMDField::GetBlockProperties(int blockDim, int blockId , fieldBlockStruct * 
         // Computation of maximum indexes
         fieldBlock->maxNode[0] = fieldBlock->minNode[0] 
                                + fieldBlock->nbNodes[0] -1;
-        fieldBlock->maxNode[1] = fieldBlock->minNode[1] + fieldBlock->nbNodes[1] -1;
+        fieldBlock->maxNode[1] = fieldBlock->minNode[1] 
+                               + fieldBlock->nbNodes[1] -1;
         fieldBlock->maxNode[2] = 0;
 
     }
     else
     {
-        cerr << " This dimension, " << this->ndims << ", can not be read in parallel" << endl;
+        cerr << " This dimension, " 
+             << this->ndims 
+             << ", can not be read in parallel" 
+             << endl;
         return -1;
     }
 
