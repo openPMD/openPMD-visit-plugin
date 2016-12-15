@@ -69,7 +69,9 @@ PMDField::PMDField()
 	strcpy(this->datasetPath,"");
 	strcpy(this->groupPath,"");
 	strcpy(this->unitsLabel,"");
-	strcpy(this->axisLabels,"");
+	strcpy(this->axisLabels[0],"");
+    strcpy(this->axisLabels[1],"");
+    strcpy(this->axisLabels[2],"");
 	strcpy(this->dataOrder,"");
 }
 
@@ -536,12 +538,41 @@ PMDField::SetAxisLabels(char * name,
                         hid_t attrType,
                         hid_t attrSpace)
 {
+    int     iLabel;
+    int     i;
+    int     i0;
+    char *  buffer;
 	herr_t 	err;
+
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        err = H5Aread(attrId, attrType, this->axisLabels);
+        // Buffer that will contains all the labels
+        buffer = new char(npoints);
+
+        // We put all the labels in buffer
+        err = H5Aread(attrId, attrType, buffer);
+
+        // then we parse buffer and fill this->axisLabels
+        iLabel = 0;
+        i0 = 0;
+        for (i=0;i<npoints;i++)
+        {
+            this->axisLabels[iLabel][i-i0] = buffer[i];
+
+            //cerr << buffer[i] << " " << iLabel << " " << i0 << endl;
+
+            if (strcmp(&buffer[i],",")==0)
+            {
+                iLabel += 1;
+                i0 = i+1;
+            }
+        }
+        //cerr << "Labels: " << axisLabels[0] << " "
+        //                   << axisLabels[1] << " " 
+        //                   << axisLabels[2] << " " 
+        //                   << endl;
     }
 }
 

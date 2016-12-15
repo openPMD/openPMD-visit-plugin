@@ -37,7 +37,7 @@
 *****************************************************************************/
 
 // ************************************************************************* //
-//                            avtOpenPMDFileFormat.h                           //
+//                            avtOpenPMDFileFormat.h                         //
 // ************************************************************************* //
 
 #ifndef VERBOSE
@@ -77,8 +77,8 @@ class avtOpenPMDFileFormat : public avtMTMDFileFormat
     // information to information about block connectivity.
     //
     // virtual void      *GetAuxiliaryData(const char *var, int timestep, 
-    //                                     int domain, const char *type, void *args, 
-    //                                     DestructorFunction &);
+    //                               int domain, const char *type, void *args, 
+    //                               DestructorFunction &);
     //
 
     //
@@ -107,7 +107,8 @@ class avtOpenPMDFileFormat : public avtMTMDFileFormat
     int                    numTasks;
     PMDFile                openPMDFile;
 
-    virtual void           PopulateDatabaseMetaData(avtDatabaseMetaData *, int);
+    virtual void           PopulateDatabaseMetaData(avtDatabaseMetaData *, 
+                                                    int);
 };
 
 

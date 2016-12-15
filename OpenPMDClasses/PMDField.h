@@ -124,15 +124,15 @@ class PMDField
         /// Geometry of the grid     
         char    geometry[64];    
         /// Labels     
-        char    axisLabels[16];
+        char    axisLabels[3][16];
         /// Units    
-        char    unitsLabel[64];  
+        char    unitsLabel[64];
         /// Field boundary conditions
         char    fieldBoundary[64];
         /// Data order (C or Fortran)
         char    dataOrder[8];
         /// Data size in number of bytes (4,8)
-        int    dataSize;
+        int     dataSize;
         /// Data Class (H5T_FLOAT, H5T_INTEGER...)
         H5T_class_t dataClass;
 
