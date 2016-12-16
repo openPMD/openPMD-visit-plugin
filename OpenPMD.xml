@@ -16,17 +16,17 @@
     </FilePatterns>
     <Files components="M">
       avtOpenPMDFileFormat.C
-      OpenPMDClasses/PMDParticle.cpp
-      OpenPMDClasses/PMDField.cpp
-      OpenPMDClasses/PMDIteration.cpp
-      OpenPMDClasses/PMDFile.cpp
+      OpenPMDClasses/PMDParticle.C
+      OpenPMDClasses/PMDField.C
+      OpenPMDClasses/PMDIteration.C
+      OpenPMDClasses/PMDFile.C
     </Files>
     <Files components="E">
       avtOpenPMDFileFormat.C
-      OpenPMDClasses/PMDParticle.cpp
-      OpenPMDClasses/PMDField.cpp
-      OpenPMDClasses/PMDIteration.cpp
-      OpenPMDClasses/PMDFile.cpp
+      OpenPMDClasses/PMDParticle.C
+      OpenPMDClasses/PMDField.C
+      OpenPMDClasses/PMDIteration.C
+      OpenPMDClasses/PMDFile.C
     </Files>
     <Attribute name="" purpose="" persistent="true" keyframe="true" exportAPI="" exportInclude="">
     </Attribute>
