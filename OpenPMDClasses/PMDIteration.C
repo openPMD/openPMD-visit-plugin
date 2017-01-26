@@ -48,7 +48,7 @@
 //
 // ***************************************************************************
 
-#include "PMDiteration.h"
+#include "PMDIteration.h"
 
 vector <PMDIteration> iterations;
 
