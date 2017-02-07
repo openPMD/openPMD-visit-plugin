@@ -1064,56 +1064,25 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // DataSize
                 dataSize = particle->scalarDataSets[id].dataSize;
 
-                // Create the X coordinates array
-                float *xarray = new float[particleBlock.numParticles];
+                // Depending on the data size of this first dataSet, 
+                // we suppose that all data have the same type.
+
+                // Simple precision float
                 if (dataSize == 4)
                 {
-                  float *xarray = new float[particleBlock.numParticles];
+                    // Create the X coordinates array
+                    float *xarray = new float[particleBlock.numParticles];
 
-                }
-                else if (dataSize == 8)
-                {
-                  double *xarray = new double[particleBlock.numParticles];
-                }
+                    // Read the dataset
+                    openPMDFile.ReadParticleScalarBlock(xarray,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                         &particleBlock);
 
-                // Read the dataset
-                openPMDFile.ReadParticleScalarBlock(xarray,
-                                                    &factor,
-                                                    H5T_FLOAT,
-                                                    &particleBlock);
+                    /* ____ Read the Y coordinates from the file _________ */
 
-                /* ____ Read the Y coordinates from the file _________ */
-
-                // Dataset Id
-                id = particle->positionsId[1];
-
-                // Get the block properties for this dataSet
-                particle->GetBlockProperties(id, this->numTasks,
-                                             domain,
-                                             &particleBlock);
-
-                // Dataset path
-                strcpy(bufferDataSetName,particleBlock.dataSetPath);
-
-                // Multiplication factor
-                factor = particle->scalarDataSets[id].unitSI;
-
-                // Create the Y coordinates array
-                float *yarray = new float[particleBlock.numParticles];
-
-                // Read the dataset
-                openPMDFile.ReadParticleScalarBlock(yarray,
-                                                    &factor,
-                                                    H5T_FLOAT,
-                                                    &particleBlock);
-
-                /* ____ Read the Z coordinates from the file _________ */
-
-                float *zarray = 0;
-                if (ndims>2)
-                {
                     // Dataset Id
-                    id = particle->positionsId[0];
+                    id = particle->positionsId[1];
 
                     // Get the block properties for this dataSet
                     particle->GetBlockProperties(id, this->numTasks,
@@ -1126,173 +1095,329 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     // Multiplication factor
                     factor = particle->scalarDataSets[id].unitSI;
 
-                    // Create the Z coordinates array
-                    zarray = new float[particleBlock.numParticles];
+                    // Create the Y coordinates array
+                    float *yarray = new float[particleBlock.numParticles];
 
                     // Read the dataset
-                    openPMDFile.ReadParticleScalarBlock(zarray,
+                    openPMDFile.ReadParticleScalarBlock(yarray,
                                                         &factor,
                                                         H5T_FLOAT,
                                                         &particleBlock);
 
-                }
+                    /* ____ Read the Z coordinates from the file _________ */
 
-                // Create the vtkPoints object and copy points into it.
-                vtkPoints *points = vtkPoints::New();
-                points->SetNumberOfPoints(particleBlock.numParticles);
-                float *pts = (float *) points->GetVoidPointer(0);
-                float *xc = xarray;
-                float *yc = yarray;
-                float *zc = zarray;
-                if(ndims == 3)
-                {
+                    float *zarray = 0;
+                    if (ndims>2)
+                    {
+                        // Dataset Id
+                        id = particle->positionsId[0];
+
+                        // Get the block properties for this dataSet
+                        particle->GetBlockProperties(id, this->numTasks,
+                                                     domain,
+                                                     &particleBlock);
+
+                        // Dataset path
+                        strcpy(bufferDataSetName,particleBlock.dataSetPath);
+
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[id].unitSI;
+
+                        // Create the Z coordinates array
+                        zarray = new float[particleBlock.numParticles];
+
+                        // Read the dataset
+                        openPMDFile.ReadParticleScalarBlock(zarray,
+                                                            &factor,
+                                                            H5T_FLOAT,
+                                                            &particleBlock);
+
+                    }
+
+                    // Create the vtkPoints object and copy points into it.
+                    vtkPoints *points = vtkPoints::New();
+                    points->SetNumberOfPoints(particleBlock.numParticles);
+                    float *pts = (float *) points->GetVoidPointer(0);
+                    float *xc = xarray;
+                    float *yc = yarray;
+                    float *zc = zarray;
+                    if(ndims == 3)
+                    {
+                        for(int i = 0; i < particleBlock.numParticles; ++i)
+                        {
+                            *pts++ = *xc++;
+                            *pts++ = *yc++;
+                            *pts++ = *zc++;
+                        }
+                    }
+                    else if(ndims == 2)
+                    {
+                        for(int i = 0; i < particleBlock.numParticles; ++i)
+                        {
+                            *pts++ = *xc++;
+                            *pts++ = *yc++;
+                            *pts++ = 0.;
+                        }
+                    }
+
+                    // Create a vtkUnstructuredGrid to contain the point cells.
+                    vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+                    ugrid->SetPoints(points);
+                    points->Delete();
+                    ugrid->Allocate(particleBlock.numParticles);
+                    vtkIdType onevertex;
                     for(int i = 0; i < particleBlock.numParticles; ++i)
                     {
-                        *pts++ = *xc++;
-                        *pts++ = *yc++;
-                        *pts++ = *zc++;
+                        onevertex = i;
+                        ugrid->InsertNextCell(VTK_VERTEX, 1, &onevertex);
                     }
+
+                    // Delete temporary arrays.
+                    delete [] xarray;
+                    delete [] yarray;
+                    delete [] zarray;
+                    return ugrid;
+
+
                 }
-                else if(ndims == 2)
+                // Double precision float
+                else if (dataSize == 8)
                 {
+                    // Create the X coordinates array
+                    double *xarray = new double[particleBlock.numParticles];
+
+                    // Read the dataset
+                    openPMDFile.ReadParticleScalarBlock(xarray,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                         &particleBlock);
+
+                    /* ____ Read the Y coordinates from the file _________ */
+
+                    // Dataset Id
+                    id = particle->positionsId[1];
+
+                    // Get the block properties for this dataSet
+                    particle->GetBlockProperties(id, this->numTasks,
+                                                 domain,
+                                                 &particleBlock);
+
+                    // Dataset path
+                    strcpy(bufferDataSetName,particleBlock.dataSetPath);
+
+                    // Multiplication factor
+                    factor = particle->scalarDataSets[id].unitSI;
+
+                    // Create the Y coordinates array
+                    double *yarray = new double[particleBlock.numParticles];
+
+                    // Read the dataset
+                    openPMDFile.ReadParticleScalarBlock(yarray,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                        &particleBlock);
+
+                    /* ____ Read the Z coordinates from the file _________ */
+
+                    double *zarray = 0;
+                    if (ndims>2)
+                    {
+                        // Dataset Id
+                        id = particle->positionsId[0];
+
+                        // Get the block properties for this dataSet
+                        particle->GetBlockProperties(id, this->numTasks,
+                                                     domain,
+                                                     &particleBlock);
+
+                        // Dataset path
+                        strcpy(bufferDataSetName,particleBlock.dataSetPath);
+
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[id].unitSI;
+
+                        // Create the Z coordinates array
+                        zarray = new double[particleBlock.numParticles];
+
+                        // Read the dataset
+                        openPMDFile.ReadParticleScalarBlock(zarray,
+                                                            &factor,
+                                                            H5T_FLOAT,
+                                                            &particleBlock);
+
+                    }
+
+                    // Create the vtkPoints object and copy points into it.
+                    vtkPoints *points = vtkPoints::New();
+                    points->SetNumberOfPoints(particleBlock.numParticles);
+                    double *pts = (double *) points->GetVoidPointer(0);
+                    double *xc = xarray;
+                    double *yc = yarray;
+                    double *zc = zarray;
+                    if(ndims == 3)
+                    {
+                        for(int i = 0; i < particleBlock.numParticles; ++i)
+                        {
+                            *pts++ = *xc++;
+                            *pts++ = *yc++;
+                            *pts++ = *zc++;
+                        }
+                    }
+                    else if(ndims == 2)
+                    {
+                        for(int i = 0; i < particleBlock.numParticles; ++i)
+                        {
+                            *pts++ = *xc++;
+                            *pts++ = *yc++;
+                            *pts++ = 0.;
+                        }
+                    }
+
+                    // Create a vtkUnstructuredGrid to contain the point cells.
+                    vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+                    ugrid->SetPoints(points);
+                    points->Delete();
+                    ugrid->Allocate(particleBlock.numParticles);
+                    vtkIdType onevertex;
                     for(int i = 0; i < particleBlock.numParticles; ++i)
                     {
-                        *pts++ = *xc++;
-                        *pts++ = *yc++;
-                        *pts++ = 0.;
+                        onevertex = i;
+                        ugrid->InsertNextCell(VTK_VERTEX, 1, &onevertex);
                     }
+
+                    // Delete temporary arrays.
+                    delete [] xarray;
+                    delete [] yarray;
+                    delete [] zarray;
+                    return ugrid;
+
                 }
 
-                // Create a vtkUnstructuredGrid to contain the point cells.
-                vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
-                ugrid->SetPoints(points);
-                points->Delete();
-                ugrid->Allocate(particleBlock.numParticles);
-                vtkIdType onevertex;
-                for(int i = 0; i < particleBlock.numParticles; ++i)
-                {
-                    onevertex = i;
-                    ugrid->InsertNextCell(VTK_VERTEX, 1, &onevertex);
-                }
-
-                // Delete temporary arrays.
-                delete [] xarray;
-                delete [] yarray;
-                delete [] zarray;
-                return ugrid;
 
             }
             /* ___ Sequential treatments _________________________________ */
             else
             {
 
-                // REad the number of nodes from file
+                // Read the number of nodes from file
                 nnodes = particle->numParticles;
 
-                // Read the X coordinates from the file.
-                float *xarray = new float[nnodes];
-
-                // Dataset Id
+                 // Dataset Id
                 id = particle->positionsId[2];
 
-                // Dataset path
-                strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
+                // data size (float or double)
+                dataSize = particle->scalarDataSets[id].dataSize;
 
-                // Multiplication factor
-                factor = particle->scalarDataSets[id].unitSI;
+                // Depending on the data size of this first dataSet, 
+                // we suppose that all data have the same type.
 
-                // Read the dataset
-                openPMDFile.ReadScalarDataSet(xarray,nnodes,
-                                              &factor,
-                                              H5T_FLOAT,
-                                              bufferDataSetName);
-
-                // Read the Y coordinates from the file.
-                float *yarray = new float[nnodes];
-
-                // Dataset Id
-                id = particle->positionsId[1];
-
-                // Dataset path
-                strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
-
-                // Multiplication factor
-                factor = particle->scalarDataSets[id].unitSI;
-
-                // Read the dataset
-                openPMDFile.ReadScalarDataSet(yarray,
-                                              nnodes,
-                                              &factor,
-                                              H5T_FLOAT,
-                                              bufferDataSetName);
-
-                float *zarray = 0;
-                if (ndims>2)
+                // Simple precision float
+                if (dataSize == 4)
                 {
-                    // Read the Z coordinates from the file.
-                    zarray = new float[nnodes];
-
-                    // Dataset Id
-                    id = particle->positionsId[0];
 
                     // Dataset path
-                    strcpy(bufferDataSetName,
-                           particle->scalarDataSets[id].path);
+                    strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
+
+                    // Multiplication factor
+                    factor = particle->scalarDataSets[id].unitSI;
+
+                    // Read the X coordinates from the file.
+                    float *xarray = new float[nnodes];
+
+                    // Read the dataset
+                    openPMDFile.ReadScalarDataSet(xarray,nnodes,
+                                                  &factor,
+                                                  H5T_FLOAT,
+                                                  bufferDataSetName);
+
+                    // Read the Y coordinates from the file.
+                    float *yarray = new float[nnodes];
+
+                    // Dataset Id
+                    id = particle->positionsId[1];
+
+                    // Dataset path
+                    strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
 
                     // Multiplication factor
                     factor = particle->scalarDataSets[id].unitSI;
 
                     // Read the dataset
-                    openPMDFile.ReadScalarDataSet(zarray,
+                    openPMDFile.ReadScalarDataSet(yarray,
                                                   nnodes,
                                                   &factor,
                                                   H5T_FLOAT,
                                                   bufferDataSetName);
-                }
 
-                // Create the vtkPoints object and copy points into it.
-                vtkPoints *points = vtkPoints::New();
-                points->SetNumberOfPoints(nnodes);
-                float *pts = (float *) points->GetVoidPointer(0);
-                float *xc = xarray;
-                float *yc = yarray;
-                float *zc = zarray;
-                if(ndims == 3)
-                {
+                    float *zarray = 0;
+                    if (ndims>2)
+                    {
+                        // Read the Z coordinates from the file.
+                        zarray = new float[nnodes];
+
+                        // Dataset Id
+                        id = particle->positionsId[0];
+
+                        // Dataset path
+                        strcpy(bufferDataSetName,
+                               particle->scalarDataSets[id].path);
+
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[id].unitSI;
+
+                        // Read the dataset
+                        openPMDFile.ReadScalarDataSet(zarray,
+                                                      nnodes,
+                                                      &factor,
+                                                      H5T_FLOAT,
+                                                      bufferDataSetName);
+                    }
+
+                    // Create the vtkPoints object and copy points into it.
+                    vtkPoints *points = vtkPoints::New();
+                    points->SetNumberOfPoints(nnodes);
+                    float *pts = (float *) points->GetVoidPointer(0);
+                    float *xc = xarray;
+                    float *yc = yarray;
+                    float *zc = zarray;
+                    if(ndims == 3)
+                    {
+                        for(int i = 0; i < nnodes; ++i)
+                        {
+                            *pts++ = *xc++;
+                            *pts++ = *yc++;
+                            *pts++ = *zc++;
+                        }
+                    }
+                    else if(ndims == 2)
+                    {
+                        for(int i = 0; i < nnodes; ++i)
+                        {
+                            *pts++ = *xc++;
+                            *pts++ = *yc++;
+                            *pts++ = 0.;
+                        }
+                    }
+
+                    // Create a vtkUnstructuredGrid to contain the point cells.
+                    vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+                    ugrid->SetPoints(points);
+                    points->Delete();
+                    ugrid->Allocate(nnodes);
+                    vtkIdType onevertex;
                     for(int i = 0; i < nnodes; ++i)
                     {
-                        *pts++ = *xc++;
-                        *pts++ = *yc++;
-                        *pts++ = *zc++;
+                        onevertex = i;
+                        ugrid->InsertNextCell(VTK_VERTEX, 1, &onevertex);
                     }
-                }
-                else if(ndims == 2)
-                {
-                    for(int i = 0; i < nnodes; ++i)
-                    {
-                        *pts++ = *xc++;
-                        *pts++ = *yc++;
-                        *pts++ = 0.;
-                    }
-                }
 
-                // Create a vtkUnstructuredGrid to contain the point cells.
-                vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
-                ugrid->SetPoints(points);
-                points->Delete();
-                ugrid->Allocate(nnodes);
-                vtkIdType onevertex;
-                for(int i = 0; i < nnodes; ++i)
-                {
-                    onevertex = i;
-                    ugrid->InsertNextCell(VTK_VERTEX, 1, &onevertex);
-                }
+                    // Delete temporary arrays.
+                    delete [] xarray;
+                    delete [] yarray;
+                    delete [] zarray;
+                    return ugrid;
 
-                // Delete temporary arrays.
-                delete [] xarray;
-                delete [] yarray;
-                delete [] zarray;
-                return ugrid;
+                }
             }
 
         }

@@ -511,6 +511,11 @@ PMDField::SetGeometry(char * name,
         {
             strcpy(geometry,"thetaMode");
         }
+        else
+        {
+            cerr << " Error in PMDField::SetGeometry:" << endl;
+            cerr << " tmpchar is not a valid geometry" << endl;
+        }
     }
 }
 
