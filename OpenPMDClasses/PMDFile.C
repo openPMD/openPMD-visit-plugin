@@ -436,6 +436,8 @@ PMDFile::ReadScalarDataSet(void * array,
     hid_t   datasetSpace;
     hsize_t datasetStorageSize;
 
+		cerr << "Opening of the dataset"<< endl;
+
     // Open the corresponding dataset
     if ((datasetId = H5Dopen(this->fileId,path,H5P_DEFAULT))<0)
     {
@@ -448,6 +450,8 @@ PMDFile::ReadScalarDataSet(void * array,
     }
     else
     {
+
+			  cerr << "File opened"<< endl;
 
         // Data space
         datasetSpace = H5Dget_space(datasetId);
@@ -463,6 +467,9 @@ PMDFile::ReadScalarDataSet(void * array,
         // Check the class of the dataset
         if (dataClass==H5T_FLOAT)
         {
+
+			      cerr << "Data is float"<< endl;
+
             // Correct number of values in the dataset
             if (numValues == int(datasetStorageSize/dataSize))
             {
@@ -495,6 +502,9 @@ PMDFile::ReadScalarDataSet(void * array,
                 }
                 else if (dataSize == 8)
                 {
+
+										cerr << "Datasize is double"<< endl;
+
 									  // Factor is still a float
                     float factorTmp = *(float*) (factor);
                     if (factorTmp != 1)
@@ -505,7 +515,7 @@ PMDFile::ReadScalarDataSet(void * array,
 
                         for (int i=0;i<numValues;i++)
                         {
-                            arrayTmp[i] *= factorTmp;
+                            arrayTmp[i] *= (double)(factorTmp);
                         }
                     }
                 }

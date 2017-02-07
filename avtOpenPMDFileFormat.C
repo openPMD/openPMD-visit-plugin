@@ -634,6 +634,8 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
 //
 //  - Nov 25 2016 - Mathieu Lobet - Add parallel treatment of the particles
 //
+//  - Feb  8 2016 - Mathieu Lobet - Add double precision for particles
+//                                  and fields
 //
 // ****************************************************************************
 
@@ -1064,7 +1066,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // DataSize
                 dataSize = particle->scalarDataSets[id].dataSize;
 
-                // Depending on the data size of this first dataSet, 
+                // Depending on the data size of this first dataSet,
                 // we suppose that all data have the same type.
 
                 // Simple precision float
@@ -1249,6 +1251,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 
                     // Create the vtkPoints object and copy points into it.
                     vtkPoints *points = vtkPoints::New();
+                    points->SetDataTypeToDouble();
                     points->SetNumberOfPoints(particleBlock.numParticles);
                     double *pts = (double *) points->GetVoidPointer(0);
                     double *xc = xarray;
@@ -1308,7 +1311,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // data size (float or double)
                 dataSize = particle->scalarDataSets[id].dataSize;
 
-                // Depending on the data size of this first dataSet, 
+                // Depending on the data size of this first dataSet,
                 // we suppose that all data have the same type.
 
                 // Simple precision float
@@ -1418,6 +1421,117 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     return ugrid;
 
                 }
+                else if (dataSize == 8)
+                {
+
+                    // Dataset path
+                    strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
+
+                    // Multiplication factor
+                    factor = particle->scalarDataSets[id].unitSI;
+
+                    cerr << " dataSize" << dataSize << endl;
+                    cerr << " factor" << factor << endl;
+
+                    // Read the X coordinates from the file.
+                    double *xarray = new double[nnodes];
+
+                    // Read the dataset
+                    openPMDFile.ReadScalarDataSet(xarray,nnodes,
+                                                  &factor,
+                                                  H5T_FLOAT,
+                                                  bufferDataSetName);
+
+                    // Read the Y coordinates from the file.
+                    double *yarray = new double[nnodes];
+
+                    // Dataset Id
+                    id = particle->positionsId[1];
+
+                    // Dataset path
+                    strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
+
+                    // Multiplication factor
+                    factor = particle->scalarDataSets[id].unitSI;
+
+                    // Read the dataset
+                    openPMDFile.ReadScalarDataSet(yarray,
+                                                  nnodes,
+                                                  &factor,
+                                                  H5T_FLOAT,
+                                                  bufferDataSetName);
+
+                    double *zarray = 0;
+                    if (ndims>2)
+                    {
+                        // Read the Z coordinates from the file.
+                        zarray = new double[nnodes];
+
+                        // Dataset Id
+                        id = particle->positionsId[0];
+
+                        // Dataset path
+                        strcpy(bufferDataSetName,
+                               particle->scalarDataSets[id].path);
+
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[id].unitSI;
+
+                        // Read the dataset
+                        openPMDFile.ReadScalarDataSet(zarray,
+                                                      nnodes,
+                                                      &factor,
+                                                      H5T_FLOAT,
+                                                      bufferDataSetName);
+
+                        // Create the vtkPoints object and copy points into it.
+                        vtkPoints *points = vtkPoints::New();
+                        points->SetDataTypeToDouble();
+                        points->SetNumberOfPoints(nnodes);
+                        double *pts = (double *) points->GetVoidPointer(0);
+                        double *xc = xarray;
+                        double *yc = yarray;
+                        double *zc = zarray;
+                        if(ndims == 3)
+                        {
+                            for(int i = 0; i < nnodes; ++i)
+                            {
+                                *pts++ = *xc++;
+                                *pts++ = *yc++;
+                                *pts++ = *zc++;
+                            }
+                        }
+                        else if(ndims == 2)
+                        {
+                            for(int i = 0; i < nnodes; ++i)
+                            {
+                                *pts++ = *xc++;
+                                *pts++ = *yc++;
+                                *pts++ = 0.;
+                            }
+                        }
+
+                        // Create a vtkUnstructuredGrid to contain the point cells.
+                        vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
+                        ugrid->SetPoints(points);
+                        points->Delete();
+                        ugrid->Allocate(nnodes);
+                        vtkIdType onevertex;
+                        for(int i = 0; i < nnodes; ++i)
+                        {
+                            onevertex = i;
+                            ugrid->InsertNextCell(VTK_VERTEX, 1, &onevertex);
+                        }
+
+                        // Delete temporary arrays.
+                        delete [] xarray;
+                        delete [] yarray;
+                        delete [] zarray;
+                        return ugrid;
+
+                    }
+
+                }
             }
 
         }
@@ -1456,6 +1570,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 //      Mathieu Lobet, Nov 25 2016
 //      I added the parallel reading for the particles
 //
+//      Mathieu Lobet, Feb  8 2016
+//      I added the reading of the double precision data
 // ****************************************************************************
 
 vtkDataArray *
@@ -1755,6 +1871,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                             return vtkArray;
                         }
                     }
+                    // Double precision
                     else if (particle->scalarDataSets[i].dataSize==8)
                     {
                         vtkDoubleArray * vtkArray = vtkDoubleArray::New();
@@ -1782,6 +1899,10 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // multiplication factor for SI units
                     factor=particle->scalarDataSets[i].unitSI;
 
+                    cerr << "Number of particles: "<< numValues << endl;
+                    cerr << "factor: "<< numValues << endl;
+                    cerr << "datasize: "<< particle->scalarDataSets[i].dataSize << endl;
+
                     // Allocate the return vtkFloatArray object. Note that
                     // you can use vtkFloatArray, vtkDoubleArray,
                     // vtkUnsignedCharArray, vtkIntArray, etc.
@@ -1802,7 +1923,8 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                             return vtkArray;
                         }
                     }
-                        else if (particle->scalarDataSets[i].dataSize==8)
+                    // Double precision
+                    else if (particle->scalarDataSets[i].dataSize==8)
                     {
                         vtkDoubleArray * vtkArray = vtkDoubleArray::New();
                         vtkArray->SetNumberOfTuples(numValues);
@@ -1871,6 +1993,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 //
 //  Modifications:
 //  - Nov 25 2016 - Mathieu Lobet - Add parallel reading for the particles
+//  - Feb  8 2017 - Mathieu Lobet - Add double precision for the particles
 //
 // ****************************************************************************
 
@@ -1888,6 +2011,7 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
 
     int     i;
     int     err;
+    int     dataSize;
     int     scalarDataSetId;
     int     numValues;
     int     numComponents;
@@ -1931,56 +2055,153 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                     // Structure to store the block properties
                     particleBlockStruct particleBlock;
 
-                    // Read component 1 from the file.
-                    float *comp1 = new float[particleBlock.numParticles];
                     // Reading of the first dataset
                     scalarDataSetId = particle->vectorDataSets[i].dataSetId[2];
-                    // We get the block properties
-                    err = particle->GetBlockProperties(scalarDataSetId,
-                                                       this->numTasks,
-                                                       domain,
-                                                       &particleBlock);
-                    // Multiplication factor
-                    factor = particle->scalarDataSets[scalarDataSetId].unitSI;
-                    // Copy of the dataset path
-                    strcmp(particleBlock.dataSetPath,
-                           particle->scalarDataSets[scalarDataSetId].path);
-                    // Reading of the dataset
-                    err = openPMDFile.ReadParticleScalarBlock(comp1,
-                                                              &factor,
-                                                              H5T_FLOAT,
-                                                              &particleBlock);
 
-                    // Read component 2 from the file.
-                    float *comp2 = new float[particleBlock.numParticles];
-                    // Reading of the first dataset
-                    scalarDataSetId = particle->vectorDataSets[i].dataSetId[1];
-                    // We get the block properties
-                    err = particle->GetBlockProperties(scalarDataSetId,
-                                                       this->numTasks,
-                                                       domain,
-                                                       &particleBlock);
-                    // Multiplication factor
-                    factor = particle->scalarDataSets[scalarDataSetId].unitSI;
-                    // Copy of the dataset path
-                    strcmp(particleBlock.dataSetPath,
-                           particle->scalarDataSets[scalarDataSetId].path);
-                    // Reading of the dataset
-                    err = openPMDFile.ReadParticleScalarBlock(comp2,
-                                                              &factor,
-                                                              H5T_FLOAT,
-                                                              &particleBlock);
+                    // dataSize
+                    dataSize = particle->scalarDataSets[scalarDataSetId].dataSize;
 
+                    // Based on th first scalar data size,
+                    // we suppose the same fo the others
 
-                    // Read component 3 from the file.
-                    float *comp3;
-                    if(numComponents > 2)
+                    // Simple precision
+                    if (dataSize == 4)
                     {
-                        // Read component 3 from the file.
-                        comp3 = new float[particleBlock.numParticles];
+                        // Read component 1 from the file.
+                        float *comp1 = new float[particleBlock.numParticles];
+
+                        // We get the block properties
+                        err = particle->GetBlockProperties(scalarDataSetId,
+                                                           this->numTasks,
+                                                           domain,
+                                                           &particleBlock);
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[scalarDataSetId].unitSI;
+                        // Copy of the dataset path
+                        strcmp(particleBlock.dataSetPath,
+                               particle->scalarDataSets[scalarDataSetId].path);
+                        // Reading of the dataset
+                        err = openPMDFile.ReadParticleScalarBlock(comp1,
+                                                                  &factor,
+                                                                  H5T_FLOAT,
+                                                                  &particleBlock);
+
+                        // Read component 2 from the file.
+                        float *comp2 = new float[particleBlock.numParticles];
                         // Reading of the first dataset
-                        scalarDataSetId =
-                                     particle->vectorDataSets[i].dataSetId[0];
+                        scalarDataSetId = particle->vectorDataSets[i].dataSetId[1];
+                        // We get the block properties
+                        err = particle->GetBlockProperties(scalarDataSetId,
+                                                           this->numTasks,
+                                                           domain,
+                                                           &particleBlock);
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[scalarDataSetId].unitSI;
+                        // Copy of the dataset path
+                        strcmp(particleBlock.dataSetPath,
+                               particle->scalarDataSets[scalarDataSetId].path);
+                        // Reading of the dataset
+                        err = openPMDFile.ReadParticleScalarBlock(comp2,
+                                                                  &factor,
+                                                                  H5T_FLOAT,
+                                                                  &particleBlock);
+
+
+                        // Read component 3 from the file.
+                        float *comp3;
+                        if(numComponents > 2)
+                        {
+                            // Read component 3 from the file.
+                            comp3 = new float[particleBlock.numParticles];
+                            // Reading of the first dataset
+                            scalarDataSetId =
+                                         particle->vectorDataSets[i].dataSetId[0];
+                            // We get the block properties
+                            err = particle->GetBlockProperties(scalarDataSetId,
+                                                               this->numTasks,
+                                                               domain,
+                                                               &particleBlock);
+                            // Multiplication factor
+                            factor =
+                                 particle->scalarDataSets[scalarDataSetId].unitSI;
+                            // Copy of the dataset path
+                            strcmp(particleBlock.dataSetPath,
+                                  particle->scalarDataSets[scalarDataSetId].path);
+                            // Reading of the dataset
+                            err = openPMDFile.ReadParticleScalarBlock(comp3,
+                                                                      &factor,
+                                                                      H5T_FLOAT,
+                                                                &particleBlock);
+                        }
+
+                        // Allocate the return vtkFloatArray object. Note that
+                        // you can use vtkFloatArray, vtkDoubleArray,
+                        // vtkUnsignedCharArray, vtkIntArray, etc.
+                        vtkFloatArray *arr = vtkFloatArray::New();
+                        arr->SetNumberOfComponents(3);
+                        arr->SetNumberOfTuples(particleBlock.numParticles);
+                        float *data = (float *)arr->GetVoidPointer(0);
+                        float *c1 = comp1;
+                        float *c2 = comp2;
+                        float *c3 = comp3;
+                        if(numComponents == 3)
+                        {
+                            for(int i = 0; i < particleBlock.numParticles; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = *c3++;
+                            }
+                        }
+                        else if(numComponents == 2)
+                        {
+                            for(int i = 0; i < particleBlock.numParticles; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = 0.;
+                            }
+                        }
+                        else
+                        {
+                            delete [] comp1;
+                            delete [] comp2;
+                            delete [] comp3;
+                            arr->Delete();
+                            EXCEPTION1(InvalidVariableException, varname);
+                        }
+                        // Delete temporary arrays.
+                        delete [] comp1;
+                        delete [] comp2;
+                        delete [] comp3;
+                        return arr;
+                    }
+                    // Double precision
+                    else if (dataSize==8)
+                    {
+                        // Read component 1 from the file.
+                        double *comp1 = new double[particleBlock.numParticles];
+
+                        // We get the block properties
+                        err = particle->GetBlockProperties(scalarDataSetId,
+                                                           this->numTasks,
+                                                           domain,
+                                                           &particleBlock);
+                        // Multiplication factor
+                        factor = particle->scalarDataSets[scalarDataSetId].unitSI;
+                        // Copy of the dataset path
+                        strcmp(particleBlock.dataSetPath,
+                               particle->scalarDataSets[scalarDataSetId].path);
+                        // Reading of the dataset
+                        err = openPMDFile.ReadParticleScalarBlock(comp1,
+                                                                  &factor,
+                                                                  H5T_FLOAT,
+                                                                  &particleBlock);
+
+                        // Read component 2 from the file.
+                        double *comp2 = new double[particleBlock.numParticles];
+                        // Reading of the first dataset
+                        scalarDataSetId = particle->vectorDataSets[i].dataSetId[1];
                         // We get the block properties
                         err = particle->GetBlockProperties(scalarDataSetId,
                                                            this->numTasks,
@@ -1988,58 +2209,94 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                                                            &particleBlock);
                         // Multiplication factor
                         factor =
-                             particle->scalarDataSets[scalarDataSetId].unitSI;
+                               particle->scalarDataSets[scalarDataSetId].unitSI;
                         // Copy of the dataset path
                         strcmp(particleBlock.dataSetPath,
-                              particle->scalarDataSets[scalarDataSetId].path);
+                               particle->scalarDataSets[scalarDataSetId].path);
                         // Reading of the dataset
-                        err = openPMDFile.ReadParticleScalarBlock(comp3,
+                        err = openPMDFile.ReadParticleScalarBlock(comp2,
                                                                   &factor,
                                                                   H5T_FLOAT,
-                                                            &particleBlock);
-                    }
+                                                              &particleBlock);
 
-                    // Allocate the return vtkFloatArray object. Note that
-                    // you can use vtkFloatArray, vtkDoubleArray,
-                    // vtkUnsignedCharArray, vtkIntArray, etc.
-                    vtkFloatArray *arr = vtkFloatArray::New();
-                    arr->SetNumberOfComponents(3);
-                    arr->SetNumberOfTuples(particleBlock.numParticles);
-                    float *data = (float *)arr->GetVoidPointer(0);
-                    float *c1 = comp1;
-                    float *c2 = comp2;
-                    float *c3 = comp3;
-                    if(numComponents == 3)
-                    {
-                        for(int i = 0; i < particleBlock.numParticles; ++i)
+                        // Read component 3 from the file.
+                        double *comp3;
+                        if(numComponents > 2)
                         {
-                            *data++ = *c1++;
-                            *data++ = *c2++;
-                            *data++ = *c3++;
+                            // Read component 3 from the file.
+                            comp3 = new double[particleBlock.numParticles];
+                            // Reading of the first dataset
+                            scalarDataSetId =
+                                         particle->vectorDataSets[i].dataSetId[0];
+                            // We get the block properties
+                            err = particle->GetBlockProperties(scalarDataSetId,
+                                                               this->numTasks,
+                                                               domain,
+                                                               &particleBlock);
+                            // Multiplication factor
+                            factor =
+                              particle->scalarDataSets[scalarDataSetId].unitSI;
+                            // Copy of the dataset path
+                            strcmp(particleBlock.dataSetPath,
+                                particle->scalarDataSets[scalarDataSetId].path);
+                            // Reading of the dataset
+                            err = openPMDFile.ReadParticleScalarBlock(comp3,
+                                                                      &factor,
+                                                                      H5T_FLOAT,
+                                                                &particleBlock);
                         }
-                    }
-                    else if(numComponents == 2)
-                    {
-                        for(int i = 0; i < particleBlock.numParticles; ++i)
+
+                        // Allocate the return vtkDoubleArray object. Note that
+                        // you can use vtkFloatArray, vtkDoubleArray,
+                        // vtkUnsignedCharArray, vtkIntArray, etc.
+                        vtkDoubleArray *arr = vtkDoubleArray::New();
+                        arr->SetNumberOfComponents(3);
+                        arr->SetNumberOfTuples(particleBlock.numParticles);
+                        double *data = (double *)arr->GetVoidPointer(0);
+                        double *c1 = comp1;
+                        double *c2 = comp2;
+                        double *c3 = comp3;
+                        if(numComponents == 3)
                         {
-                            *data++ = *c1++;
-                            *data++ = *c2++;
-                            *data++ = 0.;
+                            for(int i = 0; i < particleBlock.numParticles; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = *c3++;
+                            }
                         }
-                    }
-                    else
-                    {
+                        else if(numComponents == 2)
+                        {
+                            for(int i = 0; i < particleBlock.numParticles; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = 0.;
+                            }
+                        }
+                        else
+                        {
+                            delete [] comp1;
+                            delete [] comp2;
+                            delete [] comp3;
+                            arr->Delete();
+                            EXCEPTION1(InvalidVariableException, varname);
+                        }
+                        // Delete temporary arrays.
                         delete [] comp1;
                         delete [] comp2;
                         delete [] comp3;
-                        arr->Delete();
-                        EXCEPTION1(InvalidVariableException, varname);
+                        return arr;
+
                     }
-                    // Delete temporary arrays.
-                    delete [] comp1;
-                    delete [] comp2;
-                    delete [] comp3;
-                    return arr;
+                    // Else data size is not recognized
+                    else
+                    {
+                        cerr << " Error in avtOpenPMDFileFormat::GetVectorVar"
+                             << endl;
+                        cerr << " DataSize is not recognized"
+                             << endl;
+                    }
 
                 }
                 /* ___ Sequential ___________________________________ */
@@ -2049,94 +2306,211 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                     // Number of particles for this dataset
                     numValues = particle->numParticles;
 
-                    // Read component 1 from the file.
-                    float *comp1 = new float[numValues];
                     // Reading of the first dataset
                     scalarDataSetId =
-                                     particle->vectorDataSets[i].dataSetId[2];
-                    // Multiplication factor
-                    factor = particle->scalarDataSets[scalarDataSetId].unitSI;
-                    // Reading of the dataset
-                    err = openPMDFile.ReadScalarDataSet(comp1,
-                                                        numValues,
-                                                        &factor,
-                                                        H5T_FLOAT,
-                            particle->scalarDataSets[scalarDataSetId].path);
+                                  particle->vectorDataSets[i].dataSetId[2];
 
-                    // Read component 2 from the file.
-                    float *comp2 = new float[numValues];
-                    // Reading of the first dataset
-                    scalarDataSetId =
-                                     particle->vectorDataSets[i].dataSetId[1];
-                    // Multiplication factor
-                    factor = particle->scalarDataSets[scalarDataSetId].unitSI;
-                    // Reading of the dataset
-                    err = openPMDFile.ReadScalarDataSet(comp2,
-                                                        numValues,
-                                                        &factor,
-                                                        H5T_FLOAT,
-                              particle->scalarDataSets[scalarDataSetId].path);
+                    // data size, we suppose that this is the
+                    // same for the other components
+                    dataSize =
+                             particle->scalarDataSets[scalarDataSetId].dataSize;
 
-                    float *comp3;
-                    if(numComponents > 2)
+                    // Simple precision
+                    if (dataSize == 4)
                     {
-                        // Read component 3 from the file.
-                        comp3 = new float[numValues];
-                        // Reading of the first dataset
-                        scalarDataSetId =
-                                     particle->vectorDataSets[i].dataSetId[0];
+
+                        // Read component 1 from the file.
+                        float *comp1 = new float[numValues];
+
                         // Multiplication factor
                         factor =
-                             particle->scalarDataSets[scalarDataSetId].unitSI;
+                               particle->scalarDataSets[scalarDataSetId].unitSI;
                         // Reading of the dataset
-                        err = openPMDFile.ReadScalarDataSet(comp3,
+                        err = openPMDFile.ReadScalarDataSet(comp1,
+                                                            numValues,
+                                                            &factor,
+                                                            H5T_FLOAT,
+                                particle->scalarDataSets[scalarDataSetId].path);
+
+                        // Read component 2 from the file.
+                        float *comp2 = new float[numValues];
+                        // Reading of the first dataset
+                        scalarDataSetId =
+                                      particle->vectorDataSets[i].dataSetId[1];
+                        // Multiplication factor
+                        factor =
+                               particle->scalarDataSets[scalarDataSetId].unitSI;
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(comp2,
                                                             numValues,
                                                             &factor,
                                                             H5T_FLOAT,
                               particle->scalarDataSets[scalarDataSetId].path);
-                    }
 
-                    // Allocate the return vtkFloatArray object. Note that
-                    // you can use vtkFloatArray, vtkDoubleArray,
-                    // vtkUnsignedCharArray, vtkIntArray, etc.
-                    vtkFloatArray *arr = vtkFloatArray::New();
-                    arr->SetNumberOfComponents(3);
-                    arr->SetNumberOfTuples(numValues);
-                    float *data = (float *)arr->GetVoidPointer(0);
-                    float *c1 = comp1;
-                    float *c2 = comp2;
-                    float *c3 = comp3;
-                    if(numComponents == 3)
-                    {
-                        for(int i = 0; i < numValues; ++i)
+                        float *comp3;
+                        if(numComponents > 2)
                         {
-                            *data++ = *c1++;
-                            *data++ = *c2++;
-                            *data++ = *c3++;
+                            // Read component 3 from the file.
+                            comp3 = new float[numValues];
+                            // Reading of the first dataset
+                            scalarDataSetId =
+                                      particle->vectorDataSets[i].dataSetId[0];
+                            // Multiplication factor
+                            factor =
+                              particle->scalarDataSets[scalarDataSetId].unitSI;
+                            // Reading of the dataset
+                            err = openPMDFile.ReadScalarDataSet(comp3,
+                                                                numValues,
+                                                                &factor,
+                                                                H5T_FLOAT,
+                              particle->scalarDataSets[scalarDataSetId].path);
                         }
-                    }
-                    else if(numComponents == 2)
-                    {
-                        for(int i = 0; i < numValues; ++i)
+
+                        // Allocate the return vtkFloatArray object. Note that
+                        // you can use vtkFloatArray, vtkDoubleArray,
+                        // vtkUnsignedCharArray, vtkIntArray, etc.
+                        vtkFloatArray *arr = vtkFloatArray::New();
+                        arr->SetNumberOfComponents(3);
+                        arr->SetNumberOfTuples(numValues);
+                        float *data = (float *)arr->GetVoidPointer(0);
+                        float *c1 = comp1;
+                        float *c2 = comp2;
+                        float *c3 = comp3;
+                        if(numComponents == 3)
                         {
-                            *data++ = *c1++;
-                            *data++ = *c2++;
-                            *data++ = 0.;
+                            for(int i = 0; i < numValues; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = *c3++;
+                            }
                         }
-                    }
-                    else
-                    {
+                        else if(numComponents == 2)
+                        {
+                            for(int i = 0; i < numValues; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = 0.;
+                            }
+                        }
+                        else
+                        {
+                            delete [] comp1;
+                            delete [] comp2;
+                            delete [] comp3;
+                            arr->Delete();
+                            EXCEPTION1(InvalidVariableException, varname);
+                        }
+                        // Delete temporary arrays.
                         delete [] comp1;
                         delete [] comp2;
                         delete [] comp3;
-                        arr->Delete();
-                        EXCEPTION1(InvalidVariableException, varname);
+                        return arr;
                     }
-                    // Delete temporary arrays.
-                    delete [] comp1;
-                    delete [] comp2;
-                    delete [] comp3;
-                    return arr;
+                    // Double precision
+                    else if (dataSize==8)
+                    {
+                        // Read component 1 from the file.
+                        double *comp1 = new double[numValues];
+                        // Reading of the first dataset
+                        scalarDataSetId =
+                                      particle->vectorDataSets[i].dataSetId[2];
+                        // Multiplication factor
+                        factor =
+                               particle->scalarDataSets[scalarDataSetId].unitSI;
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(comp1,
+                                                            numValues,
+                                                            &factor,
+                                                            H5T_FLOAT,
+                                particle->scalarDataSets[scalarDataSetId].path);
+
+                        // Read component 2 from the file.
+                        double *comp2 = new double[numValues];
+                        // Reading of the first dataset
+                        scalarDataSetId =
+                                      particle->vectorDataSets[i].dataSetId[1];
+                        // Multiplication factor
+                        factor =
+                               particle->scalarDataSets[scalarDataSetId].unitSI;
+                        // Reading of the dataset
+                        err = openPMDFile.ReadScalarDataSet(comp2,
+                                                            numValues,
+                                                            &factor,
+                                                            H5T_FLOAT,
+                              particle->scalarDataSets[scalarDataSetId].path);
+
+                        double *comp3;
+                        if(numComponents > 2)
+                        {
+                            // Read component 3 from the file.
+                            comp3 = new double[numValues];
+                            // Reading of the first dataset
+                            scalarDataSetId =
+                                      particle->vectorDataSets[i].dataSetId[0];
+                            // Multiplication factor
+                            factor =
+                              particle->scalarDataSets[scalarDataSetId].unitSI;
+                            // Reading of the dataset
+                            err = openPMDFile.ReadScalarDataSet(comp3,
+                                                                numValues,
+                                                                &factor,
+                                                                H5T_FLOAT,
+                              particle->scalarDataSets[scalarDataSetId].path);
+                        }
+
+                        // Allocate the return vtkDoubleArray object. Note that
+                        // you can use vtkFloatArray, vtkDoubleArray,
+                        // vtkUnsignedCharArray, vtkIntArray, etc.
+                        vtkDoubleArray *arr = vtkDoubleArray::New();
+                        arr->SetNumberOfComponents(3);
+                        arr->SetNumberOfTuples(numValues);
+                        double *data = (double *)arr->GetVoidPointer(0);
+                        double *c1 = comp1;
+                        double *c2 = comp2;
+                        double *c3 = comp3;
+                        if(numComponents == 3)
+                        {
+                            for(int i = 0; i < numValues; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = *c3++;
+                            }
+                        }
+                        else if(numComponents == 2)
+                        {
+                            for(int i = 0; i < numValues; ++i)
+                            {
+                                *data++ = *c1++;
+                                *data++ = *c2++;
+                                *data++ = 0.;
+                            }
+                        }
+                        else
+                        {
+                            delete [] comp1;
+                            delete [] comp2;
+                            delete [] comp3;
+                            arr->Delete();
+                            EXCEPTION1(InvalidVariableException, varname);
+                        }
+                        // Delete temporary arrays.
+                        delete [] comp1;
+                        delete [] comp2;
+                        delete [] comp3;
+                        return arr;
+
+                    }
+                    // The data size is not recognized
+                    else
+                    {
+                      cerr << " Error in avtOpenPMDFileFormat::GetVectorVar"
+                           << endl;
+                      cerr << " DataSize is not recognized"
+                           << endl;
+                    }
                 }
             }
         }
