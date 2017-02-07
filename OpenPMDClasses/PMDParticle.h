@@ -98,8 +98,8 @@ class PMDParticle
         struct scalarDataSet
         {
             /// Scalar data name
-            char    name[64]; 
-            /// Scalar data path in the OpenPMD file        
+            char    name[64];
+            /// Scalar data path in the OpenPMD file
             char    path[128];
             /// Units computed from the OpenPMD file
             char    unitLabel[64];
@@ -107,12 +107,14 @@ class PMDParticle
             double  unitSI;
             /// Weighting Power
             double  weigthingPower;
-            /// Time offset read from OpenPMD files            
+            /// Time offset read from OpenPMD files
             double  timeOffset;
             /// Macro-weighted read from OpenPMD file
             int     macroWeighted;
             /// Data size in number of bytes (4,8)
             int    dataSize;
+            /// Number of elements (particles)
+            int    numElements;
             /// Data Class (H5T_FLOAT, H5T_INTEGER...)
             H5T_class_t dataClass;
         };
@@ -122,17 +124,17 @@ class PMDParticle
         {
             /// Vector data name
             char    name[64];
-            /// Vector data path in the OpenPMD file      
+            /// Vector data path in the OpenPMD file
             char    path[128];
             /// Units computed from the OpenPMD file
             char    unitLabel[64];
-            /// Corresponding scalarDataSet objects in scalarDataSets 
+            /// Corresponding scalarDataSet objects in scalarDataSets
             /// for each vector component
-            int     dataSetId[3];  
+            int     dataSetId[3];
             /// Time offset read from OpenPMD files
             double  timeOffset;
             /// Weighting Power
-            double  weigthingPower;     
+            double  weigthingPower;
         };
 
         // Constructor and destructor
@@ -147,9 +149,9 @@ class PMDParticle
         void        ScanMomenta(hid_t particleGroupId, char * objectName);
         void        ScanDataSet(hid_t particleGroupId,char * objectName);
         void        ScanGroup(hid_t particleGroupId,char * objectName);
-        int         GetBlockProperties(int scalarDataSetId, 
-                                       int blockDim, 
-                                       int blockId, 
+        int         GetBlockProperties(int scalarDataSetId,
+                                       int blockDim,
+                                       int blockId,
                                        particleBlockStruct * particleBlock);
         int         GetNumScalarDatasets();
         int         GetNumVectorDatasets();
@@ -158,14 +160,14 @@ class PMDParticle
         /// Activate outputs
         int         verbose;
         /// Particle group name
-        char        name[64];  
-        /// Particle path     
+        char        name[64];
+        /// Particle path
         char        path[64];
         /// Number of particles
         long        numParticles;
         /// Particle mass (when constant for all particles)
-        double      charge;  
-        /// Particle mass (when constant for all particles)     
+        double      charge;
+        /// Particle mass (when constant for all particles)
         double      mass;
         ///         position dimension
         int         numDimsPositions;
@@ -178,7 +180,7 @@ class PMDParticle
 
         /// Contain all the scalar for this particle group
         vector <scalarDataSet> scalarDataSets;
-        /// Contain all the vectors for this particle group 
+        /// Contain all the vectors for this particle group
         vector <vectorDataSet> vectorDataSets;
 
     protected:
@@ -191,10 +193,10 @@ class PMDParticle
         void        SetVectorAttributes(hid_t objectId,
                                         vectorDataSet * vectorObject);
         char*       SetUnitDimension(char* name, hid_t attrId,
-                                     hid_t attrType, 
+                                     hid_t attrType,
                                      hid_t attrSpace);
-        double      SetUnitSI(char * name, hid_t attrId, 
-                              hid_t attrType, hid_t attrSpace);        
+        double      SetUnitSI(char * name, hid_t attrId,
+                              hid_t attrType, hid_t attrSpace);
 
 };
 

@@ -36,9 +36,9 @@
 *
 *****************************************************************************/
 
-// *************************************************************************** 
-//                            avtOpenPMDFileFormat.C                          
-// *************************************************************************** 
+// ***************************************************************************
+//                            avtOpenPMDFileFormat.C
+// ***************************************************************************
 
 #include <unistd.h>
 
@@ -85,8 +85,8 @@ avtOpenPMDFileFormat::avtOpenPMDFileFormat(const char *filename)
     : avtMTMDFileFormat(filename)
 {
 #ifdef VERBOSE
-    cerr << "avtOpenPMDFileFormat::avtOpenPMDFileFormat "  
-         << filename 
+    cerr << "avtOpenPMDFileFormat::avtOpenPMDFileFormat "
+         << filename
          << endl;
 #endif
 
@@ -203,7 +203,7 @@ avtOpenPMDFileFormat::GetCycles(std::vector<int> &cycles)
     vector<PMDIteration> * iterations = &(openPMDFile.iterations);
 
     // Loop over the iterations
-    for (std::vector<PMDIteration>::iterator it = iterations->begin() ; 
+    for (std::vector<PMDIteration>::iterator it = iterations->begin() ;
          it != iterations->end(); ++it)
     {
         cycle = atoi(it->name);
@@ -228,13 +228,13 @@ void
 avtOpenPMDFileFormat::GetTimes(std::vector<double> &times)
 {
 #ifdef VERBOSE
-    cerr << "avtOpenPMDFileFormat::GetTimes" << endl;    
+    cerr << "avtOpenPMDFileFormat::GetTimes" << endl;
 #endif
     // Shortcut pointer to the vector iterations
     vector<PMDIteration> * iterations = &(openPMDFile.iterations);
 
     // Loop over the iterations
-    for (std::vector<PMDIteration>::iterator it = iterations->begin() ; 
+    for (std::vector<PMDIteration>::iterator it = iterations->begin() ;
          it != iterations->end(); ++it)
     {
         // Store the times in the vector.
@@ -278,18 +278,18 @@ avtOpenPMDFileFormat::FreeUpResources(void)
 //  Creation:   Tue Oct 18 11:49:37 PDT 2016
 //
 //  Modifications:
-//  - Nov 25 2016 - Mathieu Lobet - Particle can now be read by block 
+//  - Nov 25 2016 - Mathieu Lobet - Particle can now be read by block
 //                                  depending of the number of tasks.
 //
 // ****************************************************************************
 
 void
-avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md, 
+avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
                                                int timeState)
 {
 #ifdef VERBOSE
-    cerr << "avtOpenPMDFileFormat::PopulateDatabaseMetaData(timeState=" 
-         << timeState << ")" 
+    cerr << "avtOpenPMDFileFormat::PopulateDatabaseMetaData(timeState="
+         << timeState << ")"
          << endl;
 #endif
 
@@ -306,7 +306,7 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
     vector<PMDField> * fields = &(openPMDFile.iterations[timeState].fields);
 
     // Iteration over the fields
-    for (std::vector<PMDField>::iterator field = fields->begin() ; 
+    for (std::vector<PMDField>::iterator field = fields->begin() ;
          field != fields->end(); ++field)
     {
 
@@ -363,17 +363,17 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         // Add the scalars
         md->Add(smd);
 
-    }  
+    }
 
     // ________________________________________________________
     // PARTICLES
 
     // Shortcut pointer to the particles
-    vector<PMDParticle> * particles = 
+    vector<PMDParticle> * particles =
                             &(openPMDFile.iterations[timeState].particles);
 
     // Iteration over the particles
-    for (std::vector<PMDParticle>::iterator particle = particles->begin() ; 
+    for (std::vector<PMDParticle>::iterator particle = particles->begin() ;
          particle != particles->end(); ++particle)
     {
 
@@ -435,14 +435,14 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // Vector dimension
             vmd->varDim = 3;
             md->Add(vmd);
-        }  
+        }
 
         if (particle->momentumAvailable)
         {
             // Particle Expressions
             Expression *e1 = new Expression;
             // Create the name
-            strcpy(buffer,"Particles/");  
+            strcpy(buffer,"Particles/");
             strcat(buffer,particle->name);
             strcat(buffer,"/gamma");
             e1->SetName(buffer);
@@ -456,16 +456,16 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
                 // Create the definition
                 char px[128], py[128], pz[128];
 
-                // Expression 
+                // Expression
                 sprintf(px,"Particles/%s/momentum/x",particle->name);
                 sprintf(py,"Particles/%s/momentum/y",particle->name);
-                sprintf(pz,"Particles/%s/momentum/z",particle->name);        
+                sprintf(pz,"Particles/%s/momentum/z",particle->name);
 
                 sprintf(definition,
                         "sqrt(1.0+(<%s>^2+<%s>^2+<%s>^2)/(299792458*%e)^2)",
                         px,py,pz,particle->mass);
             }
-            // If we have only two momentum components, we suppose 
+            // If we have only two momentum components, we suppose
             // that the dimension is 2
             else if (particle->numDimsMomenta==2)
             {
@@ -474,7 +474,7 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
 
                 // Expression: this is only valid if z is the main direction
                 sprintf(px,"Particles/%s/momentum/x",particle->name);
-                sprintf(pz,"Particles/%s/momentum/z",particle->name);        
+                sprintf(pz,"Particles/%s/momentum/z",particle->name);
 
                 sprintf(definition,
                         "sqrt(1.0+(<%s>^2+<%s>^2)/(299792458*%e)^2)",
@@ -483,8 +483,8 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // Invalid momentum dimension
             else
             {
-                cerr << " The gamma expression can not be created for " 
-                        "such a momentum dimension: " 
+                cerr << " The gamma expression can not be created for "
+                        "such a momentum dimension: "
                      << particle->numDimsMomenta << endl;
             }
 
@@ -583,11 +583,11 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
     // {
     //     char str[32];
     //     sprintf(str, "mat%d", i);
-    //     -- or -- 
+    //     -- or --
     //     strcpy(str, "Aluminum");
     //     mnames.push_back(str);
     // }
-    // 
+    //
     // Here's the call that tells the meta-data object that we have a mat:
     //
     // AddMaterialToMetaData(md, matname, mesh_for_mat, nmats, mnames);
@@ -642,9 +642,9 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 {
 
 #ifdef VERBOSE
-    cerr << "avtOpenPMDFileFormat::GetMesh(timestate=" 
-         << timestate 
-         << ",domain=" << domain 
+    cerr << "avtOpenPMDFileFormat::GetMesh(timestate="
+         << timestate
+         << ",domain=" << domain
          << ")" << endl;
 #endif
 
@@ -655,6 +655,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     int             id;
     int             nnodes;
     int             nmodes;
+    int             dataSize;
     char            bufferMeshName[128];
     char            bufferDataSetName[128];
     float           factor;
@@ -664,14 +665,14 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     // ________________________________________________________
     // FIELDS
 
-    // We look for the corresponding mesh of name meshname 
+    // We look for the corresponding mesh of name meshname
     // in the vector of fields
 
     // Shortcut pointer to the fields
     vector<PMDField> * fields = &(openPMDFile.iterations[timestate].fields);
 
     // Iteration over the fields
-    for (std::vector<PMDField>::iterator field = fields->begin() ; 
+    for (std::vector<PMDField>::iterator field = fields->begin() ;
          field != fields->end(); ++field)
     {
 
@@ -700,24 +701,24 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         fieldBlockStruct fieldBlock;
 
                         // We get the block properties
-                        err = field->GetBlockProperties(this->numTasks, 
-                                                        domain, 
+                        err = field->GetBlockProperties(this->numTasks,
+                                                        domain,
                                                         &fieldBlock);
 
 /*#if defined(VERSOSE)&&(VERBOSE==1)
-                        cerr    << "fieldBlock.minNode[0]: " 
-                                << fieldBlock.minNode[0] 
-                                << " " << fieldBlock.nbNodes[0] 
+                        cerr    << "fieldBlock.minNode[0]: "
+                                << fieldBlock.minNode[0]
+                                << " " << fieldBlock.nbNodes[0]
                                 << " " << fieldBlock.maxNode[0] << endl;
 
-                        cerr    << "fieldBlock.minNode[1]: " 
-                                << fieldBlock.minNode[1] 
-                                << " " << fieldBlock.nbNodes[1] 
+                        cerr    << "fieldBlock.minNode[1]: "
+                                << fieldBlock.minNode[1]
+                                << " " << fieldBlock.nbNodes[1]
                                 << " " << fieldBlock.maxNode[1] << endl;
 
-                        cerr    << "fieldBlock.minNode[2]: " 
-                                << fieldBlock.minNode[2] 
-                                << " " << fieldBlock.nbNodes[2] 
+                        cerr    << "fieldBlock.minNode[2]: "
+                                << fieldBlock.minNode[2]
+                                << " " << fieldBlock.nbNodes[2]
                                 << " " << fieldBlock.maxNode[2] << endl;
 #endif*/
 
@@ -733,8 +734,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=fieldBlock.minNode[2];
                             i<=fieldBlock.maxNode[2];i++)
                         {
-                            xarray[i - fieldBlock.minNode[2]] = 
-                            ((i+field->gridPosition[2])*field->gridSpacing[2] 
+                            xarray[i - fieldBlock.minNode[2]] =
+                            ((i+field->gridPosition[2])*field->gridSpacing[2]
                             + field->gridGlobalOffset[2])*field->gridUnitSI;
                         }
 
@@ -745,8 +746,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=fieldBlock.minNode[1];
                             i<=fieldBlock.maxNode[1];i++)
                         {
-                            yarray[i - fieldBlock.minNode[1]] = 
-                            ((i+field->gridPosition[1])*field->gridSpacing[1] 
+                            yarray[i - fieldBlock.minNode[1]] =
+                            ((i+field->gridPosition[1])*field->gridSpacing[1]
                             + field->gridGlobalOffset[1])*field->gridUnitSI;
                         }
 
@@ -757,8 +758,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=fieldBlock.minNode[0];
                             i<=fieldBlock.maxNode[0];i++)
                         {
-                            zarray[i - fieldBlock.minNode[0]] = 
-                            ((i+field->gridPosition[0])*field->gridSpacing[0] 
+                            zarray[i - fieldBlock.minNode[0]] =
+                            ((i+field->gridPosition[0])*field->gridSpacing[0]
                             + field->gridGlobalOffset[0])*field->gridUnitSI;
                         }
 
@@ -776,8 +777,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         float *xarray = (float *)coords[0]->GetVoidPointer(0);
                         for(i=0;i<dims[0];i++)
                         {
-                            xarray[i] = 
-                            ((i+field->gridPosition[2])*field->gridSpacing[2] 
+                            xarray[i] =
+                            ((i+field->gridPosition[2])*field->gridSpacing[2]
                             + field->gridGlobalOffset[2])*field->gridUnitSI;
                         }
 
@@ -787,8 +788,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         float *yarray = (float *)coords[1]->GetVoidPointer(0);
                         for(i=0;i<dims[1];i++)
                         {
-                            yarray[i] = 
-                            ((i+field->gridPosition[1])*field->gridSpacing[1] 
+                            yarray[i] =
+                            ((i+field->gridPosition[1])*field->gridSpacing[1]
                             + field->gridGlobalOffset[1])*field->gridUnitSI;
                         }
 
@@ -798,8 +799,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         float *zarray = (float *)coords[2]->GetVoidPointer(0);
                         for(i=0;i<dims[2];i++)
                         {
-                            zarray[i] = 
-                            ((i+field->gridPosition[0])*field->gridSpacing[0] 
+                            zarray[i] =
+                            ((i+field->gridPosition[0])*field->gridSpacing[0]
                             + field->gridGlobalOffset[0])*field->gridUnitSI;
                         }
                     }
@@ -817,18 +818,18 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         fieldBlockStruct fieldBlock;
 
                         // We get the block properties
-                        err = field->GetBlockProperties(this->numTasks, 
-                                                        domain, 
+                        err = field->GetBlockProperties(this->numTasks,
+                                                        domain,
                                                         &fieldBlock);
 
-                        cerr    << "fieldBlock.minNode[0]: " 
-                                << fieldBlock.minNode[0] 
-                                << " " << fieldBlock.nbNodes[0] 
+                        cerr    << "fieldBlock.minNode[0]: "
+                                << fieldBlock.minNode[0]
+                                << " " << fieldBlock.nbNodes[0]
                                 << " " << fieldBlock.maxNode[0] << endl;
 
-                        cerr    << "fieldBlock.minNode[1]: " 
-                                << fieldBlock.minNode[1] 
-                                << " " << fieldBlock.nbNodes[1] 
+                        cerr    << "fieldBlock.minNode[1]: "
+                                << fieldBlock.minNode[1]
+                                << " " << fieldBlock.nbNodes[1]
                                 << " " << fieldBlock.maxNode[1] << endl;
 
                         dims[0] = fieldBlock.nbNodes[1];
@@ -842,7 +843,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=fieldBlock.minNode[1];
                             i<=fieldBlock.maxNode[1];i++)
                         {
-                            xarray[i - fieldBlock.minNode[1]] = 
+                            xarray[i - fieldBlock.minNode[1]] =
                             ((i+field->gridPosition[1])*field->gridSpacing[1]
                             + field->gridGlobalOffset[1])*field->gridUnitSI;
                         }
@@ -854,8 +855,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=fieldBlock.minNode[0];
                             i<=fieldBlock.maxNode[0];i++)
                         {
-                            yarray[i - fieldBlock.minNode[0]] = 
-                            ((i+field->gridPosition[0])*field->gridSpacing[0] 
+                            yarray[i - fieldBlock.minNode[0]] =
+                            ((i+field->gridPosition[0])*field->gridSpacing[0]
                             + field->gridGlobalOffset[0])*field->gridUnitSI;
                         }
 
@@ -879,7 +880,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         float *xarray = (float *)coords[0]->GetVoidPointer(0);
                         for(i=0;i<field->nbNodes[1];i++)
                         {
-                            xarray[i] = 
+                            xarray[i] =
                             ((i+field->gridPosition[1])*field->gridSpacing[1]
                             + field->gridGlobalOffset[1])*field->gridUnitSI;
                         }
@@ -890,8 +891,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         float *yarray = (float *)coords[1]->GetVoidPointer(0);
                         for(i=0;i<field->nbNodes[0];i++)
                         {
-                            yarray[i] = 
-                            ((i+field->gridPosition[0])*field->gridSpacing[0] 
+                            yarray[i] =
+                            ((i+field->gridPosition[0])*field->gridSpacing[0]
                             + field->gridGlobalOffset[0])*field->gridUnitSI;
                         }
 
@@ -909,7 +910,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 }
 
                 // Create the vtkRectilinearGrid object and set its dimensions
-                // and coordinates.         
+                // and coordinates.
                 vtkRectilinearGrid *grid = vtkRectilinearGrid::New();
                 grid->SetDimensions(dims);
                 grid->SetXCoordinates(coords[0]);
@@ -917,7 +918,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 grid->SetYCoordinates(coords[1]);
                 coords[1]->Delete();
                 grid->SetZCoordinates(coords[2]);
-                coords[2]->Delete();  
+                coords[2]->Delete();
 
                 // We return the generated grid
                 return grid;
@@ -927,7 +928,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 
                 // Read the ndims and number of X,Y,Z nodes from file.
                 ndims = field->ndims;
-                dims[0] = field->nbNodes[2]; // z direction 
+                dims[0] = field->nbNodes[2]; // z direction
                 dims[1] = field->nbNodes[1]; // r direction
                 dims[2] = 10; // Theta direction
                 //cerr << dims[0] << " " << dims[1] << " " << dims[2] << endl;
@@ -955,10 +956,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     // Theta angle
                     theta = k*dtheta;
                     // Radius
-                    r = (j*field->gridSpacing[0] 
+                    r = (j*field->gridSpacing[0]
                       + field->gridGlobalOffset[0])*field->unitSI;
                     // Position of the point
-                    xarray[l] = (i*field->gridSpacing[1] 
+                    xarray[l] = (i*field->gridSpacing[1]
                               + field->gridGlobalOffset[1])*field->gridUnitSI;
                     yarray[l] = (r*cos(theta));
                     zarray[l] = (r*sin(theta));
@@ -970,7 +971,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 sgrid->SetPoints(points);
                 sgrid->SetDimensions(dims);
                 points->Delete();
-                points->SetNumberOfPoints(nnodes);               
+                points->SetNumberOfPoints(nnodes);
 
                 // Copy the coordinate values into the vtkPoints object.
                 float *pts = (float *) points->GetVoidPointer(0);
@@ -1011,11 +1012,11 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     // PARTICLES
 
     // Shortcut pointer to the particles
-    vector<PMDParticle> * particles = 
+    vector<PMDParticle> * particles =
     &(openPMDFile.iterations[timestate].particles);
 
     // Iteration over the particles
-    for (std::vector<PMDParticle>::iterator particle = particles->begin() ; 
+    for (std::vector<PMDParticle>::iterator particle = particles->begin() ;
          particle != particles->end(); ++particle)
     {
         // Mesh name
@@ -1032,14 +1033,13 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             // Sanity check
             if ((ndims <= 1)||(ndims > 3))
             {
-                cerr << "The number of position datasets is invalid: " 
+                cerr << "The number of position datasets is invalid: "
                      << ndims << endl;
             }
 
             /* ____ Treatment of the file in parallel _____________________ */
             if (this->parallel)
             {
-
 
                 // Creation of the block property object
                 particleBlockStruct particleBlock;
@@ -1050,9 +1050,9 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 id = particle->positionsId[2];
 
                 // Get the block properties for this dataSet
-                particle->GetBlockProperties(id, 
-                                             this->numTasks, 
-                                             domain, 
+                particle->GetBlockProperties(id,
+                                             this->numTasks,
+                                             domain,
                                              &particleBlock);
 
                 // Dataset path
@@ -1061,8 +1061,20 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // Multiplication factor
                 factor = particle->scalarDataSets[id].unitSI;
 
+                // DataSize
+                dataSize = particle->scalarDataSets[id].dataSize;
+
                 // Create the X coordinates array
                 float *xarray = new float[particleBlock.numParticles];
+                if (dataSize == 4)
+                {
+                  float *xarray = new float[particleBlock.numParticles];
+
+                }
+                else if (dataSize == 8)
+                {
+                  double *xarray = new double[particleBlock.numParticles];
+                }
 
                 // Read the dataset
                 openPMDFile.ReadParticleScalarBlock(xarray,
@@ -1076,7 +1088,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 id = particle->positionsId[1];
 
                 // Get the block properties for this dataSet
-                particle->GetBlockProperties(id, this->numTasks, 
+                particle->GetBlockProperties(id, this->numTasks,
                                              domain,
                                              &particleBlock);
 
@@ -1098,14 +1110,14 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 /* ____ Read the Z coordinates from the file _________ */
 
                 float *zarray = 0;
-                if (ndims>2) 
+                if (ndims>2)
                 {
                     // Dataset Id
-                    id = particle->positionsId[0];  
+                    id = particle->positionsId[0];
 
                     // Get the block properties for this dataSet
-                    particle->GetBlockProperties(id, this->numTasks, 
-                                                 domain, 
+                    particle->GetBlockProperties(id, this->numTasks,
+                                                 domain,
                                                  &particleBlock);
 
                     // Dataset path
@@ -1149,8 +1161,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         *pts++ = *yc++;
                         *pts++ = 0.;
                     }
-                }            
-                
+                }
+
                 // Create a vtkUnstructuredGrid to contain the point cells.
                 vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
                 ugrid->SetPoints(points);
@@ -1196,13 +1208,13 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                                               bufferDataSetName);
 
                 // Read the Y coordinates from the file.
-                float *yarray = new float[nnodes];   
+                float *yarray = new float[nnodes];
 
                 // Dataset Id
                 id = particle->positionsId[1];
 
                 // Dataset path
-                strcpy(bufferDataSetName,particle->scalarDataSets[id].path);    
+                strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
 
                 // Multiplication factor
                 factor = particle->scalarDataSets[id].unitSI;
@@ -1215,17 +1227,17 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                                               bufferDataSetName);
 
                 float *zarray = 0;
-                if (ndims>2) 
+                if (ndims>2)
                 {
                     // Read the Z coordinates from the file.
-                    zarray = new float[nnodes];   
+                    zarray = new float[nnodes];
 
                     // Dataset Id
                     id = particle->positionsId[0];
 
                     // Dataset path
                     strcpy(bufferDataSetName,
-                           particle->scalarDataSets[id].path);         
+                           particle->scalarDataSets[id].path);
 
                     // Multiplication factor
                     factor = particle->scalarDataSets[id].unitSI;
@@ -1262,8 +1274,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         *pts++ = *yc++;
                         *pts++ = 0.;
                     }
-                }            
-                
+                }
+
                 // Create a vtkUnstructuredGrid to contain the point cells.
                 vtkUnstructuredGrid *ugrid = vtkUnstructuredGrid::New();
                 ugrid->SetPoints(points);
@@ -1326,8 +1338,8 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 {
 #ifdef VERBOSE
     cerr << "avtOpenPMDFileFormat::GetVar("
-         << "timestate=" << timestate << "," 
-         << "domain=" << domain << "," 
+         << "timestate=" << timestate << ","
+         << "domain=" << domain << ","
          << "varname=" << varname << ")" <<endl;
 #endif
 
@@ -1353,7 +1365,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     vector<PMDField> * fields = &(openPMDFile.iterations[timestate].fields);
 
     // Iteration over the fields
-    for (std::vector<PMDField>::iterator field = fields->begin() ; 
+    for (std::vector<PMDField>::iterator field = fields->begin() ;
          field != fields->end(); ++field)
     {
 
@@ -1367,12 +1379,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
             if (strcmp(field->geometry,"cartesian")==0)
             {
 
-                // Allocate the return vtkFloatArray object. Note that
-                // you can use vtkFloatArray, vtkDoubleArray,
-                // vtkUnsignedCharArray, vtkIntArray, etc.
-                vtkFloatArray * vtkArray = vtkFloatArray::New();
-
-                // We treat the file in parallel by reading 
+                // We treat the file in parallel by reading
                 // the scalar dataset by block
                 if (parallel)
                 {
@@ -1381,8 +1388,8 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     fieldBlockStruct fieldBlock;
 
                     // We get the block properties
-                    err = field->GetBlockProperties(this->numTasks, 
-                                                    domain, 
+                    err = field->GetBlockProperties(this->numTasks,
+                                                    domain,
                                                     &fieldBlock);
 
                     // Number of nodes
@@ -1395,6 +1402,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     if (field->dataSize == 4)
                     {
                         // Allocate the return vtkFloatArray object
+                        vtkFloatArray * vtkArray = vtkFloatArray::New();
                         vtkArray->SetNumberOfTuples(numValues);
                         float *data = (float *)vtkArray->GetVoidPointer(0);
                         // Reading of the dataset block
@@ -1402,18 +1410,33 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                                                             &factor,
                                                             field->dataClass,
                                                             &fieldBlock);
+
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
+
                     }
                     // Float double precision
                     else if (field->dataSize == 8)
                     {
-                        // Allocate the return vtkFloatArray object
-                        vtkArray->SetNumberOfTuples(numValues);                        
-                        double *data = (double *)vtkArray->GetVoidPointer(0);  
+                        // Allocate the return vtkDoubleArray object
+                        vtkDoubleArray * vtkArray = vtkDoubleArray::New();
+                        vtkArray->SetNumberOfTuples(numValues);
+                        double *data = (double *)vtkArray->GetVoidPointer(0);
                         // Reading of the dataset block
                         err = openPMDFile.ReadFieldScalarBlock(data,
                                                             &factor,
                                                             field->dataClass,
-                                                            &fieldBlock);                     
+                                                            &fieldBlock);
+
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
+
                     }
 
                 }
@@ -1429,28 +1452,39 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     if (field->dataSize == 4)
                     {
                         // Allocate the return vtkFloatArray object
+                        vtkFloatArray * vtkArray = vtkFloatArray::New();
                         vtkArray->SetNumberOfTuples(numValues);
                         float *data = (float *)vtkArray->GetVoidPointer(0);
                         // Reading of the dataset
                         err = openPMDFile.ReadScalarDataSet(data,numValues,
-                            &factor,field->dataClass,field->datasetPath);  
+                            &factor,field->dataClass,field->datasetPath);
+
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
+
+
                     }
                     // Float double precision
                     else if (field->dataSize == 8)
                     {
                         // Allocate the return vtkFloatArray object
+                        vtkDoubleArray * vtkArray = vtkDoubleArray::New();
                         vtkArray->SetNumberOfTuples(numValues);
-                        double *data = (double *)vtkArray->GetVoidPointer(0);         
+                        double *data = (double *)vtkArray->GetVoidPointer(0);
                         // Reading of the dataset
                         err = openPMDFile.ReadScalarDataSet(data,numValues,
-                            &factor,field->dataClass,field->datasetPath);    
-                    }
-                }
+                            &factor,field->dataClass,field->datasetPath);
 
-                // If no error, we return the array
-                if (err>=0)
-                {
-                    return vtkArray;
+                        // If no error, we return the array
+                        if (err>=0)
+                        {
+                            return vtkArray;
+                        }
+
+                    }
                 }
 
             }
@@ -1461,11 +1495,11 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 // you can use vtkFloatArray, vtkDoubleArray,
                 // vtkUnsignedCharArray, vtkIntArray, etc.
                 vtkFloatArray * vtkArray = vtkFloatArray::New();
-                cerr << " vtkFloatArray * vtkArray = vtkFloatArray::New();" 
+                cerr << " vtkFloatArray * vtkArray = vtkFloatArray::New();"
                      << endl;
 
                 // Dimensions
-                dims[0] = field->nbNodes[2]; // z direction 
+                dims[0] = field->nbNodes[2]; // z direction
                 dims[1] = field->nbNodes[1]; // r direction
                 dims[2] = 10;                // Theta direction
 
@@ -1495,7 +1529,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 vtkArray->SetNumberOfTuples(numValues);
                 cerr << " vtkArray->SetNumberOfTuples(numValues);" << endl;
                 float *data = (float *)vtkArray->GetVoidPointer(0);
-                cerr << " float *data = (float *)vtkArray->GetVoidPointer(0);" 
+                cerr << " float *data = (float *)vtkArray->GetVoidPointer(0);"
                      << endl;
 
                 // Treatment of the data
@@ -1513,11 +1547,11 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // Update of data
                     data[m] = dataSetArray[l];
 
-                    cerr << " m: " << m << "/" << numValues-1 
-                         << " l: " << l << "/" << dims[1]*dims[0]-1 
-                         << " data[m]: " << data[m] 
+                    cerr << " m: " << m << "/" << numValues-1
+                         << " l: " << l << "/" << dims[1]*dims[0]-1
+                         << " data[m]: " << data[m]
                          << " dataSetArray[l]: "<< dataSetArray[l] << endl;
-                }             
+                }
 
                 // If no error, we return the array
                 if (err>=0)
@@ -1527,10 +1561,10 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 }
 
                 // Delete temporary arrays
-                //delete dataSetArray; 
+                //delete dataSetArray;
                 //delete data;
 
-            }        
+            }
 
         }
     }
@@ -1540,11 +1574,11 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     // This part gets the scalar datasets from the particles
 
     // Shortcut pointer to the particles
-    vector<PMDParticle> * particles = 
+    vector<PMDParticle> * particles =
                             &(openPMDFile.iterations[timestate].particles);
 
     // Iteration over the particles
-    for (std::vector<PMDParticle>::iterator particle = particles->begin() ; 
+    for (std::vector<PMDParticle>::iterator particle = particles->begin() ;
          particle != particles->end(); ++particle)
     {
         // Iteration over the scalar datasets
@@ -1560,7 +1594,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 
                 /* ___ Parallel ___________________________________ */
 
-                // We treat the file in parallel by reading the scalar 
+                // We treat the file in parallel by reading the scalar
                 // dataset by block
                 if (parallel)
                 {
@@ -1569,7 +1603,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     particleBlockStruct particleBlock;
 
                     // We get the block properties
-                    err = particle->GetBlockProperties(i, numTasks, domain , 
+                    err = particle->GetBlockProperties(i, numTasks, domain ,
                                                        &particleBlock);
 
                     // multiplication factor for SI units
@@ -1584,7 +1618,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                         vtkArray->SetNumberOfTuples(
                                   particleBlock.numParticles);
 
-                        float *data = (float *)vtkArray->GetVoidPointer(0);          
+                        float *data = (float *)vtkArray->GetVoidPointer(0);
                         // Read particles
                         err = openPMDFile.ReadParticleScalarBlock(data,
                             &factor,
@@ -1601,7 +1635,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                         vtkDoubleArray * vtkArray = vtkDoubleArray::New();
                         vtkArray->SetNumberOfTuples(
                                   particleBlock.numParticles);
-                        double *data = (double *)vtkArray->GetVoidPointer(0);          
+                        double *data = (double *)vtkArray->GetVoidPointer(0);
                         // Read particles
                         err = openPMDFile.ReadParticleScalarBlock(data,
                             &factor,
@@ -1716,13 +1750,13 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 // ****************************************************************************
 
 vtkDataArray *
-avtOpenPMDFileFormat::GetVectorVar(int timestate, 
+avtOpenPMDFileFormat::GetVectorVar(int timestate,
                                    int domain,
                                    const char *varname)
 {
 #ifdef VERBOSE
-    cerr << "avtOpenPMDFileFormat::GetVectorVar("  
-         << "timestate=" << timestate << "," 
+    cerr << "avtOpenPMDFileFormat::GetVectorVar("
+         << "timestate=" << timestate << ","
          << "varname=" << varname
          << ")" << endl;
 #endif
@@ -1740,11 +1774,11 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
     // This part get the scalar datasets from the particles
 
     // Shortcut pointer to the particles
-    vector<PMDParticle> * particles = 
+    vector<PMDParticle> * particles =
                             &(openPMDFile.iterations[timestate].particles);
 
     // Iteration over the particles
-    for (std::vector<PMDParticle>::iterator particle = particles->begin() ; 
+    for (std::vector<PMDParticle>::iterator particle = particles->begin() ;
          particle != particles->end(); ++particle)
     {
         // Iteration over the vector datasets
@@ -1770,23 +1804,23 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                 {
 
                     // Structure to store the block properties
-                    particleBlockStruct particleBlock;                    
+                    particleBlockStruct particleBlock;
 
                     // Read component 1 from the file.
                     float *comp1 = new float[particleBlock.numParticles];
                     // Reading of the first dataset
                     scalarDataSetId = particle->vectorDataSets[i].dataSetId[2];
                     // We get the block properties
-                    err = particle->GetBlockProperties(scalarDataSetId, 
-                                                       this->numTasks, 
-                                                       domain, 
+                    err = particle->GetBlockProperties(scalarDataSetId,
+                                                       this->numTasks,
+                                                       domain,
                                                        &particleBlock);
                     // Multiplication factor
                     factor = particle->scalarDataSets[scalarDataSetId].unitSI;
                     // Copy of the dataset path
                     strcmp(particleBlock.dataSetPath,
                            particle->scalarDataSets[scalarDataSetId].path);
-                    // Reading of the dataset     
+                    // Reading of the dataset
                     err = openPMDFile.ReadParticleScalarBlock(comp1,
                                                               &factor,
                                                               H5T_FLOAT,
@@ -1797,16 +1831,16 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                     // Reading of the first dataset
                     scalarDataSetId = particle->vectorDataSets[i].dataSetId[1];
                     // We get the block properties
-                    err = particle->GetBlockProperties(scalarDataSetId, 
+                    err = particle->GetBlockProperties(scalarDataSetId,
                                                        this->numTasks,
-                                                       domain, 
+                                                       domain,
                                                        &particleBlock);
                     // Multiplication factor
                     factor = particle->scalarDataSets[scalarDataSetId].unitSI;
                     // Copy of the dataset path
                     strcmp(particleBlock.dataSetPath,
                            particle->scalarDataSets[scalarDataSetId].path);
-                    // Reading of the dataset     
+                    // Reading of the dataset
                     err = openPMDFile.ReadParticleScalarBlock(comp2,
                                                               &factor,
                                                               H5T_FLOAT,
@@ -1820,23 +1854,23 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                         // Read component 3 from the file.
                         comp3 = new float[particleBlock.numParticles];
                         // Reading of the first dataset
-                        scalarDataSetId = 
+                        scalarDataSetId =
                                      particle->vectorDataSets[i].dataSetId[0];
                         // We get the block properties
-                        err = particle->GetBlockProperties(scalarDataSetId, 
+                        err = particle->GetBlockProperties(scalarDataSetId,
                                                            this->numTasks,
                                                            domain,
                                                            &particleBlock);
                         // Multiplication factor
-                        factor = 
+                        factor =
                              particle->scalarDataSets[scalarDataSetId].unitSI;
                         // Copy of the dataset path
                         strcmp(particleBlock.dataSetPath,
                               particle->scalarDataSets[scalarDataSetId].path);
-                        // Reading of the dataset     
+                        // Reading of the dataset
                         err = openPMDFile.ReadParticleScalarBlock(comp3,
                                                                   &factor,
-                                                                  H5T_FLOAT, 
+                                                                  H5T_FLOAT,
                                                             &particleBlock);
                     }
 
@@ -1885,7 +1919,7 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                 }
                 /* ___ Sequential ___________________________________ */
                 else
-                {       
+                {
 
                     // Number of particles for this dataset
                     numValues = particle->numParticles;
@@ -1893,30 +1927,30 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                     // Read component 1 from the file.
                     float *comp1 = new float[numValues];
                     // Reading of the first dataset
-                    scalarDataSetId = 
+                    scalarDataSetId =
                                      particle->vectorDataSets[i].dataSetId[2];
                     // Multiplication factor
                     factor = particle->scalarDataSets[scalarDataSetId].unitSI;
-                    // Reading of the dataset     
+                    // Reading of the dataset
                     err = openPMDFile.ReadScalarDataSet(comp1,
                                                         numValues,
                                                         &factor,
                                                         H5T_FLOAT,
-                            particle->scalarDataSets[scalarDataSetId].path); 
+                            particle->scalarDataSets[scalarDataSetId].path);
 
                     // Read component 2 from the file.
                     float *comp2 = new float[numValues];
                     // Reading of the first dataset
-                    scalarDataSetId = 
+                    scalarDataSetId =
                                      particle->vectorDataSets[i].dataSetId[1];
                     // Multiplication factor
                     factor = particle->scalarDataSets[scalarDataSetId].unitSI;
-                    // Reading of the dataset                
+                    // Reading of the dataset
                     err = openPMDFile.ReadScalarDataSet(comp2,
                                                         numValues,
                                                         &factor,
                                                         H5T_FLOAT,
-                              particle->scalarDataSets[scalarDataSetId].path); 
+                              particle->scalarDataSets[scalarDataSetId].path);
 
                     float *comp3;
                     if(numComponents > 2)
@@ -1924,17 +1958,17 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                         // Read component 3 from the file.
                         comp3 = new float[numValues];
                         // Reading of the first dataset
-                        scalarDataSetId = 
+                        scalarDataSetId =
                                      particle->vectorDataSets[i].dataSetId[0];
                         // Multiplication factor
-                        factor = 
+                        factor =
                              particle->scalarDataSets[scalarDataSetId].unitSI;
-                        // Reading of the dataset                      
+                        // Reading of the dataset
                         err = openPMDFile.ReadScalarDataSet(comp3,
                                                             numValues,
                                                             &factor,
                                                             H5T_FLOAT,
-                              particle->scalarDataSets[scalarDataSetId].path); 
+                              particle->scalarDataSets[scalarDataSetId].path);
                     }
 
                     // Allocate the return vtkFloatArray object. Note that
@@ -2011,11 +2045,10 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
     //           one_entry[j] = ...
     //      for (j = ncomps ; j < ucomps ; j++)
     //           one_entry[j] = 0.;
-    //      rv->SetTuple(i, one_entry); 
+    //      rv->SetTuple(i, one_entry);
     // }
     //
     // delete [] one_entry;
     // return rv;
     //
 }
-
