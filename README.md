@@ -219,24 +219,44 @@ svn co http://visit.ilight.com/svn/visit/trunk/test/
 svn co http://visit.ilight.com/svn/visit/trunk/data
 ```
 
+Then create the directory `deps`:
+
+```
 mkdir deps
+```
 
+Build the files for VisIt:
+```
 ../src/svn_bin/build_visit --system-cmake --python --hdf5 --szip --zlib --no-visit --parallel --makeflags -j8 --no-pyside --console --arch x86_64
+```
 
-cd databases
-git clone Plugin Repo
+Copy the OpenPMD plugin in the VisIt database:
 
-modify src/databases/CMakeLists.txt
+```
+cd src/databases
+git clone OpenPMD repository
+```
 
+Check that `/CMakeLists.txt` is well configured.
+
+Prepare the makefile:
+
+```
 cd visit/build
-
 cmake -DVISIT_CONFIG_SITE=../deps/ubuntu-VirtualBox.cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../install  ../src
+```
 
+Make VisIt:
 
+```
 make -j 8
+```
 
+Use this command to launch VisIt with Valgrind:
 
+```
 ./bin/visit -xterm -valgrind engine_ser
+```
 
 ## Using Visit with openPMD
 -------------------------
