@@ -75,7 +75,7 @@ First, download and install [VisIt](https://wci.llnl.gov/simulation/computer-cod
 
 On MacOs, you can choose to install the plugin only for you or all users.
 For this aim, we will first use the xml2cmake tool located in `<Visit application directory>/Contents/Resources/bin/`.
-We recommend to add an alias in your `~/.profile`. 
+We recommend to add an alias in your `~/.profile`.
 
 To install the plugin for you:
 
@@ -124,7 +124,7 @@ First, setup your environment:
 ```
 module swap PrgEnv-intel PrgEnv-gnu-VisIt
 module unload darshan
-module unload craype 
+module unload craype
 ```
 
 Then, load the visit module:
@@ -170,6 +170,74 @@ The libraries (`libEOpenPMDDatabase_par.so`, `libEOpenPMDDatabase_ser.so`, `libI
 ```
 /global/homes/<first login letter>/<login>/.visit/<VisIt version>/linux-x86_64/plugins/databases/
 ```
+
+#### Ubuntu using the sources
+
+In this section, we present how to install OpenPMD with the VisIt sources.
+
+First, you need to install the following packages
+
+```
+sudo apt-get install subversion gcc gdb valgrind cmake
+sudo apt-get install mpich
+sudo apt-get install libgl1-mesa-dev
+sudo apt-get install mesa-utils
+sudo apt-get install libxt-dev
+sudo apt-get install freeglut3-dev
+```
+
+In order to test that OpenGL is well installed, the following command will
+launch a small test window.
+
+```
+glxgears
+```
+
+If you get this error during the installation of VisIt:
+```
+src/freeglut_internal.h:111:39: fatal error: X11/extensions/XInput.h: No such file or directory
+```
+
+You will have to do the following operation:
+```
+cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+```
+
+Create a directory for VisIt where you want to make the installation
+(for instance your home directory).
+
+```
+mkdir visit
+cd visit
+```
+
+Then, download useful VisIt files from the svn repository:
+
+```
+svn co http://visit.ilight.com/svn/visit/trunk/src/
+svn co http://visit.ilight.com/svn/visit/trunk/test/
+svn co http://visit.ilight.com/svn/visit/trunk/data
+```
+
+mkdir deps
+
+../src/svn_bin/build_visit --system-cmake --python --hdf5 --szip --zlib --no-visit --parallel --makeflags -j8 --no-pyside --console --arch x86_64
+
+cd databases
+git clone Plugin Repo
+
+modify src/databases/CMakeLists.txt
+
+cd visit/build
+
+cmake -DVISIT_CONFIG_SITE=../deps/ubuntu-VirtualBox.cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../install  ../src
+
+
+make -j 8
+
+
+./bin/visit -xterm -valgrind engine_ser
+
 ## Using Visit with openPMD
 -------------------------
 
@@ -183,7 +251,7 @@ To start Visit, you can use the launcher but we recommend to start Visit by comm
 /Applications/VisIt.app/Contents/MacOS/VisIt -np <number of cores>
 ```
 
-You can specify the number of cores you want to use in parallel with VisIt. 
+You can specify the number of cores you want to use in parallel with VisIt.
 OpenPMD files are read and treated in parallel if more than one core are used.
 
 ## To be implemented/improved

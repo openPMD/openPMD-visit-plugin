@@ -1899,10 +1899,6 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                     // multiplication factor for SI units
                     factor=particle->scalarDataSets[i].unitSI;
 
-                    cerr << "Number of particles: "<< numValues << endl;
-                    cerr << "factor: "<< numValues << endl;
-                    cerr << "datasize: "<< particle->scalarDataSets[i].dataSize << endl;
-
                     // Allocate the return vtkFloatArray object. Note that
                     // you can use vtkFloatArray, vtkDoubleArray,
                     // vtkUnsignedCharArray, vtkIntArray, etc.
@@ -2196,12 +2192,13 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                         err = openPMDFile.ReadParticleScalarBlock(comp1,
                                                                   &factor,
                                                                   H5T_FLOAT,
-                                                                  &particleBlock);
+                                                              &particleBlock);
 
                         // Read component 2 from the file.
                         double *comp2 = new double[particleBlock.numParticles];
                         // Reading of the first dataset
-                        scalarDataSetId = particle->vectorDataSets[i].dataSetId[1];
+                        scalarDataSetId =
+                                       particle->vectorDataSets[i].dataSetId[1];
                         // We get the block properties
                         err = particle->GetBlockProperties(scalarDataSetId,
                                                            this->numTasks,
