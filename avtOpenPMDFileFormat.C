@@ -92,6 +92,8 @@ avtOpenPMDFileFormat::avtOpenPMDFileFormat(const char *filename)
 
     // Boolean to check that the initialization has been done
     this->initialized = false;
+    // By default parallel is off
+    this->parallel = false;
 }
 
 
@@ -1679,6 +1681,11 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                         }
 
                     }
+                    else
+                    {
+                        cerr << " Error in avtOpenPMDFileFormat::GetVar" << endl;
+                        cerr << " The data size is not recognized." << endl;
+                    }
 
                 }
                 // Sequential reading of the dataset
@@ -1726,18 +1733,16 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                         }
 
                     }
+                    else
+                    {
+                        cerr << " Error in avtOpenPMDFileFormat::GetVar" << endl;
+                        cerr << " The data size is not recognized." << endl;
+                    }
                 }
 
             }
             else if (strcmp(field->geometry,"thetaMode")==0)
             {
-
-                // Allocate the return vtkFloatArray object. Note that
-                // you can use vtkFloatArray, vtkDoubleArray,
-                // vtkUnsignedCharArray, vtkIntArray, etc.
-                vtkFloatArray * vtkArray = vtkFloatArray::New();
-                cerr << " vtkFloatArray * vtkArray = vtkFloatArray::New();"
-                     << endl;
 
                 // Dimensions
                 dims[0] = field->nbNodes[2]; // z direction
@@ -1751,59 +1756,142 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 // Values to be read from the dataset
                 numValues = dims[1]*dims[0]*3;
 
-                // Allocate the dataset array with the different modes
-                float *dataSetArray = new float(numValues);
-
-                cerr << " Reading dataset: " << field->datasetPath << endl;
-
-                // Reading of the dataset
-                err = openPMDFile.ReadScalarDataSet(dataSetArray,
-                                                    numValues,
-                                                    &factor,
-                                                    H5T_FLOAT,
-                                                    field->datasetPath);
-
-                // Total number of Values in the vtkarray
-                numValues = dims[0]*dims[1]*dims[2];
-                cerr << " Total number of values: " << numValues << endl;
-
-                vtkArray->SetNumberOfTuples(numValues);
-                cerr << " vtkArray->SetNumberOfTuples(numValues);" << endl;
-                float *data = (float *)vtkArray->GetVoidPointer(0);
-                cerr << " float *data = (float *)vtkArray->GetVoidPointer(0);"
-                     << endl;
-
-                // Treatment of the data
-                // We first build the mode 0
-                cerr << " Build mode 0" << endl;
-
-                for(k = 0; k < dims[2]; ++k) // Loop theta
-                for(j = 0; j < dims[1]; ++j) // Loop r
-                for(i = 0; i < dims[0]; ++i) // Loop z
+                // Simple precision
+                if (field->dataSize == 4)
                 {
-                    // Absolute indexes
-                    l = i + j*dims[0];
-                    m = l + k*dims[0]*dims[1];
 
-                    // Update of data
-                    data[m] = dataSetArray[l];
+                    // Allocate the dataset array with the different modes
+                    float *dataSetArray = new float(numValues);
 
-                    cerr << " m: " << m << "/" << numValues-1
-                         << " l: " << l << "/" << dims[1]*dims[0]-1
-                         << " data[m]: " << data[m]
-                         << " dataSetArray[l]: "<< dataSetArray[l] << endl;
+                    cerr << " Reading dataset: " << field->datasetPath << endl;
+
+                    // Reading of the dataset
+                    err = openPMDFile.ReadScalarDataSet(dataSetArray,
+                                                        numValues,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                        field->datasetPath);
+
+                    // Total number of Values in the vtkarray
+                    int numValuesVtkArray = dims[0]*dims[1]*dims[2];
+                    cerr << " Total number of values: " << numValuesVtkArray << endl;
+
+                    // Allocate the return vtkFloatArray object. Note that
+                    // you can use vtkFloatArray, vtkDoubleArray,
+                    // vtkUnsignedCharArray, vtkIntArray, etc.
+                    vtkFloatArray * vtkArray = vtkFloatArray::New();
+                    cerr << " vtkFloatArray * vtkArray = vtkFloatArray::New();"
+                         << endl;
+
+                    vtkArray->SetNumberOfTuples(numValuesVtkArray);
+                    cerr << " vtkArray->SetNumberOfTuples(numValuesVtkArray);" << endl;
+                    float *data = (float *) vtkArray->GetVoidPointer(0);
+                    cerr << " float *data = (float *)vtkArray->GetVoidPointer(0);"
+                         << endl;
+
+                    // Treatment of the data
+                    // We first build the mode 0
+                    cerr << " Build mode 0" << endl;
+
+                    for(k = 0; k < dims[2]; ++k) // Loop theta
+                    for(j = 0; j < dims[1]; ++j) // Loop r
+                    for(i = 0; i < dims[0]; ++i) // Loop z
+                    {
+                        // Absolute indexes
+                        l = i + j*dims[0];
+                        m = l + k*dims[0]*dims[1];
+
+                        // Update of data
+                        data[m] = dataSetArray[l];
+
+                        cerr << " m: " << m << "/" << numValuesVtkArray-1
+                             << " l: " << l << "/" << dims[1]*dims[0]-1
+                             << " data[m]: " << data[m]
+                             << " dataSetArray[l]: "<< dataSetArray[l] << endl;
+                    }
+
+                    // If no error, we return the array
+                    if (err>=0)
+                    {
+                        cerr << " Return vtkArray" << endl;
+                        return vtkArray;
+                    }
+
+                    // Delete temporary arrays
+                    //delete dataSetArray;
+                    //delete data;
+
                 }
-
-                // If no error, we return the array
-                if (err>=0)
+                // Double precision
+                else if (field->dataSize == 8)
                 {
-                    cerr << " Return vtkArray" << endl;
-                    return vtkArray;
-                }
 
-                // Delete temporary arrays
-                //delete dataSetArray;
-                //delete data;
+                    // Allocate the dataset array with the different modes
+                    double *dataSetArray = new double(numValues);
+
+                    cerr << " Reading dataset: " << field->datasetPath << endl;
+
+                    // Reading of the dataset
+                    err = openPMDFile.ReadScalarDataSet(dataSetArray,
+                                                        numValues,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                        field->datasetPath);
+
+                    // Total number of Values in the vtkarray
+                    numValues = dims[0]*dims[1]*dims[2];
+                    cerr << " Total number of values: " << numValues << endl;
+
+                    // Allocate the return vtkFloatArray object. Note that
+                    // you can use vtkFloatArray, vtkDoubleArray,
+                    // vtkUnsignedCharArray, vtkIntArray, etc.
+                    vtkDoubleArray * vtkArray = vtkDoubleArray::New();
+                    cerr << " vtkDoubleArray * vtkArray = vtkDoubleArray::New();"
+                         << endl;
+
+                    vtkArray->SetNumberOfTuples(numValues);
+                    cerr << " vtkArray->SetNumberOfTuples(numValues);" << endl;
+                    double *data = (double *)vtkArray->GetVoidPointer(0);
+                    cerr << " double *data = (double *)vtkArray->GetVoidPointer(0);"
+                         << endl;
+
+                    // Treatment of the data
+                    // We first build the mode 0
+                    cerr << " Build mode 0" << endl;
+
+                    for(k = 0; k < dims[2]; ++k) // Loop theta
+                    for(j = 0; j < dims[1]; ++j) // Loop r
+                    for(i = 0; i < dims[0]; ++i) // Loop z
+                    {
+                        // Absolute indexes
+                        l = i + j*dims[0];
+                        m = l + k*dims[0]*dims[1];
+
+                        // Update of data
+                        data[m] = dataSetArray[l];
+
+                        cerr << " m: " << m << "/" << numValues-1
+                             << " l: " << l << "/" << dims[1]*dims[0]-1
+                             << " data[m]: " << data[m]
+                             << " dataSetArray[l]: "<< dataSetArray[l] << endl;
+                    }
+
+                    // If no error, we return the array
+                    if (err>=0)
+                    {
+                        cerr << " Return vtkArray" << endl;
+                        return vtkArray;
+                    }
+
+                    // Delete temporary arrays
+                    //delete dataSetArray;
+                    //delete data;
+                }
+                else
+                {
+                    cerr << " Error in avtOpenPMDFileFormat::GetVar" << endl;
+                    cerr << " The data size is not recognized." << endl;
+                }
 
             }
 

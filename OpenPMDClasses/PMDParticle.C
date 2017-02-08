@@ -77,6 +77,10 @@ PMDParticle::PMDParticle()
 	this->numDimsMomenta = 0;
 	// Number of position dimensions
 	this->numDimsPositions = 0;
+	this->charge = 0;
+	this->mass   = 0;
+	strcpy(this->name,"");
+	strcpy(this->path,"");
 }
 
 // ***************************************************************************
@@ -472,10 +476,6 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 			datasetStorageSize = H5Dget_storage_size(dataSetId);
 			// Number of elements
 			scalar.numElements = int(datasetStorageSize/scalar.dataSize);
-
-
-			cerr << "Position Scalar data size " << scalar.dataSize << endl;
-			cerr << "Number of elements " << scalar.numElements << endl;
 
 			H5Dclose(dataSetId);
 		}

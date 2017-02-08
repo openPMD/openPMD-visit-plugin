@@ -157,8 +157,6 @@ class PMDParticle
         int         GetNumVectorDatasets();
 
         // Particle attributes
-        /// Activate outputs
-        int         verbose;
         /// Particle group name
         char        name[64];
         /// Particle path
