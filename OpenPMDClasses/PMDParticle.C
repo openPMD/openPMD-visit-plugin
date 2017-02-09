@@ -79,8 +79,8 @@ PMDParticle::PMDParticle()
 	this->numDimsPositions = 0;
 	this->charge = 0;
 	this->mass   = 0;
-	strcpy(this->name,"");
-	strcpy(this->path,"");
+	strcpy(this->name,"none");
+	strcpy(this->path,"none");
 }
 
 // ***************************************************************************

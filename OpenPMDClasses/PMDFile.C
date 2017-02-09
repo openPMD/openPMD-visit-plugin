@@ -764,7 +764,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
             }
             else if (dataSize == 8)
             {
-							  // factor is still a float
+                // factor is still a float
                 float factorTmp = *(float*) (factor);
                 if (factorTmp != 1)
                 {

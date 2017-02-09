@@ -63,19 +63,22 @@
 // ***************************************************************************
 PMDField::PMDField()
 {
-		this->unitSI=1;
-		this->gridUnitSI=1;
-		this->dataSize = 0;
-		strcpy(this->name,"");
-		strcpy(this->datasetPath,"");
-		strcpy(this->groupPath,"");
-		strcpy(this->unitsLabel,"");
-		strcpy(this->axisLabels[0],"");
-    strcpy(this->axisLabels[1],"");
-    strcpy(this->axisLabels[2],"");
-		strcpy(this->dataOrder,"");
-		strcpy(this->geometry,"");
-		strcpy(this->fieldBoundary,"");
+    this->unitSI=1;
+    this->gridUnitSI=1;
+    this->dataSize = 0;
+    strcpy(this->name,"none");
+    strcpy(this->datasetPath,"none");
+    strcpy(this->groupPath,"none");
+    strcpy(this->unitsLabel,"none");
+    strcpy(this->axisLabels[0],"none");
+    strcpy(this->axisLabels[1],"nonenone");
+    strcpy(this->axisLabels[2],"none");
+    strcpy(this->dataOrder,"none");
+    strcpy(this->geometry,"none");
+    strcpy(this->fieldBoundary,"none");
+
+    // Discretization for the theta mode
+    this->thetaNbNodes = 100;
 }
 
 // ***************************************************************************
@@ -114,102 +117,109 @@ void PMDField::ScanAttributes(hid_t objectId)
     cerr << " PMDField::ScanAttributes: " << endl;
 #endif
 
-	int 	numAttr;
-	int 	i;
-	hid_t 	attrId;
-	hid_t	attrType;
-	hid_t	attrSpace;
-	int 	ndims;
-	hsize_t sdim[64];
-	herr_t 	err;
-	char 	name[64];
+    int     numAttr;
+    int     i;
+    hid_t     attrId;
+    hid_t    attrType;
+    hid_t    attrSpace;
+    int     ndims;
+    hsize_t sdim[64];
+    herr_t     err;
+    char     name[64];
 
-	// Number of attributes
-	numAttr = H5Aget_num_attrs(objectId);
+    // Number of attributes
+    numAttr = H5Aget_num_attrs(objectId);
 
-	// This solution with H5Aiterate2 does not work because GetAttributeInfo
-	// needs to be static and therefore field attribute can not be modified
-	// err = H5Aiterate2(objectId, H5_INDEX_NAME, H5_ITER_INC, NULL,
+    // This solution with H5Aiterate2 does not work because GetAttributeInfo
+    // needs to be static and therefore field attribute can not be modified
+    // err = H5Aiterate2(objectId, H5_INDEX_NAME, H5_ITER_INC, NULL,
     // GetAttributeInfo, NULL);
-	// But I am not an expert in C++, Mathieu
+    // But I am not an expert in C++, Mathieu
 
-	// iteration over the attributes
+    // iteration over the attributes
     for (i = 0; i < numAttr; i++)
     {
-    	// Open the attribute using its loop id.
-		attrId = H5Aopen_idx(objectId, (unsigned int)i );
+        // Open the attribute using its loop id.
+        attrId = H5Aopen_idx(objectId, (unsigned int)i );
 
-		// Get the name
-		H5Aget_name(attrId, 64, name );
+        // Get the name
+        H5Aget_name(attrId, 64, name );
 
-		// The type of the attribute
-		attrType  = H5Aget_type(attrId);
-		// Space
-	    attrSpace = H5Aget_space(attrId);
-	    // Number of dimensions
-	    ndims = H5Sget_simple_extent_ndims(attrSpace);
-	    //
-	    err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
+        // The type of the attribute
+        attrType  = H5Aget_type(attrId);
+        // Space
+        attrSpace = H5Aget_space(attrId);
+        // Number of dimensions
+        ndims = H5Sget_simple_extent_ndims(attrSpace);
+        //
+        err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-		if (strcmp(name,"gridSpacing")==0)
-		{
-			SetGridSpacing(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"gridGlobalOffset")==0)
-		{
-			SetGridGlobalOffset(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"position")==0)
-		{
-			SetGridPosition(name, attrId, attrType, attrSpace);
-		}
-		// Reading of the labels has to be done correctly
-		//else if (strcmp(name,"axisLabels")==0)
-		//{
-		//	SetAxisLabels(name, attrId, attrType, attrSpace);
-		//}
-		else if (strcmp(name,"geometry")==0)
-		{
-			SetGeometry(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"unitSI")==0)
-		{
-			SetUnitSI(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"gridUnitSI")==0)
-		{
-			SetGridUnitSI(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"timeOffset")==0)
-		{
-			// To be implemented
-		}
-		else if (strcmp(name,"unitDimension")==0)
-		{
-			SetUnitDimension(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"fieldBoundary")==0)
-		{
-			SetFieldBoundary(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"dataOrder")==0)
-		{
-			SetDataOrder(name, attrId, attrType, attrSpace);
-		}
-		else if (strcmp(name,"fieldSolver")==0)
-		{
-			// To be implemented
-		}
-		else if (strcmp(name,"chargeCorrection")==0)
-		{
-			// To be implemented
-		}
-		else if (strcmp(name,"currentSmoothing")==0)
-		{
-			// To be implemented
-		}
-		H5Aclose(attrId);
-	}
+        if (strcmp(name,"gridSpacing")==0)
+        {
+            SetGridSpacing(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"gridGlobalOffset")==0)
+        {
+            SetGridGlobalOffset(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"position")==0)
+        {
+            SetGridPosition(name, attrId, attrType, attrSpace);
+        }
+        // Reading of the labels has to be done correctly
+        //else if (strcmp(name,"axisLabels")==0)
+        //{
+        //    SetAxisLabels(name, attrId, attrType, attrSpace);
+        //}
+        else if (strcmp(name,"geometry")==0)
+        {
+            SetGeometry(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"unitSI")==0)
+        {
+            SetUnitSI(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"gridUnitSI")==0)
+        {
+            SetGridUnitSI(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"timeOffset")==0)
+        {
+            // To be implemented
+        }
+        else if (strcmp(name,"unitDimension")==0)
+        {
+            SetUnitDimension(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"fieldBoundary")==0)
+        {
+            SetFieldBoundary(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"dataOrder")==0)
+        {
+            SetDataOrder(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"fieldSolver")==0)
+        {
+            // To be implemented
+        }
+        else if (strcmp(name,"chargeCorrection")==0)
+        {
+            // To be implemented
+        }
+        else if (strcmp(name,"currentSmoothing")==0)
+        {
+            // To be implemented
+        }
+        H5Aclose(attrId);
+    }
+
+    // Determine number of modes for the theta modes
+    if (strcmp(this->geometry,"thetaMode")==0)
+    {
+      this->nbModes = (this->nbNodes[0]-1)/2;
+    }
+
 }
 
 // ***************************************************************************
@@ -279,7 +289,7 @@ PMDField::SetGridSpacing(char * name,
                          hid_t attrType,
                          hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
@@ -332,7 +342,7 @@ PMDField::SetGridGlobalOffset(char * name,
                               hid_t attrType,
                               hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
@@ -383,7 +393,7 @@ PMDField::SetGridPosition(char * name,
                           hid_t attrType,
                           hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
@@ -432,7 +442,7 @@ PMDField::SetUnitSI(char * name,
                     hid_t attrType,
                     hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
@@ -465,7 +475,7 @@ void
 PMDField::SetGridUnitSI(char * name,
                         hid_t attrId, hid_t attrType, hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
@@ -499,17 +509,17 @@ PMDField::SetGeometry(char * name,
                       hid_t attrType,
                       hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
-        char tmpchar[64];
+        char tmpchar[64] = {'\0'};
 
         err = H5Aread(attrId, attrType, &tmpchar);
 
         if (strstr(tmpchar,"cartesian")>0)
         {
-        	strcpy(geometry,"cartesian");
+            strcpy(geometry,"cartesian");
         }
         else if (strstr(tmpchar,"thetaMode")>0)
         {
@@ -551,7 +561,7 @@ PMDField::SetAxisLabels(char * name,
     int     i;
     int     i0;
     char *  buffer;
-	herr_t 	err;
+    herr_t     err;
 
     if (H5T_STRING == H5Tget_class(attrType)) {
 
@@ -582,6 +592,9 @@ PMDField::SetAxisLabels(char * name,
         //                   << axisLabels[1] << " "
         //                   << axisLabels[2] << " "
         //                   << endl;
+
+        delete [] buffer;
+
     }
 }
 
@@ -609,11 +622,11 @@ void PMDField::SetUnitDimension(char * name,
                                 hid_t attrType,
                                 hid_t attrSpace)
 {
-	herr_t 	err;
-	int 	i;
-	char 	buffer[64];
-	char	units[8];
-	int 	firstunits = 0;
+    herr_t     err;
+    int     i;
+    char     buffer[64];
+    char    units[8];
+    int     firstunits = 0;
 
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
@@ -628,66 +641,66 @@ void PMDField::SetUnitDimension(char * name,
         for(i=0;i<7;i++)
         {
 
-	        if (int(tmpArray[i])!=0)
-	        {
+            if (int(tmpArray[i])!=0)
+            {
 
-	        	if (firstunits==0)
-	        	{
-	        		strcpy(units,"");
-	        		firstunits=1;
-	        	}
-	        	else
-	        	{
-	        		strcpy(units,".");
-	        	}
+                if (firstunits==0)
+                {
+                    strcpy(units,"");
+                    firstunits=1;
+                }
+                else
+                {
+                    strcpy(units,".");
+                }
 
-	        	// List of SI units
-	        	switch(i)
-	        	{
-	        	// Distance, meter
-	        	case 0:
-	        		strcat(units,"m");
-	        		break;
-	        	// ass, kg
-	        	case 1:
-	        		strcat(units,"kg");
-	        		break;
-	        	// time, second
-	        	case 2:
-	        		strcat(units,"s");
-	        		break;
-	        	// Electric Current, Ampere
-	            case 3:
-	        		strcat(units,"A");
-	        		break;
-	        	// Temperature, Kelvin
-	            case 4:
-	        		strcat(units,"K");
-	        		break;
-				//amount of substance, mole
-	            case 5:
-	        		strcat(units,"mol");
-	        		break;
-				//luminous intensity, candela
-	            case 6:
-	        		strcat(units,"candela");
-	        		break;
-	        	}
-				//amount of substance, mole
-				//luminous intensity, candela
+                // List of SI units
+                switch(i)
+                {
+                // Distance, meter
+                case 0:
+                    strcat(units,"m");
+                    break;
+                // ass, kg
+                case 1:
+                    strcat(units,"kg");
+                    break;
+                // time, second
+                case 2:
+                    strcat(units,"s");
+                    break;
+                // Electric Current, Ampere
+                case 3:
+                    strcat(units,"A");
+                    break;
+                // Temperature, Kelvin
+                case 4:
+                    strcat(units,"K");
+                    break;
+                //amount of substance, mole
+                case 5:
+                    strcat(units,"mol");
+                    break;
+                //luminous intensity, candela
+                case 6:
+                    strcat(units,"candela");
+                    break;
+                }
+                //amount of substance, mole
+                //luminous intensity, candela
 
-	        	if (int(tmpArray[i]) == 1)
-	        	{
-	        		sprintf(buffer, units, int(tmpArray[i]));
-	        	}
-	        	else
-	        	{
-	        		strcat(units,"^%d");
-	        		sprintf(buffer, units, int(tmpArray[i]));
-	        	}
-	        	// Creation of the unitsLabel
-	        	strcat(unitsLabel,buffer);
-	        }
+                if (int(tmpArray[i]) == 1)
+                {
+                    sprintf(buffer, units, int(tmpArray[i]));
+                }
+                else
+                {
+                    strcat(units,"^%d");
+                    sprintf(buffer, units, int(tmpArray[i]));
+                }
+                // Creation of the unitsLabel
+                strcat(unitsLabel,buffer);
+            }
         }
         free(tmpArray);
     }
@@ -717,10 +730,10 @@ PMDField::SetFieldBoundary(char * name,
                            hid_t attrType,
                            hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_STRING == H5Tget_class(attrType)) {
 
-    	// Number of elements
+        // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
         //cout << " Number of elements: " << npoints << endl;
@@ -754,10 +767,10 @@ PMDField::SetDataOrder(char * name,
                        hid_t attrType,
                        hid_t attrSpace)
 {
-	herr_t 	err;
+    herr_t     err;
     if (H5T_STRING == H5Tget_class(attrType)) {
 
-    	// Number of elements
+        // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
         //cout << " Number of elements: " << npoints << endl;
@@ -957,5 +970,168 @@ PMDField::GetBlockProperties(int blockDim,
     }
 
     // Return 0 if no error
+    return 0;
+}
+
+
+// ***************************************************************************
+// Method: PMDField::GetDomainProperties
+//
+// Purpose:
+//      This method returns the properties of the required block when the
+//      fields are readed by block (parallel)
+//
+// Programmer: Mathieu Lobet
+// Creation:   Thu Feb 8 2017
+//
+// Arguments:
+//      dataSetArray: array given by the dataSet
+//      finalDataArray: final array for VisIt
+//
+// Modifications:
+//
+// ***************************************************************************
+int
+PMDField::ComputeArrayThetaMode(void * dataSetArray,
+                                void * finalDataArray)
+{
+
+#ifdef VERBOSE
+    cerr << "PMDField::ComputeArrayThetaMode"
+         << endl;
+#endif
+
+    // Parameters
+    int k,j,i,l,m;
+    int mode;
+    int offset0;
+    int offset1;
+
+    // Offset for index computation
+    offset0 = this->nbNodes[2]*this->nbNodes[1];
+
+    cerr << this->dataSize << endl;
+
+    // Create a pointer depending of the data size
+    // Simple precision
+    if (this->dataSize==4)
+    {
+        float * dataSetArrayTmp = (float*) (dataSetArray);
+        float * finalDataArrayTmp = (float*) (finalDataArray);
+
+        // Treatment of the data
+        // We first build the mode 0
+        for(k = 0; k < this->thetaNbNodes; ++k) // Loop theta
+        for(j = 0; j < this->nbNodes[1]; ++j) // Loop r
+        for(i = 0; i < this->nbNodes[2]; ++i) // Loop z
+        {
+            // Absolute indexes
+            l = i + j*this->nbNodes[2];
+            m = l + k*offset0;
+
+            // Update of data
+            finalDataArrayTmp[m] = dataSetArrayTmp[l];
+        }
+
+        // Upper modes
+        if (this->nbModes > 0)
+        {
+            float theta = 0;
+            float dtheta = 2.*3.14159265359/(this->thetaNbNodes-1);
+            for (mode = 1; mode <= this->nbModes; ++mode)
+            {
+                // Offset to llok at the right part of the array
+                // dataSetArray depending on the mode
+                offset1 = mode*offset0;
+
+                for(k = 0; k < this->thetaNbNodes; ++k) // Loop theta
+                {
+                    theta = k*dtheta;
+
+                    for(j = 0; j < this->nbNodes[1]; ++j) // Loop r
+                    for(i = 0; i < this->nbNodes[2]; ++i) // Loop z
+                    {
+                        // Absolute indexes
+                        l = i + j*this->nbNodes[2];
+                        m = l + k*offset0;
+
+                        // Update of data with the real part
+                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1]
+                                   *cos(mode*theta);
+
+                        // Update of the data with the imaginary
+                        // part
+                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1 + 1]
+                                  *sin(mode*theta);
+
+                    }
+                }
+            }
+        }
+
+    }
+    // Double precision
+    else if (this->dataSize==8)
+    {
+        double * dataSetArrayTmp = (double*) (dataSetArray);
+        double * finalDataArrayTmp = (double*) (finalDataArray);
+
+        // Treatment of the data
+        // We first build the mode 0
+        for(k = 0; k < this->thetaNbNodes; ++k) // Loop theta
+        for(j = 0; j < this->nbNodes[1]; ++j) // Loop r
+        for(i = 0; i < this->nbNodes[2]; ++i) // Loop z
+        {
+            // Absolute indexes
+            l = i + j*this->nbNodes[2];
+            m = l + k*offset0;
+
+            // Update of data
+            finalDataArrayTmp[m] = dataSetArrayTmp[l];
+        }
+
+        // Upper modes
+        if (this->nbModes > 0)
+        {
+            double theta = 0;
+            double dtheta = 2.*3.14159265359/(this->thetaNbNodes-1);
+            for (mode = 1; mode <= this->nbModes; ++mode)
+            {
+                // Offset to llok at the right part of the array
+                // dataSetArray depending on the mode
+                offset1 = mode*offset0;
+
+                for(k = 0; k < this->thetaNbNodes; ++k) // Loop theta
+                {
+                    theta = k*dtheta;
+
+                    for(j = 0; j < this->nbNodes[1]; ++j) // Loop r
+                    for(i = 0; i < this->nbNodes[2]; ++i) // Loop z
+                    {
+                        // Absolute indexes
+                        l = i + j*this->nbNodes[2];
+                        m = l + k*offset0;
+
+                        // Update of data with the real part
+                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1]
+                                   *cos(mode*theta);
+
+                        // Update of the data with the imaginary
+                        // part
+                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1 + 1]
+                                  *sin(mode*theta);
+
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        cerr << " Error in PMDField::ComputeArrayThetaMode" << endl;
+        cerr << " DataSize is not recognized: "
+             << this->dataSize
+             << endl;
+    }
     return 0;
 }

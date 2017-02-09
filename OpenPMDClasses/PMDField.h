@@ -56,6 +56,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdio.h>
+#include <cmath>
 #include <iostream>
 
 #include <hdf5.h>
@@ -68,17 +69,17 @@ using namespace std;
 struct fieldBlockStruct
 {
     /// Block dimension
-    int     ndims; 
+    int     ndims;
     /// number of nodes
     int     nbNodes[3];
     /// minimum node index
-    int     minNode[3]; 
+    int     minNode[3];
     /// maximum node index
-    int     maxNode[3]; 
+    int     maxNode[3];
     /// Total number of nodes
-    int     nbTotalNodes; 
+    int     nbTotalNodes;
     /// Path to the dataSet
-    char    dataSetPath[128]; 
+    char    dataSetPath[128];
 };
 
 // ***************************************************************************
@@ -102,30 +103,34 @@ class PMDField
 
         // Field attributes
         /// name of the field
-        char    name[64];    
+        char    name[64];
         /// path to the dataset in the hdf5 file
-        char    datasetPath[128];  
-        /// path to the group containing this dataset   
-        char    groupPath[128];   
-        /// number of dimensions    
-        int  	ndims;       
-        /// number of nodes in each direction        
-        int     nbNodes[3];     
-        /// Grid spacing in each direction (max 3)      
-        double  gridSpacing[3];      
-        /// Origin of the grid 
-        double  gridGlobalOffset[3];  
+        char    datasetPath[128];
+        /// path to the group containing this dataset
+        char    groupPath[128];
+        /// number of dimensions
+        int     ndims;
+        /// number of nodes in each direction
+        int     nbNodes[3];
+        /// Number of nodes to discretize in theta for Axisymmetric mode
+        int     thetaNbNodes;
+        /// Number of modes for the theta mode
+        int     nbModes;
+        /// Grid spacing in each direction (max 3)
+        double  gridSpacing[3];
+        /// Origin of the grid
+        double  gridGlobalOffset[3];
         /// Shift of the grid
-        double  gridPosition[3];  
-        /// Units for the axis    
-        double  unitSI;       
-        /// Units for the grid        
-        double  gridUnitSI;    
-        /// Geometry of the grid     
-        char    geometry[64];    
-        /// Labels     
+        double  gridPosition[3];
+        /// Units for the axis
+        double  unitSI;
+        /// Units for the grid
+        double  gridUnitSI;
+        /// Geometry of the grid
+        char    geometry[64];
+        /// Labels
         char    axisLabels[3][16];
-        /// Units    
+        /// Units
         char    unitsLabel[64];
         /// Field boundary conditions
         char    fieldBoundary[64];
@@ -142,13 +147,14 @@ class PMDField
         int     GetBlockProperties(int blockDim,
                                    int blockId,
                                    fieldBlockStruct * fieldBlock);
-
+        int     ComputeArrayThetaMode(void * dataSetArray,
+                                      void * finalDataArray);
     protected:
 
     private:
-        void    SetGridSpacing(char * name, 
+        void    SetGridSpacing(char * name,
                                hid_t attr_id,
-                               hid_t attr_type, 
+                               hid_t attr_type,
                                hid_t attr_space);
         void    SetGridGlobalOffset(char * name,
                                     hid_t attr_id,
@@ -156,35 +162,35 @@ class PMDField
                                     hid_t attr_space);
         void    SetGridPosition(char * name,
                                 hid_t attr_id,
-                                hid_t attr_type, 
+                                hid_t attr_type,
                                 hid_t attr_space);
-        void    SetUnitSI(char * name, 
-                          hid_t attr_id, 
-                          hid_t attr_type, 
+        void    SetUnitSI(char * name,
+                          hid_t attr_id,
+                          hid_t attr_type,
                           hid_t attr_space);
-        void    SetGridUnitSI(char * name, 
-                              hid_t attr_id, 
-                              hid_t attr_type, 
+        void    SetGridUnitSI(char * name,
+                              hid_t attr_id,
+                              hid_t attr_type,
                               hid_t attr_space);
         void    SetGeometry(char * name,
-                            hid_t attr_id, 
-                            hid_t attr_type, 
+                            hid_t attr_id,
+                            hid_t attr_type,
                             hid_t attr_space);
-        void    SetAxisLabels(char * name, 
+        void    SetAxisLabels(char * name,
                               hid_t attr_id,
-                              hid_t attr_type, 
+                              hid_t attr_type,
                               hid_t attr_space);
-        void    SetUnitDimension(char * name, 
-                                 hid_t attr_id, 
-                                 hid_t attr_type, 
+        void    SetUnitDimension(char * name,
+                                 hid_t attr_id,
+                                 hid_t attr_type,
                                  hid_t attr_space);
         void    SetFieldBoundary(char * name,
-                                 hid_t attr_id, 
-                                 hid_t attr_type, 
+                                 hid_t attr_id,
+                                 hid_t attr_type,
                                  hid_t attr_space);
         void    SetDataOrder(char * name,
-                             hid_t attr_id, 
-                             hid_t attr_type, 
+                             hid_t attr_id,
+                             hid_t attr_type,
                              hid_t attr_space);
 };
 
