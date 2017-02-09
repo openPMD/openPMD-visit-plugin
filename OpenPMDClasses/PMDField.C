@@ -786,10 +786,10 @@ PMDField::SetDataOrder(char * name,
 }
 
 // ***************************************************************************
-// Method: PMDField::SetFieldBoundary
+// Method: PMDField::SetGeometryParameters
 //
 // Purpose:
-//      This method reads the field boundaries
+//      This method reads the geometry parameters.
 //
 // Arguments:
 //      name : name of the attribute
@@ -798,7 +798,7 @@ PMDField::SetDataOrder(char * name,
 //      attribute space : hdf5 attribute space
 //
 // Programmer: Mathieu Lobet
-// Creation:   Fri Oct 14 2016
+// Creation:   Thu Fre 08 2017
 //
 // Modifications:
 //
