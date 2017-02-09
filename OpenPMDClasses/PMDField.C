@@ -1129,7 +1129,8 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
 
                         // Update of the data with the imaginary
                         // part
-                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1 + 1]
+                        finalDataArrayTmp[m] +=
+                                   dataSetArrayTmp[l + offset1 + offset0]
                                   *sin(mode*theta);
 
                     }
@@ -1186,7 +1187,8 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
 
                         // Update of the data with the imaginary
                         // part
-                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1 + 1]
+                        finalDataArrayTmp[m] +=
+                                   dataSetArrayTmp[l + offset1 + offset0]
                                   *thetaImSign*sin(mode*theta);
 
                     }
