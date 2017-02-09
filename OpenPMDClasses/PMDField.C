@@ -66,6 +66,7 @@ PMDField::PMDField()
     this->unitSI=1;
     this->gridUnitSI=1;
     this->dataSize = 0;
+    this->thetaImSign = 1;
     strcpy(this->name,"none");
     strcpy(this->datasetPath,"none");
     strcpy(this->groupPath,"none");
@@ -174,6 +175,10 @@ void PMDField::ScanAttributes(hid_t objectId)
         else if (strcmp(name,"geometry")==0)
         {
             SetGeometry(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"geometryParameters")==0)
+        {
+           SetGeometryParameters(name, attrId, attrType, attrSpace);
         }
         else if (strcmp(name,"unitSI")==0)
         {
@@ -781,6 +786,69 @@ PMDField::SetDataOrder(char * name,
 }
 
 // ***************************************************************************
+// Method: PMDField::SetFieldBoundary
+//
+// Purpose:
+//      This method reads the field boundaries
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+int
+PMDField::SetGeometryParameters(char * name,
+                       hid_t attrId,
+                       hid_t attrType,
+                       hid_t attrSpace)
+{
+  herr_t     err;
+  if (H5T_STRING == H5Tget_class(attrType)) {
+
+      // Number of elements
+      int npoints = H5Sget_simple_extent_npoints(attrSpace);
+
+      // Buffer to get the attribute
+      char buffer[64];
+
+      // Reading of the attribute
+      err = H5Aread(attrId, attrType, buffer);
+
+      // Get the sign of imag
+      if (strcspn(buffer,"-")!=strlen(buffer))
+      {
+          this->thetaImSign = -1;
+      }
+      else if (strcspn(buffer,"+")!=strlen(buffer))
+      {
+          this->thetaImSign = 1;
+      }
+      else
+      {
+        cerr << " Error in PMDField::SetGeometryParamters" << endl;
+        cerr << " Sign of imag is not recongnized" << endl;
+        return -1;
+      }
+
+  }
+  else
+  {
+      cerr << " Error in PMDField::SetGeometryParamters" << endl;
+      cerr << " Attribute is not a string" << endl;
+      return -1;
+  }
+  return 0;
+}
+
+
+// ***************************************************************************
 // Method: PMDField::GetNumValues
 //
 // Purpose:
@@ -814,7 +882,7 @@ int PMDField::GetNumValues()
 }
 
 // ***************************************************************************
-// Method: PMDField::GetDomainProperties
+// Method: PMDField::GetBlockProperties
 //
 // Purpose:
 //      This method returns the properties of the required block when the
@@ -975,11 +1043,11 @@ PMDField::GetBlockProperties(int blockDim,
 
 
 // ***************************************************************************
-// Method: PMDField::GetDomainProperties
+// Method: PMDField::ComputeArrayThetaMode
 //
 // Purpose:
-//      This method returns the properties of the required block when the
-//      fields are readed by block (parallel)
+//      This method computes using the given dataSet (dataSetArray)
+//      the final array with all the modes (finalDataArray).
 //
 // Programmer: Mathieu Lobet
 // Creation:   Thu Feb 8 2017
@@ -1119,7 +1187,7 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
                         // Update of the data with the imaginary
                         // part
                         finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1 + 1]
-                                  *sin(mode*theta);
+                                  *thetaImSign*sin(mode*theta);
 
                     }
                 }

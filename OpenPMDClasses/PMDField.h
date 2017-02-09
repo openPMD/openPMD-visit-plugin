@@ -116,6 +116,9 @@ class PMDField
         int     thetaNbNodes;
         /// Number of modes for the theta mode
         int     nbModes;
+        /// Signe of the operation of the imaginary part for the modes
+        /// with the theta geometry
+        int   thetaImSign;
         /// Grid spacing in each direction (max 3)
         double  gridSpacing[3];
         /// Origin of the grid
@@ -192,6 +195,11 @@ class PMDField
                              hid_t attr_id,
                              hid_t attr_type,
                              hid_t attr_space);
+
+        int    SetGeometryParameters(char * name,
+                                             hid_t attrId,
+                                             hid_t attrType,
+                                             hid_t attrSpace);
 };
 
 #endif
