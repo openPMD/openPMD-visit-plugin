@@ -41,7 +41,7 @@
 // file PMDParticle.cpp
 //
 // Purpose:
-// 		PMDParticle Class methods
+//             PMDParticle Class methods
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -53,7 +53,7 @@
 // ***************************************************************************
 // Method: PMDParticle::PMDParticle
 // Purpose:
-// 		Constructor
+//             Constructor
 //
 // Programmer: Mathieu Lobet
 //
@@ -64,30 +64,30 @@
 // ***************************************************************************
 PMDParticle::PMDParticle()
 {
-	int i;
+      int i;
 
-	// If there is momentum datasets
-	this->momentumAvailable = 0;
-	// Index of the scalar position data sets
-	for(i=0;i<3;i++)
-	{
-		this->positionsId[i]=-1;
-	}
-	// Number of momentum dimensions
-	this->numDimsMomenta = 0;
-	// Number of position dimensions
-	this->numDimsPositions = 0;
-	this->charge = 0;
-	this->mass   = 0;
-	strcpy(this->name,"none");
-	strcpy(this->path,"none");
+      // If there is momentum datasets
+      this->momentumAvailable = 0;
+      // Index of the scalar position data sets
+      for(i=0;i<3;i++)
+      {
+            this->positionsId[i]=-1;
+      }
+      // Number of momentum dimensions
+      this->numDimsMomenta = 0;
+      // Number of position dimensions
+      this->numDimsPositions = 0;
+      this->charge = 0;
+      this->mass   = 0;
+      strcpy(this->name,"none");
+      strcpy(this->path,"none");
 }
 
 // ***************************************************************************
 // Method: PMDParticle::~PMDParticle
 //
 // Purpose:
-// 		Destructor
+//             Destructor
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -104,9 +104,9 @@ PMDParticle::~PMDParticle()
 // Method: PMDParticle::ScanProperties(hid_t particleGroupId)
 //
 // Purpose:
-// 		This method scans the attributes, the groups and datasets contained
-// 		in a given particle group to build all properties of the
-//		particle object.
+//             This method scans the attributes, the groups and datasets contained
+//             in a given particle group to build all properties of the
+//            particle object.
 //
 // Programmer: Mathieu Lobet
 //
@@ -117,86 +117,86 @@ PMDParticle::~PMDParticle()
 // ***************************************************************************
 void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 {
-	// Local variables
-	int 			i;
-	char			objectName[64];
-	ssize_t 		length;
-	hsize_t 		numObjects;
-	herr_t 			err;
-	H5O_info_t 		objectInfo;
+      // Local variables
+      int                   i;
+      char                  objectName[64];
+      ssize_t             length;
+      hsize_t             numObjects;
+      herr_t                   err;
+      H5O_info_t             objectInfo;
 
-	// Get the number of objects in the current particle group
-	err = H5Gget_num_objs(particleGroupId, &numObjects);
+      // Get the number of objects in the current particle group
+      err = H5Gget_num_objs(particleGroupId, &numObjects);
 
-	// Iteration over the objects of the group "particles"
-	for (i = 0; i < numObjects; i++)
-	{
-		// Get the particle group name
-		length = H5Gget_objname_by_idx(particleGroupId, (hsize_t)i,
-			objectName, (size_t) 64);
+      // Iteration over the objects of the group "particles"
+      for (i = 0; i < numObjects; i++)
+      {
+            // Get the particle group name
+            length = H5Gget_objname_by_idx(particleGroupId, (hsize_t)i,
+                  objectName, (size_t) 64);
 
-		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(particleGroupId, objectName,
-		                          &objectInfo, H5P_DEFAULT);
+            // Get info in order to get the type: group, dataset...
+            err = H5Oget_info_by_name(particleGroupId, objectName,
+                                      &objectInfo, H5P_DEFAULT);
 
-		// Checking of the type
-		switch(objectInfo.type)
-		{
-		// If the object is a group...
-		case H5O_TYPE_GROUP:
+            // Checking of the type
+            switch(objectInfo.type)
+            {
+            // If the object is a group...
+            case H5O_TYPE_GROUP:
 
-			// We first treat the groups that we can recognize
-			// Analyzing of the charge group
-			if (strcmp(objectName,"charge")==0)
-			{
-				this->ScanCharge(particleGroupId,objectName);
-			}
-			// Analyzing of the mass group
-			else if (strcmp(objectName,"mass")==0)
-			{
-				this->ScanMass(particleGroupId,objectName);
-			}
-			// Special treatment for the positions
-			else if (strcmp(objectName,"position")==0)
-			{
-				this->ScanPositions(particleGroupId,objectName);
-			}
-			// Special treatment for the momenta
-			else if (strcmp(objectName,"momentum")==0)
-			{
-				this->ScanMomenta(particleGroupId,objectName);
-			}
-			// Position Offset
-			else if (strcmp(objectName,"positionOffset")==0)
-			{
-				// This is not implemented
-			}
-			// Then, we analyse all the other groups and their datasets.
-			// We create the corresponding vector and scalar data
-			else
-			{
-				this->ScanGroup(particleGroupId,objectName);
-			}
-			break;
+                  // We first treat the groups that we can recognize
+                  // Analyzing of the charge group
+                  if (strcmp(objectName,"charge")==0)
+                  {
+                        this->ScanCharge(particleGroupId,objectName);
+                  }
+                  // Analyzing of the mass group
+                  else if (strcmp(objectName,"mass")==0)
+                  {
+                        this->ScanMass(particleGroupId,objectName);
+                  }
+                  // Special treatment for the positions
+                  else if (strcmp(objectName,"position")==0)
+                  {
+                        this->ScanPositions(particleGroupId,objectName);
+                  }
+                  // Special treatment for the momenta
+                  else if (strcmp(objectName,"momentum")==0)
+                  {
+                        this->ScanMomenta(particleGroupId,objectName);
+                  }
+                  // Position Offset
+                  else if (strcmp(objectName,"positionOffset")==0)
+                  {
+                        // This is not implemented
+                  }
+                  // Then, we analyse all the other groups and their datasets.
+                  // We create the corresponding vector and scalar data
+                  else
+                  {
+                        this->ScanGroup(particleGroupId,objectName);
+                  }
+                  break;
 
-		// If the object is a dataset...
-		case H5O_TYPE_DATASET:
+            // If the object is a dataset...
+            case H5O_TYPE_DATASET:
 
-			// Datasets at the root of the particle group are treated
-			// as scalar data
-			this->ScanDataSet(particleGroupId,objectName);
-			break;
+                  // Datasets at the root of the particle group are treated
+                  // as scalar data
+                  this->ScanDataSet(particleGroupId,objectName);
+                  break;
 
-		default:
+            default:
 
-			cerr << " Non-valid object type while "
-			        "scanning the 'particles' group: "
-			     << objectName << ", this object is ignored." << endl;
+                  cerr << " Non-valid object type while "
+                          "scanning the 'particles' group: "
+                       << objectName << ", this object is ignored." << endl;
 
-			break;
-		}
+                  break;
+            }
 
-	}
+      }
 
 }
 
@@ -204,8 +204,8 @@ void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 // Method: PMDParticle::ScanCharge
 //
 // Purpose:
-// 		This method scans the group `charge` contained in
-// 		the particle groups and get the useful attributes.
+//             This method scans the group `charge` contained in
+//             the particle groups and get the useful attributes.
 //
 // Programmer: Mathieu Lobet
 //
@@ -217,84 +217,84 @@ void PMDParticle::ScanParticleGroup(hid_t particleGroupId)
 void PMDParticle::ScanCharge(hid_t particleGroupId, char * objectName)
 {
 
-	int 			i;
-	int 			numAttr;
-	int 			ndims;
-	char 			attrName[64];
-	hsize_t 		numObjects;
-    hid_t    		chargeGroupId;
-	hid_t 			attrId;
-	hid_t			attrType;
-	hid_t			attrSpace;
-	herr_t 			err;
-	hsize_t 		sdim[64];
+      int                   i;
+      int                   numAttr;
+      int                   ndims;
+      char                   attrName[64];
+      hsize_t             numObjects;
+    hid_t                chargeGroupId;
+      hid_t                   attrId;
+      hid_t                  attrType;
+      hid_t                  attrSpace;
+      herr_t                   err;
+      hsize_t             sdim[64];
 
-	// Openning of the group charge
-	chargeGroupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
+      // Openning of the group charge
+      chargeGroupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
-	// First, get the useful attributes
+      // First, get the useful attributes
 
-	// Number of attributes
-	numAttr = H5Aget_num_attrs(chargeGroupId);
+      // Number of attributes
+      numAttr = H5Aget_num_attrs(chargeGroupId);
 
-	// Iteration over the attributes
+      // Iteration over the attributes
     for (i = 0; i < numAttr; i++)
     {
-    	// Open the attribute using its loop id.
-		attrId = H5Aopen_idx(chargeGroupId, (unsigned int)i );
+          // Open the attribute using its loop id.
+            attrId = H5Aopen_idx(chargeGroupId, (unsigned int)i );
 
-		// Get the attribute name
-		H5Aget_name(attrId, 64, attrName );
+            // Get the attribute name
+            H5Aget_name(attrId, 64, attrName );
 
-		//cerr << attrName << endl;
+            //cerr << attrName << endl;
 
-		// The type of the attribute
-		attrType  = H5Aget_type(attrId);
-		// Space
-	    attrSpace = H5Aget_space(attrId);
-	    // Number of dimensions
-	    ndims = H5Sget_simple_extent_ndims(attrSpace);
-	    //
-	    err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
+            // The type of the attribute
+            attrType  = H5Aget_type(attrId);
+            // Space
+          attrSpace = H5Aget_space(attrId);
+          // Number of dimensions
+          ndims = H5Sget_simple_extent_ndims(attrSpace);
+          //
+          err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-		if (strcmp(attrName,"value")==0)
-		{
-			// Check it is a 32-bit float
-			if (H5T_FLOAT == H5Tget_class(attrType))
-			{
-				err = H5Aread(attrId, attrType, &this->charge);
-				//cerr << "charge value: "<< this->charge << endl;
-			}
-			else
-			{
-				cerr << " Particle charge is not a 32bit-float" << endl;
-			}
-		}
-		else if (strcmp(attrName,"shape")==0)
-		{
-			// Check if this parameter is an integer
-			// Check it is a 32-bit float
-			if (H5T_INTEGER== H5Tget_class(attrType))
-			{
-				err = H5Aread(attrId, attrType, &this->numParticles);
-			}
-			else
-			{
-				cerr << " Particle shape is not an integer" << endl;
-			}
-		}
-		H5Aclose(attrId);
+            if (strcmp(attrName,"value")==0)
+            {
+                  // Check it is a 32-bit float
+                  if (H5T_FLOAT == H5Tget_class(attrType))
+                  {
+                        err = H5Aread(attrId, attrType, &this->charge);
+                        //cerr << "charge value: "<< this->charge << endl;
+                  }
+                  else
+                  {
+                        cerr << " Particle charge is not a 32bit-float" << endl;
+                  }
+            }
+            else if (strcmp(attrName,"shape")==0)
+            {
+                  // Check if this parameter is an integer
+                  // Check it is a 32-bit float
+                  if (H5T_INTEGER== H5Tget_class(attrType))
+                  {
+                        err = H5Aread(attrId, attrType, &this->numParticles);
+                  }
+                  else
+                  {
+                        cerr << " Particle shape is not an integer" << endl;
+                  }
+            }
+            H5Aclose(attrId);
     }
 
-	// Then, get the number of objects in the current group
-	err = H5Gget_num_objs(chargeGroupId, &numObjects);
+      // Then, get the number of objects in the current group
+      err = H5Gget_num_objs(chargeGroupId, &numObjects);
 
-	// If no object, the charge is the same for all particles of this group
-	if (numObjects>0)
-	{
-		this->charge = 0;
-		// Read the dataset of charges
-	}
+      // If no object, the charge is the same for all particles of this group
+      if (numObjects>0)
+      {
+            this->charge = 0;
+            // Read the dataset of charges
+      }
 
 }
 
@@ -302,8 +302,8 @@ void PMDParticle::ScanCharge(hid_t particleGroupId, char * objectName)
 // Method: PMDParticle::ScanMass
 //
 // Purpose:
-// 		This method scans the group `charge` contained in the particle
-// 		groups and get the useful attributes.
+//             This method scans the group `charge` contained in the particle
+//             groups and get the useful attributes.
 //
 // Programmer: Mathieu Lobet
 //
@@ -314,85 +314,85 @@ void PMDParticle::ScanCharge(hid_t particleGroupId, char * objectName)
 // ***************************************************************************
 void PMDParticle::ScanMass(hid_t particleGroupId, char * objectName)
 {
-	int 			i;
-	int 			numAttr;
-	int 			ndims;
-	char 			attrName[64];
-	hsize_t 		numObjects;
-    hid_t    		chargeGroupId;
-	hid_t 			attrId;
-	hid_t			attrType;
-	hid_t			attrSpace;
-	herr_t 			err;
-	hsize_t 		sdim[64];
+      int                   i;
+      int                   numAttr;
+      int                   ndims;
+      char                   attrName[64];
+      hsize_t             numObjects;
+    hid_t                chargeGroupId;
+      hid_t                   attrId;
+      hid_t                  attrType;
+      hid_t                  attrSpace;
+      herr_t                   err;
+      hsize_t             sdim[64];
 
-	// Openning of the group charge
-	chargeGroupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
+      // Openning of the group charge
+      chargeGroupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
-	// First, get the useful attributes
+      // First, get the useful attributes
 
-	// Number of attributes
-	numAttr = H5Aget_num_attrs(chargeGroupId);
+      // Number of attributes
+      numAttr = H5Aget_num_attrs(chargeGroupId);
 
-	// Iteration over the attributes
+      // Iteration over the attributes
     for (i = 0; i < numAttr; i++)
     {
-    	// Open the attribute using its loop id.
-		attrId = H5Aopen_idx(chargeGroupId, (unsigned int)i );
+          // Open the attribute using its loop id.
+            attrId = H5Aopen_idx(chargeGroupId, (unsigned int)i );
 
-		// Get the attribute name
-		H5Aget_name(attrId, 64, attrName );
+            // Get the attribute name
+            H5Aget_name(attrId, 64, attrName );
 
-		//cerr << attrName << endl;
+            //cerr << attrName << endl;
 
-		// The type of the attribute
-		attrType  = H5Aget_type(attrId);
-		// Space
-	    attrSpace = H5Aget_space(attrId);
-	    // Number of dimensions
-	    ndims = H5Sget_simple_extent_ndims(attrSpace);
-	    //
-	    err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
+            // The type of the attribute
+            attrType  = H5Aget_type(attrId);
+            // Space
+          attrSpace = H5Aget_space(attrId);
+          // Number of dimensions
+          ndims = H5Sget_simple_extent_ndims(attrSpace);
+          //
+          err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-		if (strcmp(attrName,"value")==0)
-		{
-			// Check it is a 32-bit float
-			if (H5T_FLOAT == H5Tget_class(attrType))
-			{
-				err = H5Aread(attrId, attrType, &this->mass);
-				//cerr << "charge value: "<< this->charge << endl;
-			}
-			else
-			{
-				cerr << " Particle mass is not a 32bit-float" << endl;
-			}
-		}
-		H5Aclose(attrId);
+            if (strcmp(attrName,"value")==0)
+            {
+                  // Check it is a 32-bit float
+                  if (H5T_FLOAT == H5Tget_class(attrType))
+                  {
+                        err = H5Aread(attrId, attrType, &this->mass);
+                        //cerr << "charge value: "<< this->charge << endl;
+                  }
+                  else
+                  {
+                        cerr << " Particle mass is not a 32bit-float" << endl;
+                  }
+            }
+            H5Aclose(attrId);
     }
 
-	// Then, get the number of objects in the current group
-	err = H5Gget_num_objs(chargeGroupId, &numObjects);
+      // Then, get the number of objects in the current group
+      err = H5Gget_num_objs(chargeGroupId, &numObjects);
 
-	// If no object, the charge is the same for all particles of this group
-	if (numObjects>0)
-	{
-		this->mass = 0;
-		// Read the dataset of charges
-	}
+      // If no object, the charge is the same for all particles of this group
+      if (numObjects>0)
+      {
+            this->mass = 0;
+            // Read the dataset of charges
+      }
 }
 
 // ***************************************************************************
 // Method: PMDParticle::ScanPositions
 //
 // Purpose:
-// 		This method scans the group `Position` located in the particle
-// 		groups for each iteration.
+//             This method scans the group `Position` located in the particle
+//             groups for each iteration.
 //
-// 		This method reads and store the useful attributes from the
-// 		group itself and the datasets. A `scalarDataSet` structure object is
-//		created for each dataset
-// 		and is put in the vector of *scalar* data `this->scalarDataSets`
-//		(member of the class `Particle`).
+//             This method reads and store the useful attributes from the
+//             group itself and the datasets. A `scalarDataSet` structure object is
+//            created for each dataset
+//             and is put in the vector of *scalar* data `this->scalarDataSets`
+//            (member of the class `Particle`).
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -404,125 +404,125 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 {
 
 #ifdef VERBOSE
-	cerr << " PMDParticle::SetPositions(" << objectName << ")" << endl;
+      cerr << " PMDParticle::SetPositions(" << objectName << ")" << endl;
 #endif
 
-	int 			i;
-    char 			bufferName[64];
-    char 			datasetName[64];
-	ssize_t 		length;
-	hsize_t 		numObjects;
-	hsize_t     datasetStorageSize;
-    hid_t    		groupId;
-    hid_t			dataSetId;
-    hid_t			datasetType;
-    scalarDataSet 	scalar;
-	herr_t 			err;
-	H5O_info_t 		objectInfo;
+    int               i;
+    char              bufferName[64];
+    char              datasetName[64];
+    ssize_t           length;
+    hsize_t           numObjects;
+    hsize_t           datasetStorageSize;
+    hid_t             groupId;
+    hid_t             dataSetId;
+    hid_t             datasetType;
+    scalarDataSet     scalar;
+    herr_t            err;
+    H5O_info_t        objectInfo;
 
-	strcpy(bufferName,this->name);
-	strcat(bufferName,"/position/");
+    strcpy(bufferName,this->name);
+    strcat(bufferName,"/position/");
 
-	// Openning of the group Position
-	groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
+      // Openning of the group Position
+      groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
-	// First, we get the useful attributes from the position group
-	SetScalarAttributes(groupId,&scalar);
+      // First, we get the useful attributes from the position group
+      SetScalarAttributes(groupId,&scalar);
 
-	// Then, we scan the different datasets contained in the position group:
+      // Then, we scan the different datasets contained in the position group:
 
-	// Get the number of objects
-	err = H5Gget_num_objs(groupId, &numObjects);
+      // Get the number of objects
+      err = H5Gget_num_objs(groupId, &numObjects);
 
-	// Iteration over the objects of the group "particles"
-	for (i = 0; i < numObjects; i++)
-	{
-		// Get the object name
-		length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
-			datasetName, (size_t) 64);
+      // Iteration over the objects of the group "particles"
+      for (i = 0; i < numObjects; i++)
+      {
+            // Get the object name
+            length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
+                  datasetName, (size_t) 64);
 
-		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo,
-			                      H5P_DEFAULT);
+            // Get info in order to get the type: group, dataset...
+            err = H5Oget_info_by_name(groupId, datasetName , &objectInfo,
+                                        H5P_DEFAULT);
 
-		// We check that the object is well a dataset, else,
-		// this object is ignored
-		if (objectInfo.type == H5O_TYPE_DATASET)
-		{
+            // We check that the object is well a dataset, else,
+            // this object is ignored
+            if (objectInfo.type == H5O_TYPE_DATASET)
+            {
 
-			// Open the dataset for the attributes
-			dataSetId = H5Dopen2(groupId, datasetName , H5P_DEFAULT);
+                  // Open the dataset for the attributes
+                  dataSetId = H5Dopen2(groupId, datasetName , H5P_DEFAULT);
 
-			// Get attributes from the dataset
-			SetScalarAttributes(dataSetId,&scalar);
+                  // Get attributes from the dataset
+                  SetScalarAttributes(dataSetId,&scalar);
 
-			// Name
-			strcpy(scalar.name,bufferName);
-			strcat(scalar.name,datasetName);
+                  // Name
+                  strcpy(scalar.name,bufferName);
+                  strcat(scalar.name,datasetName);
 
-			// Path
-			strcpy(scalar.path,this->path);
-			strcat(scalar.path,"/");
-			strcat(scalar.path,objectName);
-			strcat(scalar.path,"/");
-			strcat(scalar.path,datasetName);
+                  // Path
+                  strcpy(scalar.path,this->path);
+                  strcat(scalar.path,"/");
+                  strcat(scalar.path,objectName);
+                  strcat(scalar.path,"/");
+                  strcat(scalar.path,datasetName);
 
-			// data Size
-			datasetType = H5Dget_type(dataSetId);
-			scalar.dataSize = H5Tget_size(datasetType);
-			// data Class
-			scalar.dataClass = H5Tget_class(datasetType);
-			// Storage size
-			datasetStorageSize = H5Dget_storage_size(dataSetId);
-			// Number of elements
-			scalar.numElements = int(datasetStorageSize/scalar.dataSize);
+                  // data Size
+                  datasetType = H5Dget_type(dataSetId);
+                  scalar.dataSize = H5Tget_size(datasetType);
+                  // data Class
+                  scalar.dataClass = H5Tget_class(datasetType);
+                  // Storage size
+                  datasetStorageSize = H5Dget_storage_size(dataSetId);
+                  // Number of elements
+                  scalar.numElements = int(datasetStorageSize/scalar.dataSize);
 
-			H5Dclose(dataSetId);
-		}
+                  H5Dclose(dataSetId);
+            }
 
-		// We add this scalar object to the list of scalar datasets
-		this->scalarDataSets.push_back(scalar);
+            // We add this scalar object to the list of scalar datasets
+            this->scalarDataSets.push_back(scalar);
 
-		// We store the index of the position datasets in positionsId to
-		// find them easily
-		if (strcmp(datasetName,"x")==0)
-		{
-			// index of the dataset x in the list of datsets
-			this->positionsId[0] = this->scalarDataSets.size()-1;
-			// Add a new dimension
-			this->numDimsPositions += 1;
-		}
-		if (strcmp(datasetName,"y")==0)
-		{
-			// index of the dataset y in the list of datsets
-			this->positionsId[1] = this->scalarDataSets.size()-1;
-			// Add a new dimension
-			this->numDimsPositions += 1;
-		}
-		if (strcmp(datasetName,"z")==0)
-		{
-			// index of the dataset z in the list of datsets
-			this->positionsId[2] = this->scalarDataSets.size()-1;
-			// Add a new dimension
-			this->numDimsPositions += 1;
-		}
-	}
+            // We store the index of the position datasets in positionsId to
+            // find them easily
+            if (strcmp(datasetName,"x")==0)
+            {
+                  // index of the dataset x in the list of datsets
+                  this->positionsId[0] = this->scalarDataSets.size()-1;
+                  // Add a new dimension
+                  this->numDimsPositions += 1;
+            }
+            if (strcmp(datasetName,"y")==0)
+            {
+                  // index of the dataset y in the list of datsets
+                  this->positionsId[1] = this->scalarDataSets.size()-1;
+                  // Add a new dimension
+                  this->numDimsPositions += 1;
+            }
+            if (strcmp(datasetName,"z")==0)
+            {
+                  // index of the dataset z in the list of datsets
+                  this->positionsId[2] = this->scalarDataSets.size()-1;
+                  // Add a new dimension
+                  this->numDimsPositions += 1;
+            }
+      }
 
-	H5Gclose(groupId);
+      H5Gclose(groupId);
 }
 
 // ***************************************************************************
 // Method: PMDParticle::ScanMomenta
 //
 // Purpose:
-// 		This method scans the group `Momentum` located in the particle
-// 		groups for each iteration.
+//             This method scans the group `Momentum` located in the particle
+//             groups for each iteration.
 //
-// 		This method analyzes the group `momentum` for a given particle group.
-// 		The group `Momentum`, when existing, provides 3 datasets: x, y, z
-//		in 3D.
-// 		These datasets can be used to build vtk scalar lists, vtk vectors (p)
-// 		and vtk expressions (|p| and gamma).
+//             This method analyzes the group `momentum` for a given particle group.
+//             The group `Momentum`, when existing, provides 3 datasets: x, y, z
+//            in 3D.
+//             These datasets can be used to build vtk scalar lists, vtk vectors (p)
+//             and vtk expressions (|p| and gamma).
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -534,121 +534,126 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 {
 
 #ifdef VERBOSE
-	cerr << " PMDParticle::SetMomenta(" << objectName << ")" << endl;
+      cerr << " PMDParticle::SetMomenta(" << objectName << ")" << endl;
 #endif
 
-	int 			i;
-	int 			vectorDataSetId[3] = {-1,-1,-1};
-    char 			bufferName[64];
-    char 			datasetName[64];
-	ssize_t 		length;
-    hid_t    		groupId;
-    hid_t    		dataSetId;
-    hid_t    		datasetType;
-    scalarDataSet 	scalar;
-    vectorDataSet	vector;
-	hsize_t 		numObjects;
-	herr_t 			err;
-	H5O_info_t 		objectInfo;
+    int                 i;
+    int                 vectorDataSetId[3] = {-1,-1,-1};
+    char                bufferName[64];
+    char                datasetName[64];
+    hsize_t             datasetStorageSize;
+    ssize_t             length;
+    hid_t               groupId;
+    hid_t               dataSetId;
+    hid_t               datasetType;
+    scalarDataSet       scalar;
+    vectorDataSet       vector;
+    hsize_t             numObjects;
+    herr_t              err;
+    H5O_info_t          objectInfo;
 
-	// Momenta become available
-	this->momentumAvailable = 1;
+    // Momenta become available
+    this->momentumAvailable = 1;
 
-	strcpy(bufferName,this->name);
-	strcat(bufferName,"/momentum");
+    strcpy(bufferName,this->name);
+    strcat(bufferName,"/momentum");
 
-	// Openning of the group Momentum
-	groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
+    // Openning of the group Momentum
+    groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
-	// First, we get the useful attributes from the momentum group
-	// For the scalar datasets
-	SetScalarAttributes(groupId,&scalar);
+    // First, we get the useful attributes from the momentum group
+    // For the scalar datasets
+    SetScalarAttributes(groupId,&scalar);
 
-	// For the vector datasets
-	SetVectorAttributes(groupId,&vector);
+    // For the vector datasets
+    SetVectorAttributes(groupId,&vector);
 
-	// Then, we scan the different datasets contained in the position group:
+    // Then, we scan the different datasets contained in the position group:
 
-	// Get the number of objects
-	err = H5Gget_num_objs(groupId, &numObjects);
+    // Get the number of objects
+    err = H5Gget_num_objs(groupId, &numObjects);
 
-	// Iteration over the objects of the group "particles"
-	for (i = 0; i < numObjects; i++)
-	{
-		// Get the object name
-		length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
-			datasetName, (size_t) 64);
+    // Iteration over the objects of the group "particles"
+    for (i = 0; i < numObjects; i++)
+    {
+          // Get the object name
+          length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
+                datasetName, (size_t) 64);
 
-		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo,
-			                      H5P_DEFAULT);
+          // Get info in order to get the type: group, dataset...
+          err = H5Oget_info_by_name(groupId, datasetName , &objectInfo,
+                                      H5P_DEFAULT);
 
-		// We check that the object is well a dataset, else,
-		// this object is ignored
-		if (objectInfo.type == H5O_TYPE_DATASET)
-		{
+          // We check that the object is well a dataset, else,
+          // this object is ignored
+          if (objectInfo.type == H5O_TYPE_DATASET)
+          {
 
-			// Open the dataset for the attributes
-			dataSetId = H5Dopen2(groupId, datasetName , H5P_DEFAULT);
+                // Open the dataset for the attributes
+                dataSetId = H5Dopen2(groupId, datasetName , H5P_DEFAULT);
 
-			// Get attributes from the dataset
-			SetScalarAttributes(dataSetId,&scalar);
+                // Get attributes from the dataset
+                SetScalarAttributes(dataSetId,&scalar);
 
-			// Name
-			strcpy(scalar.name,bufferName);
-			strcat(scalar.name,"/");
-			strcat(scalar.name,datasetName);
+                // Name
+                strcpy(scalar.name,bufferName);
+                strcat(scalar.name,"/");
+                strcat(scalar.name,datasetName);
 
-			// Path
-			strcpy(scalar.path,this->path);
-			strcat(scalar.path,"/");
-			strcat(scalar.path,objectName);
-			strcat(scalar.path,"/");
-			strcat(scalar.path,datasetName);
+                // Path
+                strcpy(scalar.path,this->path);
+                strcat(scalar.path,"/");
+                strcat(scalar.path,objectName);
+                strcat(scalar.path,"/");
+                strcat(scalar.path,datasetName);
 
-			// data Size
-			datasetType = H5Dget_type(dataSetId);
-			scalar.dataSize = H5Tget_size(datasetType);
-			// data Class
-			scalar.dataClass = H5Tget_class(datasetType);
+                // data Size
+                datasetType = H5Dget_type(dataSetId);
+                scalar.dataSize = H5Tget_size(datasetType);
+                // data Class
+                scalar.dataClass = H5Tget_class(datasetType);
+                // Storage size
+                datasetStorageSize = H5Dget_storage_size(dataSetId);
+                // Number of elements
+                scalar.numElements = int(datasetStorageSize/scalar.dataSize);
 
-			// We add this scalar object to the vector of scalar datasets
-			this->scalarDataSets.push_back(scalar);
+                // We add this scalar object to the vector of scalar datasets
+                this->scalarDataSets.push_back(scalar);
 
-			// We keep the position of the datasets
-			// for the vector construction
-			if (strcmp(datasetName,"x")==0)
-			{
-				vector.dataSetId [0] = this->scalarDataSets.size()-1;
-				// Add a new dimension
-				this->numDimsMomenta += 1;
-			}
-			else if (strcmp(datasetName,"y")==0)
-			{
-				vector.dataSetId [1] = this->scalarDataSets.size()-1;
-				// Add a new dimension
-				this->numDimsMomenta += 1;
-			}
-			else if (strcmp(datasetName,"z")==0)
-			{
-				vector.dataSetId [2] = this->scalarDataSets.size()-1;
-				// Add a new dimension
-				this->numDimsMomenta += 1;
-			}
-		}
-	}
+                // We keep the position of the datasets
+                // for the vector construction
+                if (strcmp(datasetName,"x")==0)
+                {
+                      vector.dataSetId [0] = this->scalarDataSets.size()-1;
+                      // Add a new dimension
+                      this->numDimsMomenta += 1;
+                }
+                else if (strcmp(datasetName,"y")==0)
+                {
+                      vector.dataSetId [1] = this->scalarDataSets.size()-1;
+                      // Add a new dimension
+                      this->numDimsMomenta += 1;
+                }
+                else if (strcmp(datasetName,"z")==0)
+                {
+                      vector.dataSetId [2] = this->scalarDataSets.size()-1;
+                      // Add a new dimension
+                      this->numDimsMomenta += 1;
+                }
+          }
+    }
 
-	// Vector Name
-	strcpy(vector.name,bufferName);
+    // Vector Name
+    strcpy(vector.name,bufferName);
 
-	// Vector Path
-	strcpy(vector.path,this->path);
-	strcat(vector.path,"/");
-	strcat(vector.path,objectName);
-	strcat(vector.path,"/");
+    // Vector Path
+    strcpy(vector.path,this->path);
+    strcat(vector.path,"/");
+    strcat(vector.path,objectName);
+    strcat(vector.path,"/");
 
-	// We add this vector object to the vector of vector datasets
-	this->vectorDataSets.push_back(vector);
+    // We add this vector object to the vector of vector datasets
+    this->vectorDataSets.push_back(vector);
 
 }
 
@@ -658,7 +663,7 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 // Purpose:
 //      This method scans a particle group and add the resulting scalar
 //      and vector data respectively to the vectors `scalarDataSets`
-//		and `vectorDataSets`.
+//            and `vectorDataSets`.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 21 2016
@@ -670,125 +675,130 @@ void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 {
 
 #ifdef VERBOSE
-	cerr << " PMDParticle::ScanGroup(" << objectName << ")" << endl;
+      cerr << " PMDParticle::ScanGroup(" << objectName << ")" << endl;
 #endif
 
-	int 			i;
-	int 			vectorDataSetId[3] = {-1,-1,-1};
-    char 			datasetName[128];
-	ssize_t 		length;
-    hid_t    		groupId;
-    hid_t    		dataSetId;
-    hid_t    		datasetType;
-    scalarDataSet 	scalar;
-    vectorDataSet	vector;
-	hsize_t 		numObjects;
-	herr_t 			err;
-	H5O_info_t 		objectInfo;
+    int                 i;
+    int                 vectorDataSetId[3] = {-1,-1,-1};
+    char                datasetName[128];
+    ssize_t             length;
+    hsize_t             datasetStorageSize;
+    hid_t               groupId;
+    hid_t               dataSetId;
+    hid_t               datasetType;
+    scalarDataSet       scalar;
+    vectorDataSet       vector;
+    hsize_t             numObjects;
+    herr_t              err;
+    H5O_info_t          objectInfo;
 
-	// Openning of the corresponding group
-	groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
+      // Openning of the corresponding group
+      groupId = H5Gopen2(particleGroupId, objectName , H5P_DEFAULT);
 
-	// First, we get the useful attributes from the group
-	// For the scalar datasets
-	SetScalarAttributes(groupId,&scalar);
+      // First, we get the useful attributes from the group
+      // For the scalar datasets
+      SetScalarAttributes(groupId,&scalar);
 
-	// For the vector datasets
-	SetVectorAttributes(groupId,&vector);
+      // For the vector datasets
+      SetVectorAttributes(groupId,&vector);
 
-	// Then, we scan the different datasets contained in the position group:
+      // Then, we scan the different datasets contained in the position group:
 
-	// Get the number of objects
-	err = H5Gget_num_objs(groupId, &numObjects);
+      // Get the number of objects
+      err = H5Gget_num_objs(groupId, &numObjects);
 
-	// Iteration over the objects of the group "particles"
-	for (i = 0; i < numObjects; i++)
-	{
-		// Get the object name
-		length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
-			datasetName, (size_t) 64);
+      // Iteration over the objects of the group "particles"
+      for (i = 0; i < numObjects; i++)
+      {
+            // Get the object name
+            length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
+                  datasetName, (size_t) 64);
 
-		// Get info in order to get the type: group, dataset...
-		err = H5Oget_info_by_name(groupId, datasetName , &objectInfo,
-			                      H5P_DEFAULT);
+            // Get info in order to get the type: group, dataset...
+            err = H5Oget_info_by_name(groupId, datasetName , &objectInfo,
+                                        H5P_DEFAULT);
 
-		// We check that the object is well a dataset, else,
-		// this object is ignored
-		if (objectInfo.type == H5O_TYPE_DATASET)
-		{
+            // We check that the object is well a dataset, else,
+            // this object is ignored
+            if (objectInfo.type == H5O_TYPE_DATASET)
+            {
 
-			// Open the dataset for the attributes
-			dataSetId = H5Dopen2(groupId, datasetName , H5P_DEFAULT);
+                  // Open the dataset for the attributes
+                  dataSetId = H5Dopen2(groupId, datasetName , H5P_DEFAULT);
 
-			// Get attributes from the dataset
-			SetScalarAttributes(dataSetId,&scalar);
+                  // Get attributes from the dataset
+                  SetScalarAttributes(dataSetId,&scalar);
 
-			// Name
-			strcpy(scalar.name,this->name);
-			strcat(scalar.name,"/");
-			strcat(scalar.name,objectName);
-			strcat(scalar.name,"/");
-			strcat(scalar.name,datasetName);
+                  // Name
+                  strcpy(scalar.name,this->name);
+                  strcat(scalar.name,"/");
+                  strcat(scalar.name,objectName);
+                  strcat(scalar.name,"/");
+                  strcat(scalar.name,datasetName);
 
-			// Path
-			strcpy(scalar.path,this->path);
-			strcat(scalar.path,"/");
-			strcat(scalar.path,objectName);
-			strcat(scalar.path,"/");
-			strcat(scalar.path,datasetName);
+                  // Path
+                  strcpy(scalar.path,this->path);
+                  strcat(scalar.path,"/");
+                  strcat(scalar.path,objectName);
+                  strcat(scalar.path,"/");
+                  strcat(scalar.path,datasetName);
 
-			// data Size
-			datasetType = H5Dget_type(dataSetId);
-			scalar.dataSize = H5Tget_size(datasetType);
-			// data Class
-			scalar.dataClass = H5Tget_class(datasetType);
+                  // data Size
+                  datasetType = H5Dget_type(dataSetId);
+                  scalar.dataSize = H5Tget_size(datasetType);
+                  // data Class
+                  scalar.dataClass = H5Tget_class(datasetType);
+                  // Storage size
+                  datasetStorageSize = H5Dget_storage_size(dataSetId);
+                  // Number of elements
+                  scalar.numElements = int(datasetStorageSize/scalar.dataSize);
 
-			// We add this scalar object to the vector of scalar datasets
-			this->scalarDataSets.push_back(scalar);
+                  // We add this scalar object to the vector of scalar datasets
+                  this->scalarDataSets.push_back(scalar);
 
-			// We keep the position of the datasets for the vector
-			// construction
-			// First vector dimension
-			if (strcmp(datasetName,"x")==0)
-			{
-				vector.dataSetId [0] = this->scalarDataSets.size()-1;
-			}
-			// Second vector dimension
-			else if (strcmp(datasetName,"y")==0)
-			{
-				vector.dataSetId [1] = this->scalarDataSets.size()-1;
-			}
-			// Third vector dimension
-			else if (strcmp(datasetName,"z")==0)
-			{
-				vector.dataSetId [2] = this->scalarDataSets.size()-1;
-			}
+                  // We keep the position of the datasets for the vector
+                  // construction
+                  // First vector dimension
+                  if (strcmp(datasetName,"x")==0)
+                  {
+                        vector.dataSetId [0] = this->scalarDataSets.size()-1;
+                  }
+                  // Second vector dimension
+                  else if (strcmp(datasetName,"y")==0)
+                  {
+                        vector.dataSetId [1] = this->scalarDataSets.size()-1;
+                  }
+                  // Third vector dimension
+                  else if (strcmp(datasetName,"z")==0)
+                  {
+                        vector.dataSetId [2] = this->scalarDataSets.size()-1;
+                  }
 
-		}
+            }
 
-	}
+      }
 
-	// Vector Name
-	strcpy(vector.name,this->name);
-	strcat(vector.name,"/");
-	strcat(vector.name,objectName);
+      // Vector Name
+      strcpy(vector.name,this->name);
+      strcat(vector.name,"/");
+      strcat(vector.name,objectName);
 
-	// Vector Path
-	strcpy(vector.path,this->path);
-	strcat(vector.path,"/");
-	strcat(vector.path,objectName);
-	strcat(vector.path,"/");
+      // Vector Path
+      strcpy(vector.path,this->path);
+      strcat(vector.path,"/");
+      strcat(vector.path,objectName);
+      strcat(vector.path,"/");
 
-	// We add this vector object to the vector of vector datasets
-	this->vectorDataSets.push_back(vector);
+      // We add this vector object to the vector of vector datasets
+      this->vectorDataSets.push_back(vector);
 
 }
 
 // ***************************************************************************
 // Method: PMDParticle::ScanDataSet
 //
-//		This method scans a particle dataset and add the resulting scalar data
-//		to the vector scalarDataSets.
+//            This method scans a particle dataset and add the resulting scalar data
+//            to the vector scalarDataSets.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 21 2016
@@ -801,37 +811,42 @@ PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 {
 
 #ifdef VERBOSE
-	cerr << " PMDParticle::ScanDataSet(" << objectName << ")" << endl;
+      cerr << " PMDParticle::ScanDataSet(" << objectName << ")" << endl;
 #endif
 
-    scalarDataSet 	scalar;
-    hid_t    		dataSetId;
-    hid_t    		datasetType;
+    scalarDataSet       scalar;
+    hid_t                dataSetId;
+    hid_t                datasetType;
+    hsize_t             datasetStorageSize;
 
-	// Openning of the dataset
-	dataSetId = H5Dopen2(particleGroupId, objectName , H5P_DEFAULT);
+      // Openning of the dataset
+      dataSetId = H5Dopen2(particleGroupId, objectName , H5P_DEFAULT);
 
-	// We get the useful attributes from the dataset
-	SetScalarAttributes(dataSetId,&scalar);
+      // We get the useful attributes from the dataset
+      SetScalarAttributes(dataSetId,&scalar);
 
-	// Name
-	strcpy(scalar.name,this->name);
-	strcat(scalar.name,"/");
-	strcat(scalar.name,objectName);
+      // Name
+      strcpy(scalar.name,this->name);
+      strcat(scalar.name,"/");
+      strcat(scalar.name,objectName);
 
-	// Path
-	strcpy(scalar.path,this->path);
-	strcat(scalar.path,"/");
-	strcat(scalar.path,objectName);
+      // Path
+      strcpy(scalar.path,this->path);
+      strcat(scalar.path,"/");
+      strcat(scalar.path,objectName);
 
-	// data Size
-	datasetType = H5Dget_type(dataSetId);
-	scalar.dataSize = H5Tget_size(datasetType);
-	// data Class
-	scalar.dataClass = H5Tget_class(datasetType);
+      // data Size
+      datasetType = H5Dget_type(dataSetId);
+      scalar.dataSize = H5Tget_size(datasetType);
+      // data Class
+      scalar.dataClass = H5Tget_class(datasetType);
+      // Storage size
+      datasetStorageSize = H5Dget_storage_size(dataSetId);
+      // Number of elements
+      scalar.numElements = int(datasetStorageSize/scalar.dataSize);
 
-	// We add this scalar object to the vector of scalar datasets
-	this->scalarDataSets.push_back(scalar);
+      // We add this scalar object to the vector of scalar datasets
+      this->scalarDataSets.push_back(scalar);
 
 }
 
@@ -839,8 +854,8 @@ PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 // Method: PMDParticle::SetScalarAttributes
 //
 // Purpose:
-// 		This method scans the attributes of the object of id objectId and
-// 		return it in the scalarDataSet data structure scalarObject.
+//             This method scans the attributes of the object of id objectId and
+//             return it in the scalarDataSet data structure scalarObject.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -853,45 +868,45 @@ PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
 {
 
 #ifdef VERBOSE
-	cerr << " PMDParticle::SetVarAttributes" << endl;
+      cerr << " PMDParticle::SetVarAttributes" << endl;
 #endif
 
-	int 			i;
-	int 			numAttr;
-	char 			attrName[64];
-	hid_t 			attrId;
-	hid_t 			attrType;
-	hid_t 			attrSpace;
+    int                   i;
+    int                   numAttr;
+    char                   attrName[64];
+    hid_t                   attrId;
+    hid_t                   attrType;
+    hid_t                   attrSpace;
 
-	// Number of attributes
-	numAttr = H5Aget_num_attrs(objectId);
+    // Number of attributes
+    numAttr = H5Aget_num_attrs(objectId);
 
-	// Iteration over the attributes
+    // Iteration over the attributes
     for (i = 0; i < numAttr; i++)
     {
-    	// Open the attribute using its loop id.
-		attrId = H5Aopen_idx(objectId, (unsigned int)i );
+        // Open the attribute using its loop id.
+        attrId = H5Aopen_idx(objectId, (unsigned int)i );
 
-		// The type of the attribute
-		attrType  = H5Aget_type(attrId);
-		// Space
-	    attrSpace = H5Aget_space(attrId);
+        // The type of the attribute
+        attrType  = H5Aget_type(attrId);
+        // Space
+        attrSpace = H5Aget_space(attrId);
 
-		// Get the attribute name
-		H5Aget_name(attrId, 64, attrName);
+        // Get the attribute name
+        H5Aget_name(attrId, 64, attrName);
 
-		// Read useful attributes
-		if (strcmp(attrName,"unitDimension")==0)
-		{
-			strcpy(scalarObject->unitLabel,"");
-			strcat(scalarObject->unitLabel,
-			this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
-		}
-		else if (strcmp(attrName,"unitSI")==0)
-		{
-			scalarObject->unitSI = SetUnitSI(attrName,
-				                             attrId, attrType, attrSpace);
-		}
+        // Read useful attributes
+        if (strcmp(attrName,"unitDimension")==0)
+        {
+            strcpy(scalarObject->unitLabel,"");
+            strcat(scalarObject->unitLabel,
+            this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
+        }
+        else if (strcmp(attrName,"unitSI")==0)
+        {
+        scalarObject->unitSI = SetUnitSI(attrName,
+                                           attrId, attrType, attrSpace);
+        }
     }
 }
 
@@ -899,8 +914,8 @@ PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
 // Method: PMDParticle::SetVectorAttributes
 //
 // Purpose:
-// 		This method scan the attributes of the object of id objectId and
-// 		return it in the vectorDataSet data structure vectorObject.
+//             This method scan the attributes of the object of id objectId and
+//             return it in the vectorDataSet data structure vectorObject.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 21 2016
@@ -913,39 +928,39 @@ PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 {
 
 #ifdef VERBOSE
-	cerr << " PMDParticle::SetVectorAttributes" << endl;
+      cerr << " PMDParticle::SetVectorAttributes" << endl;
 #endif
 
-	int 			i;
-	int 			numAttr;
-	char 			attrName[64];
-	hid_t 			attrId;
-	hid_t 			attrType;
-	hid_t 			attrSpace;
+      int                   i;
+      int                   numAttr;
+      char                   attrName[64];
+      hid_t                   attrId;
+      hid_t                   attrType;
+      hid_t                   attrSpace;
 
-	// Number of attributes
-	numAttr = H5Aget_num_attrs(objectId);
+      // Number of attributes
+      numAttr = H5Aget_num_attrs(objectId);
 
-	// Iteration over the attributes
+      // Iteration over the attributes
     for (i = 0; i < numAttr; i++)
     {
-    	// Open the attribute using its loop id.
-		attrId = H5Aopen_idx(objectId, (unsigned int)i );
+          // Open the attribute using its loop id.
+            attrId = H5Aopen_idx(objectId, (unsigned int)i );
 
-		// The type of the attribute
-		attrType  = H5Aget_type(attrId);
-		// Space
-	    attrSpace = H5Aget_space(attrId);
+            // The type of the attribute
+            attrType  = H5Aget_type(attrId);
+            // Space
+          attrSpace = H5Aget_space(attrId);
 
-		// Get the attribute name
-		H5Aget_name(attrId, 64, attrName);
+            // Get the attribute name
+            H5Aget_name(attrId, 64, attrName);
 
-		if (strcmp(attrName,"unitDimension")==0)
-		{
-			strcpy(vectorObject->unitLabel,"");
-			strcat(vectorObject->unitLabel,
-			this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
-		}
+            if (strcmp(attrName,"unitDimension")==0)
+            {
+                  strcpy(vectorObject->unitLabel,"");
+                  strcat(vectorObject->unitLabel,
+                  this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
+            }
 
     }
 }
@@ -954,7 +969,7 @@ PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 // Method: PMDParticle::SetUnitSI
 //
 // Purpose:
-// 		This method captures the arrtibute unitSI from a group or a dataset.
+//             This method captures the arrtibute unitSI from a group or a dataset.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -964,12 +979,12 @@ PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 // ***************************************************************************
 double
 PMDParticle::SetUnitSI(char * name,
-	  				   hid_t attrId,
-	  				   hid_t attrType,
-	  				   hid_t attrSpace)
+                                   hid_t attrId,
+                                   hid_t attrType,
+                                   hid_t attrSpace)
 {
-	herr_t 	err;
-	double unitSI = 0;
+      herr_t       err;
+      double unitSI = 0;
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
@@ -979,7 +994,7 @@ PMDParticle::SetUnitSI(char * name,
     }
     else
     {
-    	cerr << " PMDParticle::GetUnitSI: unitSI not a float" << endl;
+          cerr << " PMDParticle::GetUnitSI: unitSI not a float" << endl;
     }
     return unitSI;
 }
@@ -988,8 +1003,8 @@ PMDParticle::SetUnitSI(char * name,
 // Method: PMDParticle::GetUnitDimension
 //
 // Purpose:
-// 		This method reads the UnitDimension attributes and returns
-// 		the unitsLabel paramerer.
+//             This method reads the UnitDimension attributes and returns
+//             the unitsLabel paramerer.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -999,19 +1014,19 @@ PMDParticle::SetUnitSI(char * name,
 // ***************************************************************************
 char*
 PMDParticle::SetUnitDimension(char * name,
-							  hid_t attrId,
-							  hid_t attrType,
-							  hid_t attrSpace)
+                                            hid_t attrId,
+                                            hid_t attrType,
+                                            hid_t attrSpace)
 {
-	herr_t 	err;
-	int 	i;
-	char	buffer[8];
-	char	units[8];
-	char* 	unitLabel;
-	int 	firstunits = 0;
+      herr_t       err;
+      int       i;
+      char      buffer[8];
+      char      units[8];
+      char*       unitLabel;
+      int       firstunits = 0;
 
-	unitLabel = new char[64];
-	strcpy(unitLabel,"");
+      unitLabel = new char[64];
+      strcpy(unitLabel,"");
 
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
@@ -1024,66 +1039,66 @@ PMDParticle::SetUnitDimension(char * name,
         for(i=0;i<7;i++)
         {
 
-	        if (int(tmpArray[i])!=0)
-	        {
+              if (int(tmpArray[i])!=0)
+              {
 
-	        	// If this is the first units, then we don't put a dot,
-	        	// else there is a dot between two units
-	        	if (firstunits==0)
-	        	{
-	        		strcpy(units,"");
-	        		firstunits=1;
-	        	}
-	        	else
-	        	{
-	        		strcpy(units,".");
-	        	}
+                    // If this is the first units, then we don't put a dot,
+                    // else there is a dot between two units
+                    if (firstunits==0)
+                    {
+                          strcpy(units,"");
+                          firstunits=1;
+                    }
+                    else
+                    {
+                          strcpy(units,".");
+                    }
 
-	        	// List of SI units
-	        	switch(i)
-	        	{
-	        	// Distance, meter
-	        	case 0:
-	        		strcat(units,"m");
-	        		break;
-	        	// ass, kg
-	        	case 1:
-	        		strcat(units,"kg");
-	        		break;
-	        	// time, second
-	        	case 2:
-	        		strcat(units,"s");
-	        		break;
-	        	// Electric Current, Ampere
-	            case 3:
-	        		strcat(units,"A");
-	        		break;
-	        	// Temperature, Kelvin
-	            case 4:
-	        		strcat(units,"K");
-	        		break;
-				//amount of substance, mole
-	            case 5:
-	        		strcat(units,"mol");
-	        		break;
-				//luminous intensity, candela
-	            case 6:
-	        		strcat(units,"candela");
-	        		break;
-	        	}
+                    // List of SI units
+                    switch(i)
+                    {
+                    // Distance, meter
+                    case 0:
+                          strcat(units,"m");
+                          break;
+                    // ass, kg
+                    case 1:
+                          strcat(units,"kg");
+                          break;
+                    // time, second
+                    case 2:
+                          strcat(units,"s");
+                          break;
+                    // Electric Current, Ampere
+                  case 3:
+                          strcat(units,"A");
+                          break;
+                    // Temperature, Kelvin
+                  case 4:
+                          strcat(units,"K");
+                          break;
+                        //amount of substance, mole
+                  case 5:
+                          strcat(units,"mol");
+                          break;
+                        //luminous intensity, candela
+                  case 6:
+                          strcat(units,"candela");
+                          break;
+                    }
 
-				strcpy(buffer,"");
-	        	if (int(tmpArray[i]) == 1)
-	        	{
-	        		strcat(buffer, units);
-	        	}
-	        	else
-	        	{
-	        		strcat(units,"^%d");
-	        		sprintf(buffer, units, int(tmpArray[i]));
-	        	}
-	        	strcat(unitLabel, buffer);
-	        }
+                        strcpy(buffer,"");
+                    if (int(tmpArray[i]) == 1)
+                    {
+                          strcat(buffer, units);
+                    }
+                    else
+                    {
+                          strcat(units,"^%d");
+                          sprintf(buffer, units, int(tmpArray[i]));
+                    }
+                    strcat(unitLabel, buffer);
+              }
         }
         free(tmpArray);
     }
@@ -1095,8 +1110,8 @@ PMDParticle::SetUnitDimension(char * name,
 // Method: PMDParticle::GetNumScalarDatasets
 //
 // Purpose:
-// 		This method return the number of scalar datasets stored in the vector
-// 		this->scalarDataSets.
+//             This method return the number of scalar datasets stored in the vector
+//             this->scalarDataSets.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -1106,15 +1121,15 @@ PMDParticle::SetUnitDimension(char * name,
 // ***************************************************************************
 int PMDParticle::GetNumScalarDatasets()
 {
-	return this->scalarDataSets.size();
+      return this->scalarDataSets.size();
 }
 
 // ***************************************************************************
 // Method: PMDParticle::GetNumVectorDatasets
 //
 // Purpose:
-// 		This method return the number of vector datasets stored in the vector
-// 		this->scalarDataSets.
+//             This method return the number of vector datasets stored in the vector
+//             this->scalarDataSets.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -1124,14 +1139,14 @@ int PMDParticle::GetNumScalarDatasets()
 // ***************************************************************************
 int PMDParticle::GetNumVectorDatasets()
 {
-	return this->vectorDataSets.size();
+      return this->vectorDataSets.size();
 }
 
 // ***************************************************************************
 // Method: PMDParticle::GetDomainProperties
 //
 // Purpose:
-// 		  This method returns the properties of the required block when the
+//               This method returns the properties of the required block when the
 //        fields are readed by block (parallel)
 //
 // This method returns an error code.
@@ -1149,9 +1164,9 @@ int PMDParticle::GetNumVectorDatasets()
 // ***************************************************************************
 int
 PMDParticle::GetBlockProperties(int scalarDataSetId,
-	                            int blockDim,
-	                            int blockId,
-	                            particleBlockStruct * particleBlock)
+                                  int blockDim,
+                                  int blockId,
+                                  particleBlockStruct * particleBlock)
 {
 
 #ifdef VERBOSE
@@ -1162,14 +1177,18 @@ PMDParticle::GetBlockProperties(int scalarDataSetId,
 
     // Parameters
     int r;                          // division rest
+    int numParticles;               // Number of particles in the dataSet
 
     // Copy the name of the dataset
     strcpy(particleBlock->dataSetPath,
-    	   this->scalarDataSets[scalarDataSetId].path);
+             this->scalarDataSets[scalarDataSetId].path);
+
+    // Number of particles in the dataset
+    numParticles = this->scalarDataSets[scalarDataSetId].numElements;
 
     // Computation of the number of Particles in this block
     // We divide the particle dataset into blockDim subsets
-    particleBlock->numParticles = this->numParticles / blockDim;
+    particleBlock->numParticles = numParticles / blockDim;
     r = this->numParticles%blockDim;
     if (blockId < r )
     {
@@ -1183,7 +1202,7 @@ PMDParticle::GetBlockProperties(int scalarDataSetId,
     }
     else
     {
-    	// the r first blocks share the rest (+1)
+          // the r first blocks share the rest (+1)
         particleBlock->minParticle = r*(particleBlock->numParticles+1)
                                 + (blockId - r)*particleBlock->numParticles;
     }

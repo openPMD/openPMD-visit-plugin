@@ -112,9 +112,9 @@ class PMDParticle
             /// Macro-weighted read from OpenPMD file
             int     macroWeighted;
             /// Data size in number of bytes (4,8)
-            int    dataSize;
+            int     dataSize;
             /// Number of elements (particles)
-            int    numElements;
+            int     numElements;
             /// Data Class (H5T_FLOAT, H5T_INTEGER...)
             H5T_class_t dataClass;
         };
@@ -161,7 +161,8 @@ class PMDParticle
         char        name[64];
         /// Particle path
         char        path[64];
-        /// Number of particles
+        /// Number of particles (shape in attribute of mass or charge)
+        /// Then, the number of particles may depend on the dataset
         long        numParticles;
         /// Particle mass (when constant for all particles)
         double      charge;

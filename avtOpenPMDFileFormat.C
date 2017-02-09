@@ -1304,11 +1304,12 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             else
             {
 
-                // Read the number of nodes from file
-                nnodes = particle->numParticles;
-
                  // Dataset Id
                 id = particle->positionsId[2];
+
+                // Read the number of particles/elements from dataSet
+                // It may be different from particle->numParticles
+                nnodes = particle->scalarDataSets[id].numElements;
 
                 // data size (float or double)
                 dataSize = particle->scalarDataSets[id].dataSize;
@@ -1341,6 +1342,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     // Dataset Id
                     id = particle->positionsId[1];
 
+                    // Read the number of particles/elements from dataSet
+                    // It may be different from particle->numParticles
+                    nnodes = particle->scalarDataSets[id].numElements;
+
                     // Dataset path
                     strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
 
@@ -1362,6 +1367,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 
                         // Dataset Id
                         id = particle->positionsId[0];
+
+                        // Read the number of particles/elements from dataSet
+                        // It may be different from particle->numParticles
+                        nnodes = particle->scalarDataSets[id].numElements;
 
                         // Dataset path
                         strcpy(bufferDataSetName,
@@ -1447,6 +1456,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     // Dataset Id
                     id = particle->positionsId[1];
 
+                    // Read the number of particles/elements from dataSet
+                    // It may be different from particle->numParticles
+                    nnodes = particle->scalarDataSets[id].numElements;
+
                     // Dataset path
                     strcpy(bufferDataSetName,particle->scalarDataSets[id].path);
 
@@ -1472,6 +1485,10 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         // Dataset path
                         strcpy(bufferDataSetName,
                                particle->scalarDataSets[id].path);
+
+                        // Read the number of particles/elements from dataSet
+                        // It may be different from particle->numParticles
+                        nnodes = particle->scalarDataSets[id].numElements;
 
                         // Multiplication factor
                         factor = particle->scalarDataSets[id].unitSI;
@@ -1941,7 +1958,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 else
                 {
                     // Number of particles
-                    numValues = particle->numParticles;
+                    numValues = particle->scalarDataSets[i].numElements;
                     // multiplication factor for SI units
                     factor=particle->scalarDataSets[i].unitSI;
 
@@ -2346,12 +2363,13 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                 else
                 {
 
-                    // Number of particles for this dataset
-                    numValues = particle->numParticles;
-
                     // Reading of the first dataset
                     scalarDataSetId =
                                   particle->vectorDataSets[i].dataSetId[2];
+
+                    // Number of particles for this dataset
+                    numValues =
+                        particle->scalarDataSets[scalarDataSetId].numElements;
 
                     // data size, we suppose that this is the
                     // same for the other components
@@ -2380,6 +2398,10 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                         // Reading of the first dataset
                         scalarDataSetId =
                                       particle->vectorDataSets[i].dataSetId[1];
+                        // Number of particles for this dataset
+                        numValues =
+                            particle->scalarDataSets[scalarDataSetId].numElements;
+
                         // Multiplication factor
                         factor =
                                particle->scalarDataSets[scalarDataSetId].unitSI;
@@ -2398,6 +2420,9 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                             // Reading of the first dataset
                             scalarDataSetId =
                                       particle->vectorDataSets[i].dataSetId[0];
+                            // Number of particles for this dataset
+                            numValues =
+                          particle->scalarDataSets[scalarDataSetId].numElements;
                             // Multiplication factor
                             factor =
                               particle->scalarDataSets[scalarDataSetId].unitSI;
@@ -2474,6 +2499,9 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                         // Reading of the first dataset
                         scalarDataSetId =
                                       particle->vectorDataSets[i].dataSetId[1];
+                        // Number of particles for this dataset
+                        numValues =
+                          particle->scalarDataSets[scalarDataSetId].numElements;
                         // Multiplication factor
                         factor =
                                particle->scalarDataSets[scalarDataSetId].unitSI;
@@ -2492,6 +2520,9 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                             // Reading of the first dataset
                             scalarDataSetId =
                                       particle->vectorDataSets[i].dataSetId[0];
+                            // Number of particles for this dataset
+                            numValues =
+                         particle->scalarDataSets[scalarDataSetId].numElements;
                             // Multiplication factor
                             factor =
                               particle->scalarDataSets[scalarDataSetId].unitSI;

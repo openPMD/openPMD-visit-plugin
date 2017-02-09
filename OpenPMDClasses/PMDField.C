@@ -65,6 +65,7 @@ PMDField::PMDField()
 {
     this->unitSI=1;
     this->gridUnitSI=1;
+    // Data size: 4 - simple precision, 8 - double precision
     this->dataSize = 0;
     this->thetaImSign = 1;
     strcpy(this->name,"none");
@@ -80,6 +81,7 @@ PMDField::PMDField()
 
     // Discretization for the theta mode
     this->thetaNbNodes = 100;
+
 }
 
 // ***************************************************************************
