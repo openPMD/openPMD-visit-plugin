@@ -111,31 +111,32 @@ void PMDIteration::ScanFields(hid_t fileId)
     hid_t                subGroupId;
     hid_t                  datasetId;
     hid_t           datasetType;
-      char                   path[64];
-      hsize_t             nb_objects;
-      hsize_t             nb_sub_objects;
-      herr_t                   err;
-      int                   i;
-      int                   i_sub_object;
-      int                   nb_attr;
-      int                   iattr;
-      char                   tmp_name[64];
-      char                   object_name[64];
-      char                   subObjectName[64];
-      ssize_t             length;
-      H5O_info_t             object_info;
-      PMDField             field;
+    char                   path[64];
+    hsize_t             nb_objects;
+    hsize_t             nb_sub_objects;
+    herr_t                   err;
+    int                   i;
+    int                   i_sub_object;
+    int                   nb_attr;
+    int                   iattr;
+    char                   tmp_name[64];
+    char                   object_name[64];
+    char                   subObjectName[64];
+    ssize_t             length;
+    H5O_info_t             object_info;
+    fieldGroupStruct     fieldGroup;
+    PMDField             field;
 
-      strcpy (path,"/data/");
-      strcat (path,name);
-      strcat (path,"/fields");
+    strcpy (path,"/data/");
+    strcat (path,name);
+    strcat (path,"/fields");
 
-      // Openning of the group "fields" of the current iteration
-      groupId = H5Gopen2(fileId, path , H5P_DEFAULT);
+    // Openning of the group "fields" of the current iteration
+    groupId = H5Gopen2(fileId, path , H5P_DEFAULT);
 
 
-      // Get useful attributes fron the "fields" group
-      field.ScanAttributes(groupId);
+    // Get useful attributes fron the "fields" group
+    field.ScanAttributes(groupId);
 
       /*
             Iteration over the objects in the group "fields"
@@ -185,6 +186,16 @@ void PMDIteration::ScanFields(hid_t fileId)
                   // Get useful attributes from the group
                   field.ScanAttributes(subGroupId);
 
+                  // Create a new group structure
+                  strcpy(fieldGroup.name,object_name);
+                  fieldGroup.thetaComponents[0] = -1;
+                  fieldGroup.thetaComponents[1] = -1;
+                  fieldGroup.thetaComponents[2] = -1;
+                  fieldGroup.fieldIds.clear();
+
+                  // Copy the group geometry
+                  strcpy(fieldGroup.geometry,field.geometry);
+
                   // Get the number of datasets
                   err = H5Gget_num_objs(subGroupId, &nb_sub_objects);
 
@@ -232,9 +243,30 @@ void PMDIteration::ScanFields(hid_t fileId)
                         // Insert the field in the list of files
                         fields.push_back(field);
 
+                        // Store id of this field in field group
+                        fieldGroup.fieldIds.push_back(fields.size()-1);
+
+                        // Store id of known components for theta mode
+                        if (strcmp(subObjectName,"r")==0) // r component
+                        {
+                            fieldGroup.thetaComponents[0] = fields.size()-1;
+                        }
+                        else if (strcmp(subObjectName,"t")==0) //theta component
+                        {
+                            fieldGroup.thetaComponents[1] = fields.size()-1;
+                        }
+                        else if (strcmp(subObjectName,"z")==0) // z component
+                        {
+                            fieldGroup.thetaComponents[2] = fields.size()-1;
+                        }
+
+                        // Close the current dataSet
                         H5Dclose(datasetId);
 
                   }
+
+                  // Add the group to the list of field groups
+                  fieldGroups.push_back(fieldGroup);
 
                   H5Gclose(subGroupId);
 
@@ -379,6 +411,39 @@ void PMDIteration::ScanParticles(hid_t fileId)
 }
 
 // ***************************************************************************
+// Method: PMDIteration::HasFieldOfName
+//
+// Purpose:
+//             This method return true if the iteration object has a field
+//             component of specified name fieldName. This corresponds to
+//             the relative dataset name in the group `fields`.
+//
+// Inputs:
+// fieldName: relative dataset name to be found
+//
+// Programmer: Mathieu Lobet
+// Creation:   Thu Feb 09 2017
+//
+// Modifications:
+//
+// ***************************************************************************
+bool PMDIteration::HasFieldOfName(char * fieldName)
+{
+
+  for (std::vector<PMDField>::iterator field = fields.begin() ;
+           field != fields.end(); ++field)
+  {
+    if (strcmp(field->name,fieldName))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+// ***************************************************************************
 // Method: PMDIteration::PrintInfo
 //
 // Purpose:
@@ -395,15 +460,15 @@ void PMDIteration::ScanParticles(hid_t fileId)
 void PMDIteration::PrintInfo()
 {
 
-      int i;
+    int i;
 
-      cout << " Information about iteration " << name << endl;
-      cout << " - dt: "<< dt << endl;
+    cout << " Information about iteration " << name << endl;
+    cout << " - dt: "<< dt << endl;
     cout << " - time: "<< time << endl;
     cout << " - timeUnitSI: "<< timeUnitSI << endl;
     cout << endl;
-      cout << " Number of field datasets: " << fields.size() << endl;
-      for (std::vector<PMDField>::iterator field = fields.begin() ;
+    cout << " Number of field datasets: " << fields.size() << endl;
+    for (std::vector<PMDField>::iterator field = fields.begin() ;
              field != fields.end(); ++field)
     {
           cout << " Field name: " << field->name << endl;

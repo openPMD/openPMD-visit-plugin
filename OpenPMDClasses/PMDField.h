@@ -82,6 +82,24 @@ struct fieldBlockStruct
     char    dataSetPath[128];
 };
 
+/// Field group structure
+/// This structure represents the group in the OpenPMD file
+struct fieldGroupStruct
+{
+    /// name
+    char name[64];
+    /// List of id in the field vector
+    vector <int> fieldIds;
+    /// Geometry fo the group
+    char geometry[64];
+    /// Components if cartesian geometry
+    int cartesianComponents[3];
+    /// If geometry is thetaMode, we keep in memory
+    /// where are the components. This will be used to compute
+    /// Ex, Ey, Ez if they do not exist
+    int thetaComponents[3];
+};
+
 // ***************************************************************************
 // Class: PMDField
 //
@@ -118,7 +136,7 @@ class PMDField
         int     nbModes;
         /// Signe of the operation of the imaginary part for the modes
         /// with the theta geometry
-        int   thetaImSign;
+        int     thetaImSign;
         /// Grid spacing in each direction (max 3)
         double  gridSpacing[3];
         /// Origin of the grid

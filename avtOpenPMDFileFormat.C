@@ -367,6 +367,62 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
 
     }
 
+    // ____________________________________________________________
+    // FIELD GROUP
+
+    /*
+
+    // Shortcut pointer to the field groups
+    vector<fieldGroupStruct> * fieldGroups
+                             = &(openPMDFile.iterations[timeState].fieldGroups);
+
+    // Iteration over the field group for additional components
+    // computed with multiple datasets
+    for (std::vector<fieldGroupStruct>::iterator
+         fieldGroup = fieldGroups->begin();
+         fieldGroup != fieldGroups->end();
+         ++fieldGroup)
+    {
+
+      // Additional field components for the theta mode
+      if (strcmp(fieldGroup->geometry,"thetaMode")==0)
+      {
+          // check if components r and theta are available
+          // If True, we compute x and y from r and theta.
+          if ((fieldGroup->thetaComponents[0]>-1) &&
+              (fieldGroup->thetaComponents[1]>-1))
+          {
+
+            // We create a scalar for the x components
+            // that will be computed from r and theta
+            avtScalarMetaData *smd = new avtScalarMetaData;
+            // Create the variable name
+            strcpy(buffer,"Fields/");
+            strcat(buffer,fieldGroup->name);
+            strcat(buffer,"/x");
+            smd->name = buffer;
+            // And select the right mesh
+            // We use the same mesh as for the r component
+            strcpy(buffer,"Fields/");
+            strcat(buffer,fieldGroup->name);
+            strcat(buffer,"/r_mesh");
+            smd->meshName = buffer;
+            // Node or cell centered
+            smd->centering = AVT_NODECENT;
+            // Units
+            smd->hasUnits = true;
+            // We use the unit label of the r component
+            smd->units = openPMDFile.iterations[timeState].
+                         fields[fieldGroup->thetaComponents[0]].unitsLabel;
+            // Add the scalars
+            md->Add(smd);
+
+          }
+      }
+    }
+
+    */
+
     // ________________________________________________________
     // PARTICLES
 
@@ -1605,6 +1661,8 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     int     err;
     int     dims[3];
     char    buffer[128];
+    char    xCompBuffer[128];
+    char    yCompBuffer[128];
     hid_t   datasetId;
     hid_t   datasetType;
     hid_t   datasetSpace;
@@ -1872,6 +1930,148 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 
         }
     }
+
+    // _______________________________________________
+    // FIELD group
+
+    /*
+
+    // Temporary pointer to the field object
+    PMDField * fieldTmp;
+
+    // Shortcut pointer to the field groups
+    vector<fieldGroupStruct> * fieldGroups
+                             = &(openPMDFile.iterations[timestate].fieldGroups);
+
+    // Iteration over the field group for additional components
+    // computed with multiple datasets
+    for (std::vector<fieldGroupStruct>::iterator
+         fieldGroup = fieldGroups->begin();
+         fieldGroup != fieldGroups->end();
+         ++fieldGroup)
+    {
+
+      strcpy(xCompBuffer,"Fields/");
+      strcat(xCompBuffer,fieldGroup->name);
+      strcat(xCompBuffer,"/x");
+
+      strcpy(yCompBuffer,"Fields/");
+      strcat(yCompBuffer,fieldGroup->name);
+      strcat(yCompBuffer,"/y");
+
+      // Determine which additional field component to return.
+      // If we want the x or y component in theta mode
+      if  ((strcmp(varname, xCompBuffer) == 0) ||
+           (strcmp(varname, yCompBuffer) == 0))
+      {
+
+          // And we are in theta mode
+          if (strcmp(fieldGroup->geometry,"thetaMode")==0)
+          {
+              // check if components r and theta are available
+              // If True, we compute x and y from r and theta.
+              if ((fieldGroup->thetaComponents[0]>-1) &&
+                  (fieldGroup->thetaComponents[1]>-1))
+              {
+
+                  // Temporary field pointer to the field object corresponding
+                  //  to the r component in the list of fields
+                  fieldTmp = &(openPMDFile.iterations[timestate].
+                        fields[fieldGroup->thetaComponents[0]]);
+
+                  // Dimensions
+                  dims[0] = fieldTmp->nbNodes[2]; // z direction
+                  dims[1] = fieldTmp->nbNodes[1]; // r direction
+                  dims[2] = fieldTmp->thetaNbNodes; // Theta direction
+
+                  // Factor for SI units
+                  factor = fieldTmp->unitSI;
+
+                  // Values to be read from the dataset
+                  numValues = dims[1]*dims[0]*fieldTmp->nbNodes[0];
+
+                  // Total number of Values in the final vtkarray
+                  int numValuesFinalArray = dims[0]*dims[1]*dims[2];
+
+                  // Simple precision
+                  if (fieldTmp->dataSize == 4)
+                  {
+                      // Allocate the dataset array with the different modes
+                      float *dataSetArray = new float [numValues];
+
+                      // Reading of the dataset
+                      err = openPMDFile.ReadScalarDataSet(dataSetArray,
+                                                        numValues,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                        fieldTmp->datasetPath);
+
+                     // Allocate array for the r component
+                     float *rDataArray = new float [numValuesFinalArray];
+
+                     // Generate the r data array with the modes
+                     err = fieldTmp->ComputeArrayThetaMode(dataSetArray,rDataArray);
+
+                     fieldTmp = &(openPMDFile.iterations[timestate].
+                             fields[fieldGroup->thetaComponents[1]]);
+
+                     // Factor for SI units
+                     factor = fieldTmp->unitSI;
+
+                     // Reading of the dataset
+                     err = openPMDFile.ReadScalarDataSet(dataSetArray,
+                                                       numValues,
+                                                       &factor,
+                                                       H5T_FLOAT,
+                                                       fieldTmp->datasetPath);
+
+                     // Allocate the return vtkFloatArray object. Note that
+                     // you can use vtkFloatArray, vtkDoubleArray,
+                     // vtkUnsignedCharArray, vtkIntArray, etc.
+                     vtkFloatArray * vtkArray = vtkFloatArray::New();
+                     vtkArray->SetNumberOfTuples(numValuesFinalArray);
+                     float *xDataArray = (float *)vtkArray->GetVoidPointer(0);
+
+                     // Generate the theta data array with the modes
+                     // We put this array in xDataArray to save some memory
+                     err = fieldTmp->ComputeArrayThetaMode(dataSetArray,xDataArray);
+
+                     // Create x component from r and theta
+                     float theta = 0;
+                     float dtheta = 2.*3.14159265359/(fieldTmp->thetaNbNodes-1);
+                     for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
+                     for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+                     for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+                     {
+                         // Absolute indexes
+                         l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+
+                         // theta
+                         theta = k*dtheta;
+
+                         // Update of data
+                         xDataArray[l] = cos(theta)*rDataArray[l]
+                                       - sin(theta)*xDataArray[l];
+                     }
+
+                     // If no error, we return the array
+                     if (err>=0)
+                     {
+                         return vtkArray;
+                     }
+
+                  }
+                  // Double precision
+                  else if (fieldTmp->dataSize == 8)
+                  {
+
+                  }
+              }
+          }
+      }
+    }
+
+    */
 
     // ________________________________________________________
     // PARTICLES

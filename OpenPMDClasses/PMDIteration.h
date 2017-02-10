@@ -59,9 +59,9 @@ using namespace std;
 // Class: PMDIteration
 //
 // Purpose:
-//      This class enables to manage the different iterations of 
+//      This class enables to manage the different iterations of
 //      an OpenPMD file.
-//      When an OpenPMD file is read, a PMDIteration is created 
+//      When an OpenPMD file is read, a PMDIteration is created
 //      for each iteration.
 //
 // Programmer: Mathieu Lobet
@@ -72,29 +72,33 @@ using namespace std;
 // ***************************************************************************
 class PMDIteration
 {
-	public:
-            	PMDIteration();
-            	~PMDIteration();
+    public:
+    PMDIteration();
+    ~PMDIteration();
 
-        void    ScanFields(hid_t fileId);
-        void    ScanParticles(hid_t fileId);
-        void	PrintInfo();
+    void    ScanFields(hid_t fileId);
+    void    ScanParticles(hid_t fileId);
+    void    PrintInfo();
+    bool    HasFieldOfName(char * fieldName);
 
-        // Vector of field objects from the datasets
-    	vector <PMDField> fields;
+    // Iteration attributes
+    /// Iteration name
+    char  	name[20];
+    /// Iteration time step
+    float  	dt;
+    /// Iteration corresponding time
+    float 	time;
+    /// factor to convert the time in SI units
+    float 	timeUnitSI;
 
-        // Vector of particle objects
-        vector <PMDParticle> particles;
+    /// Vector of field objects from the datasets
+    vector <PMDField> fields;
 
-        // Iteration attributes
-        /// Iteration name
-        char  	name[20];
-        /// Iteration time step
-        float  	dt;
-        /// Iteration corresponding time
-        float 	time;
-        /// factor to convert the time in SI units
-        float 	timeUnitSI;
+    /// Vector of field group structures
+    vector <fieldGroupStruct> fieldGroups;
+
+    /// Vector of particle objects
+    vector <PMDParticle> particles;
 
     protected:
 

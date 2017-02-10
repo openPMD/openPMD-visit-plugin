@@ -1174,6 +1174,7 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
 
                 for(k = 0; k < this->thetaNbNodes; ++k) // Loop theta
                 {
+                    // Computation of the current theta value
                     theta = k*dtheta;
 
                     for(j = 0; j < this->nbNodes[1]; ++j) // Loop r
