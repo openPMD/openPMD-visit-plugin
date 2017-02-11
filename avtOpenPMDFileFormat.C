@@ -370,8 +370,6 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
     // ____________________________________________________________
     // FIELD GROUP
 
-    /*
-
     // Shortcut pointer to the field groups
     vector<fieldGroupStruct> * fieldGroups
                              = &(openPMDFile.iterations[timeState].fieldGroups);
@@ -417,11 +415,34 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // Add the scalars
             md->Add(smd);
 
+            // We create a scalar for the y components
+            // that will be computed from r and theta
+            avtScalarMetaData *smd = new avtScalarMetaData;
+            // Create the variable name
+            strcpy(buffer,"Fields/");
+            strcat(buffer,fieldGroup->name);
+            strcat(buffer,"/y");
+            smd->name = buffer;
+            // And select the right mesh
+            // We use the same mesh as for the r component
+            strcpy(buffer,"Fields/");
+            strcat(buffer,fieldGroup->name);
+            strcat(buffer,"/r_mesh");
+            smd->meshName = buffer;
+            // Node or cell centered
+            smd->centering = AVT_NODECENT;
+            // Units
+            smd->hasUnits = true;
+            // We use the unit label of the r component
+            smd->units = openPMDFile.iterations[timeState].
+                         fields[fieldGroup->thetaComponents[0]].unitsLabel;
+            // Add the scalars
+            md->Add(smd);
+	    
           }
       }
     }
 
-    */
 
     // ________________________________________________________
     // PARTICLES
@@ -1934,7 +1955,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     // _______________________________________________
     // FIELD group
 
-    /*
+    
 
     // Temporary pointer to the field object
     PMDField * fieldTmp;
@@ -2012,13 +2033,14 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                      // Generate the r data array with the modes
                      err = fieldTmp->ComputeArrayThetaMode(dataSetArray,rDataArray);
 
+		     // The fieldTmp pointer now points to the new theta field component
                      fieldTmp = &(openPMDFile.iterations[timestate].
                              fields[fieldGroup->thetaComponents[1]]);
 
                      // Factor for SI units
                      factor = fieldTmp->unitSI;
 
-                     // Reading of the dataset
+                     // Reading of the dataset for the theta field component
                      err = openPMDFile.ReadScalarDataSet(dataSetArray,
                                                        numValues,
                                                        &factor,
@@ -2032,27 +2054,50 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                      vtkArray->SetNumberOfTuples(numValuesFinalArray);
                      float *xDataArray = (float *)vtkArray->GetVoidPointer(0);
 
-                     // Generate the theta data array with the modes
+                     // Generate the theta field data array with the modes
                      // We put this array in xDataArray to save some memory
                      err = fieldTmp->ComputeArrayThetaMode(dataSetArray,xDataArray);
 
-                     // Create x component from r and theta
+                     // Creation of dtheta, discretization of theta
                      float theta = 0;
-                     float dtheta = 2.*3.14159265359/(fieldTmp->thetaNbNodes-1);
-                     for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
-                     for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
-                     for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
-                     {
-                         // Absolute indexes
-                         l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+                     float dtheta = 4.*acos(0.)/(fieldTmp->thetaNbNodes-1);
 
-                         // theta
-                         theta = k*dtheta;
+		     // Computation of the x component
+		     if (strcmp(varname, xCompBuffer) == 0)
+		     {
+                         for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
+                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+                         {
+                             // Absolute indexes
+                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
 
-                         // Update of data
-                         xDataArray[l] = cos(theta)*rDataArray[l]
+                             // theta
+                             theta = k*dtheta;
+
+                             // Update of data
+                             xDataArray[l] = cos(theta)*rDataArray[l]
                                        - sin(theta)*xDataArray[l];
-                     }
+                         }
+		     }
+		     // computation of the y component
+		     else if (strcmp(varname, xCompBuffer) == 0)
+		     {
+                         for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
+                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+                         {
+                             // Absolute indexes
+                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+
+                             // theta
+                             theta = k*dtheta;
+
+                             // Update of data
+                             xDataArray[l] = sin(theta)*rDataArray[l]
+                                       - cos(theta)*xDataArray[l];
+                         }
+		     }
 
                      // If no error, we return the array
                      if (err>=0)
@@ -2065,13 +2110,101 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                   else if (fieldTmp->dataSize == 8)
                   {
 
+                      // Allocate the dataset array with the different modes
+                      double *dataSetArray = new double [numValues];
+
+                      // Reading of the dataset
+                      err = openPMDFile.ReadScalarDataSet(dataSetArray,
+                                                        numValues,
+                                                        &factor,
+                                                        H5T_FLOAT,
+                                                        fieldTmp->datasetPath);
+
+                     // Allocate array for the r component
+                     double *rDataArray = new double [numValuesFinalArray];
+
+                     // Generate the r data array with the modes
+                     err = fieldTmp->ComputeArrayThetaMode(dataSetArray,rDataArray);
+
+		     // The fieldTmp pointer now points to the new theta field component
+                     fieldTmp = &(openPMDFile.iterations[timestate].
+                             fields[fieldGroup->thetaComponents[1]]);
+
+                     // Factor for SI units
+                     factor = fieldTmp->unitSI;
+
+                     // Reading of the dataset for the theta field component
+                     err = openPMDFile.ReadScalarDataSet(dataSetArray,
+                                                       numValues,
+                                                       &factor,
+                                                       H5T_FLOAT,
+                                                       fieldTmp->datasetPath);
+
+                     // Allocate the return vtkFloatArray object. Note that
+                     // you can use vtkFloatArray, vtkDoubleArray,
+                     // vtkUnsignedCharArray, vtkIntArray, etc.
+                     vtkDoubleArray * vtkArray = vtkDoubleArray::New();
+                     vtkArray->SetNumberOfTuples(numValuesFinalArray);
+                     double *xDataArray = (double *)vtkArray->GetVoidPointer(0);
+
+                     // Generate the theta field data array with the modes
+                     // We put this array in xDataArray to save some memory
+                     err = fieldTmp->ComputeArrayThetaMode(dataSetArray,xDataArray);
+
+                     // Creation of dtheta, discretization of theta
+                     double theta = 0;
+                     double dtheta = 4.*acos(0.)/(fieldTmp->thetaNbNodes-1);
+
+		     // Computation of the x component
+		     if (strcmp(varname, xCompBuffer) == 0)
+		     {
+                         for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
+                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+                         {
+                             // Absolute indexes
+                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+
+                             // theta
+                             theta = k*dtheta;
+
+                             // Update of data
+                             xDataArray[l] = cos(theta)*rDataArray[l]
+                                       - sin(theta)*xDataArray[l];
+                         }
+		     }
+		     // computation of the y component
+		     else if (strcmp(varname, xCompBuffer) == 0)
+		     {
+                         for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
+                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+                         {
+                             // Absolute indexes
+                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+
+                             // theta
+                             theta = k*dtheta;
+
+                             // Update of data
+                             xDataArray[l] = sin(theta)*rDataArray[l]
+                                       - cos(theta)*xDataArray[l];
+                         }
+		     }
+
+                     // If no error, we return the array
+                     if (err>=0)
+                     {
+                         return vtkArray;
+                     }
+		     
                   }
               }
           }
       }
     }
 
-    */
+    
 
     // ________________________________________________________
     // PARTICLES
