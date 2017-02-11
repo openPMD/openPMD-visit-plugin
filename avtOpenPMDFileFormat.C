@@ -2066,37 +2066,43 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 		     if (strcmp(varname, xCompBuffer) == 0)
 		     {
                          for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
-                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
-                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
-                         {
-                             // Absolute indexes
-                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+			 {
+			   // theta
+			   theta = k*dtheta;
+			   for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+			     {
+			       for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+				 {
+				   // Absolute indexes
+				   l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
 
-                             // theta
-                             theta = k*dtheta;
-
-                             // Update of data
-                             xDataArray[l] = cos(theta)*rDataArray[l]
-                                       - sin(theta)*xDataArray[l];
-                         }
+				   // Update of data
+				   xDataArray[l] = cos(theta)*rDataArray[l]
+				     - sin(theta)*xDataArray[l];
+				 }
+			     }
+			 }
 		     }
 		     // computation of the y component
-		     else if (strcmp(varname, xCompBuffer) == 0)
+		     else if (strcmp(varname, yCompBuffer) == 0)
 		     {
                          for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
-                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
-                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
-                         {
-                             // Absolute indexes
-                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+			 {
+			   // Computation of theta
+			   theta = k*dtheta;
+			   for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+			   {
+			     for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+			     {
+				 // Absolute indexes
+				 l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
 
-                             // theta
-                             theta = k*dtheta;
-
-                             // Update of data
-                             xDataArray[l] = sin(theta)*rDataArray[l]
-                                       - cos(theta)*xDataArray[l];
-                         }
+				 // Update of data
+				 xDataArray[l] = sin(theta)*rDataArray[l]
+				   + cos(theta)*xDataArray[l];
+			     }
+			   }
+			 }
 		     }
 
                      // If no error, we return the array
@@ -2159,37 +2165,43 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 		     if (strcmp(varname, xCompBuffer) == 0)
 		     {
                          for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
-                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
-                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
-                         {
-                             // Absolute indexes
-                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+			 {
+			   // theta
+			   theta = k*dtheta;
+			   for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+			     {
+			       for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+				 {
+				   // Absolute indexes
+				   l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
 
-                             // theta
-                             theta = k*dtheta;
-
-                             // Update of data
-                             xDataArray[l] = cos(theta)*rDataArray[l]
-                                       - sin(theta)*xDataArray[l];
-                         }
+				   // Update of data
+				   xDataArray[l] = cos(theta)*rDataArray[l]
+				     - sin(theta)*xDataArray[l];
+				 }
+			     }
+			 }
 		     }
 		     // computation of the y component
-		     else if (strcmp(varname, xCompBuffer) == 0)
+		     else if (strcmp(varname, yCompBuffer) == 0)
 		     {
                          for(k = 0; k < fieldTmp->thetaNbNodes; ++k) // Loop theta
-                         for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
-                         for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
-                         {
-                             // Absolute indexes
-                             l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
+			 {
+			   // Computation of theta
+			   theta = k*dtheta;
+			   for(j = 0; j < fieldTmp->nbNodes[1]; ++j) // Loop r
+			   {
+			     for(i = 0; i < fieldTmp->nbNodes[2]; ++i) // Loop z
+			     {
+				 // Absolute indexes
+				 l = i + (j + k*fieldTmp->nbNodes[1])*fieldTmp->nbNodes[2];
 
-                             // theta
-                             theta = k*dtheta;
-
-                             // Update of data
-                             xDataArray[l] = sin(theta)*rDataArray[l]
-                                       - cos(theta)*xDataArray[l];
-                         }
+				 // Update of data
+				 xDataArray[l] = sin(theta)*rDataArray[l]
+				   + cos(theta)*xDataArray[l];
+			     }
+			   }
+			 }
 		     }
 
                      // If no error, we return the array
