@@ -415,9 +415,6 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // Add the scalars
             md->Add(smd);
 
-            // We create a scalar for the y components
-            // that will be computed from r and theta
-            avtScalarMetaData *smd = new avtScalarMetaData;
             // Create the variable name
             strcpy(buffer,"Fields/");
             strcat(buffer,fieldGroup->name);
