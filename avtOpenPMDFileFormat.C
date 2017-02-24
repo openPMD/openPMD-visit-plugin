@@ -393,48 +393,51 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
 
             // We create a scalar for the x components
             // that will be computed from r and theta
-            avtScalarMetaData *smd = new avtScalarMetaData;
+            avtScalarMetaData *smdEx = new avtScalarMetaData;
             // Create the variable name
             strcpy(buffer,"Fields/");
             strcat(buffer,fieldGroup->name);
             strcat(buffer,"/x");
-            smd->name = buffer;
+            smdEx->name = buffer;
             // And select the right mesh
             // We use the same mesh as for the r component
             strcpy(buffer,"Fields/");
             strcat(buffer,fieldGroup->name);
             strcat(buffer,"/r_mesh");
-            smd->meshName = buffer;
+            smdEx->meshName = buffer;
             // Node or cell centered
-            smd->centering = AVT_NODECENT;
+            smdEx->centering = AVT_NODECENT;
             // Units
-            smd->hasUnits = true;
+            smdEx->hasUnits = true;
             // We use the unit label of the r component
-            smd->units = openPMDFile.iterations[timeState].
+            smdEx->units = openPMDFile.iterations[timeState].
                          fields[fieldGroup->thetaComponents[0]].unitsLabel;
             // Add the scalars
-            md->Add(smd);
+            md->Add(smdEx);
 
+            // We create a scalar for the x components
+            // that will be computed from r and theta
+            avtScalarMetaData *smdEy = new avtScalarMetaData;
             // Create the variable name
             strcpy(buffer,"Fields/");
             strcat(buffer,fieldGroup->name);
             strcat(buffer,"/y");
-            smd->name = buffer;
+            smdEy->name = buffer;
             // And select the right mesh
             // We use the same mesh as for the r component
             strcpy(buffer,"Fields/");
             strcat(buffer,fieldGroup->name);
             strcat(buffer,"/r_mesh");
-            smd->meshName = buffer;
+            smdEy->meshName = buffer;
             // Node or cell centered
-            smd->centering = AVT_NODECENT;
+            smdEy->centering = AVT_NODECENT;
             // Units
-            smd->hasUnits = true;
+            smdEy->hasUnits = true;
             // We use the unit label of the r component
-            smd->units = openPMDFile.iterations[timeState].
+            smdEy->units = openPMDFile.iterations[timeState].
                          fields[fieldGroup->thetaComponents[0]].unitsLabel;
             // Add the scalars
-            md->Add(smd);
+            md->Add(smdEy);
 	    
           }
       }
