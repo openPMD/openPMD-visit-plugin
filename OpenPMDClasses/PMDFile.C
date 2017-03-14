@@ -350,7 +350,8 @@ void PMDFile::Print()
 	cout << " OpenPMD Version: " << this->version << endl;
 
 	cout << endl;
-	cout << " Number of iteration: " << GetNumberIterations() << endl;
+	cout << " Number of iteration: " << this->GetNumberIterations() 
+             << endl;
 	for (std::vector<PMDIteration>::iterator it = iterations.begin() ;
          it != iterations.end(); ++it)
 	{
@@ -370,7 +371,7 @@ void PMDFile::Print()
 // Modifications:
 //
 // ***************************************************************************
-int PMDFile::GetNumberIterations()
+int PMDFile::GetNumberIterations() const
 {
 	return iterations.size();
 }

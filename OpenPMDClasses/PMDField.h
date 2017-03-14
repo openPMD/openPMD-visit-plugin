@@ -164,10 +164,11 @@ class PMDField
 
         void    ScanAttributes(hid_t object_id);
         void    SetGridDimensions(hid_t dataset_id);
-        int     GetNumValues();
-        int     GetBlockProperties(int blockDim,
-                                   int blockId,
-                                   fieldBlockStruct * fieldBlock);
+        int     GetNumValues () const;
+        int     GetBlockProperties (int blockDim,
+                                    int blockId,
+                                    fieldBlockStruct * fieldBlock)
+                                    const;
         int     ComputeArrayThetaMode(void * dataSetArray,
                                       void * finalDataArray);
     protected:

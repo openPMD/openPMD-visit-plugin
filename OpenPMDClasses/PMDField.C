@@ -870,7 +870,7 @@ PMDField::SetGeometryParameters(char * name,
 // - Nov 11 2016 - Mathieu - add 2d case
 //
 // ***************************************************************************
-int PMDField::GetNumValues()
+int PMDField::GetNumValues() const
 {
     if (this->ndims==3)
     {
@@ -904,7 +904,7 @@ int PMDField::GetNumValues()
 int
 PMDField::GetBlockProperties(int blockDim,
                              int blockId,
-                             fieldBlockStruct * fieldBlock)
+                     fieldBlockStruct * fieldBlock) const
 {
 
 #ifdef VERBOSE
