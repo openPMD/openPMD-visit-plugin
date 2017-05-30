@@ -238,7 +238,12 @@ cd src/databases
 git clone OpenPMD repository
 ```
 
-You can rename the plugin folder like OpenPMD. Check that `/CMakeLists.txt` is well configured. For this aim, look at the `CMakeLists.txt` file of the other plugins.
+You can rename the plugin folder like OpenPMD. 
+```
+mv openpmd-visit-plugin OpenPMD
+```
+
+Check that `/CMakeLists.txt` is well configured. For this aim, look at the `CMakeLists.txt` file of the other plugins.
 
 Prepare the makefile:
 
