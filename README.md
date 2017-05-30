@@ -223,6 +223,7 @@ Then create the directory `deps`:
 
 ```
 mkdir deps
+cd deps
 ```
 
 Build the files for VisIt:
