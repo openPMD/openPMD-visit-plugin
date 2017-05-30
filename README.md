@@ -245,6 +245,7 @@ mv openpmd-visit-plugin OpenPMD
 
 Check that `/CMakeLists.txt` located in the plugin folder is well configured. 
 For this aim, look at the `CMakeLists.txt` file of the other plugins.
+You can also just replace the file by `CMakeLists/CMakeLists.txt`.
 
 Then, open the file `CMakeLists.txt` located in the `src/databases` directory and add the openPMD plugin 
 name to the list after `SET(REQUIRED_DATABASE_PLUGINS`.
