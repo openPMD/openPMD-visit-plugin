@@ -243,7 +243,11 @@ You can rename the plugin folder like OpenPMD.
 mv openpmd-visit-plugin OpenPMD
 ```
 
-Check that `/CMakeLists.txt` is well configured. For this aim, look at the `CMakeLists.txt` file of the other plugins.
+Check that `/CMakeLists.txt` located in the plugin folder is well configured. 
+For this aim, look at the `CMakeLists.txt` file of the other plugins.
+
+Then, open the file `CMakeLists.txt` located in the `src/databases` directory and add the openPMD plugin 
+name to the list after `SET(REQUIRED_DATABASE_PLUGINS`.
 
 Prepare the makefile:
 
