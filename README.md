@@ -249,7 +249,7 @@ Prepare the makefile:
 
 ```
 cd visit/build
-cmake -DVISIT_CONFIG_SITE=../deps/ubuntu-VirtualBox.cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../install  ../src
+cmake -DVISIT_CONFIG_SITE=../deps/*.cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../install  ../src
 ```
 
 Make VisIt:
