@@ -234,7 +234,7 @@ Build the files for VisIt:
 Copy the OpenPMD plugin in the VisIt database:
 
 ```
-cd src/databases
+cd ../src/databases
 git clone OpenPMD repository
 ```
 
@@ -248,7 +248,9 @@ Check that `/CMakeLists.txt` is well configured. For this aim, look at the `CMak
 Prepare the makefile:
 
 ```
-cd visit/build
+cd ../..
+mkdir build
+cd build
 cmake -DVISIT_CONFIG_SITE=../deps/*.cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../install  ../src
 ```
 
