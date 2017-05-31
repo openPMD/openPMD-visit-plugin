@@ -99,8 +99,6 @@ class PMDFile
         void                    ScanIterations();
         void                    ScanFields();
         void                    ScanParticles();
-        void                    Print();
-        int                     GetNumberIterations();
         int                     ReadScalarDataSet(void * array,
                                         int numValues,
                                         void * factor,
@@ -115,7 +113,9 @@ class PMDFile
                                                     H5T_class_t dataSetClass, 
                                         particleBlockStruct * particleBlock);
         void                    CloseFile();
-        
+    
+        int                     GetNumberIterations() const;
+        void                    Print();
     protected:
 
 
