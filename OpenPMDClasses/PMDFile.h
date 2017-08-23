@@ -81,45 +81,52 @@ using namespace std;
 class PMDFile
 {
 	public:
-            	PMDFile();
-            	~PMDFile();
 
-        /// File path
-        char                    filePath[128];
-        /// OpenPMD version
-        char                    version[8];
-        /// Id of the file after opening
-        hid_t                   fileId;
-        /// vector of PMDIteration objects 
-        /// that contains the OpenPMD iterations
-        vector <PMDIteration>   iterations;
+		PMDFile();
+		~PMDFile();
 
-        void                    OpenFile(char * path);
-        void                    ScanFileAttributes();
-        void                    ScanIterations();
-        void                    ScanFields();
-        void                    ScanParticles();
-        int                     ReadScalarDataSet(void * array,
-                                        int numValues,
-                                        void * factor,
-                                        H5T_class_t fieldDataClass,
-                                        char * path);
-        int                     ReadFieldScalarBlock(void * array,
-                                        void * factor, 
-                                        H5T_class_t fieldDataClass, 
-                                        fieldBlockStruct * fieldBlock);
-        int                     ReadParticleScalarBlock(void * array,
-                                                        void * factor,
-                                                    H5T_class_t dataSetClass, 
-                                        particleBlockStruct * particleBlock);
-        void                    CloseFile();
-    
-        int                     GetNumberIterations() const;
-        void                    Print();
-    protected:
+		/// File path
+		char                    filePath[128];
+		/// OpenPMD version
+		char                    version[8];
+		/// Meshes path
+		char 					meshesPath[64];
+		// Particles path
+		char 					particlesPath[64];
+		/// Id of the file after opening
+		hid_t                   fileId;
+
+		/// vector of PMDIteration objects
+		/// that contains the OpenPMD iterations
+		vector <PMDIteration>   iterations;
+
+		void                    OpenFile(char * path);
+		void                    ScanFileAttributes();
+		void                    ScanIterations();
+		void                    ScanFields();
+		void                    ScanParticles();
+		int                     ReadScalarDataSet(void * array,
+		                                int numValues,
+		                                void * factor,
+		                                H5T_class_t fieldDataClass,
+		                                char * path);
+		int                     ReadFieldScalarBlock(void * array,
+		                                void * factor,
+		                                H5T_class_t fieldDataClass,
+		                                fieldBlockStruct * fieldBlock);
+		int                     ReadParticleScalarBlock(void * array,
+		                                                void * factor,
+		                                            H5T_class_t dataSetClass,
+		                                particleBlockStruct * particleBlock);
+		void                    CloseFile();
+
+		int                     GetNumberIterations() const;
+		void                    Print();
+
+	protected:
 
 
-    private:
+	private:
 
 };
 

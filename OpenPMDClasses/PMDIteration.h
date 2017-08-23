@@ -13,13 +13,13 @@
 * modification, are permitted provided that the following conditions are met:
 *
 *  - Redistributions of  source code must  retain the above  copyright notice,
-*    this list of conditions and the disclaimer below.
+*	this list of conditions and the disclaimer below.
 *  - Redistributions in binary form must reproduce the above copyright notice,
-*    this  list of  conditions  and  the  disclaimer (as noted below)  in  the
-*    documentation and/or other materials provided with the distribution.
+*	this  list of  conditions  and  the  disclaimer (as noted below)  in  the
+*	documentation and/or other materials provided with the distribution.
 *  - Neither the name of  the LLNS/LLNL nor the names of  its contributors may
-*    be used to endorse or promote products derived from this software without
-*    specific prior written permission.
+*	be used to endorse or promote products derived from this software without
+*	specific prior written permission.
 *
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT  HOLDERS AND CONTRIBUTORS "AS IS"
 * AND ANY EXPRESS OR  IMPLIED WARRANTIES, INCLUDING,  BUT NOT  LIMITED TO, THE
@@ -59,10 +59,10 @@ using namespace std;
 // Class: PMDIteration
 //
 // Purpose:
-//      This class enables to manage the different iterations of
-//      an OpenPMD file.
-//      When an OpenPMD file is read, a PMDIteration is created
-//      for each iteration.
+//	  This class enables to manage the different iterations of
+//	  an OpenPMD file.
+//	  When an OpenPMD file is read, a PMDIteration is created
+//	  for each iteration.
 //
 // Programmer: Mathieu Lobet
 // Creation:   Fri Oct 14 2016
@@ -72,35 +72,37 @@ using namespace std;
 // ***************************************************************************
 class PMDIteration
 {
-    public:
-    PMDIteration();
-    ~PMDIteration();
+	public:
+	PMDIteration();
+	~PMDIteration();
 
-    void    ScanFields(hid_t fileId);
-    void    ScanParticles(hid_t fileId);
-    void    PrintInfo();
-    bool    HasFieldOfName(char * fieldName);
+	void	ScanFields(hid_t fileId);
+	void	ScanParticles(hid_t fileId);
+	void	PrintInfo();
+	bool	HasFieldOfName(char * fieldName);
 
-    // Iteration attributes
-    /// Iteration name
-    char  	name[20];
-    /// Iteration time step
-    float  	dt;
-    /// Iteration corresponding time
-    float 	time;
-    /// factor to convert the time in SI units
-    float 	timeUnitSI;
+	// Iteration attributes
+	/// Iteration name
+	char	name[20];
+	/// Mesh path in the iteration group
+	char	meshesPath[64];
+	/// Iteration time step
+	float  	dt;
+	/// Iteration corresponding time
+	float 	time;
+	/// factor to convert the time in SI units
+	float 	timeUnitSI;
 
-    /// Vector of field objects from the datasets
-    vector <PMDField> fields;
+	/// Vector of field objects from the datasets
+	vector <PMDField> fields;
 
-    /// Vector of field group structures
-    vector <fieldGroupStruct> fieldGroups;
+	/// Vector of field group structures
+	vector <fieldGroupStruct> fieldGroups;
 
-    /// Vector of particle objects
-    vector <PMDParticle> particles;
+	/// Vector of particle objects
+	vector <PMDParticle> particles;
 
-    protected:
+	protected:
 
 };
 

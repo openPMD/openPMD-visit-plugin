@@ -231,6 +231,9 @@ Build the files for VisIt:
 ../src/svn_bin/build_visit --system-cmake --python --hdf5 --szip --zlib --no-visit --parallel --makeflags -j8 --no-pyside --console --arch x86_64
 ```
 
+Useful libraries for visit are built in `deps/visit`.
+You may have to define some path by hand in case of trouble.
+
 Copy the OpenPMD plugin in the VisIt database:
 
 ```

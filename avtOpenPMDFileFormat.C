@@ -132,6 +132,9 @@ avtOpenPMDFileFormat::Initialize()
         // Open the OpenPMD file
         openPMDFile.OpenFile(filename);
 
+        // Get the root attributes
+        openPMDFile.ScanFileAttributes();
+
         // Scan the iterations
         openPMDFile.ScanIterations();
 
@@ -438,7 +441,7 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
                          fields[fieldGroup->thetaComponents[0]].unitsLabel;
             // Add the scalars
             md->Add(smdEy);
-	    
+
           }
       }
     }
@@ -1955,7 +1958,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     // _______________________________________________
     // FIELD group
 
-    
+
 
     // Temporary pointer to the field object
     PMDField * fieldTmp;
@@ -2209,14 +2212,14 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                      {
                          return vtkArray;
                      }
-		     
+
                   }
               }
           }
       }
     }
 
-    
+
 
     // ________________________________________________________
     // PARTICLES

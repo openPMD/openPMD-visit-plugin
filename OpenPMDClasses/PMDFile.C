@@ -49,13 +49,15 @@
 
 #include "PMDFile.h"
 
-#include <snprintf.h>
+#include <stdio.h>
 
+#ifndef TEST
 #include <InvalidVariableException.h>
 #include <InvalidDBTypeException.h>
 #include <InvalidFilesException.h>
 #include <InvalidTimeStepException.h>
 #include <InvalidDBTypeException.h>
+#endif
 
 // ***************************************************************************
 // Method: PMDFile::PMDFile
@@ -75,6 +77,7 @@ PMDFile::PMDFile()
 {
 	fileId=-1;
 	strcpy(this->version,"");
+	strcpy(this->meshesPath,"");
 }
 
 // ***************************************************************************
@@ -110,11 +113,15 @@ PMDFile::~PMDFile()
 // ***************************************************************************
 void PMDFile::OpenFile(char * PMDFilePath)
 {
-    hid_t fileAccessPropListID = H5Pcreate(H5P_FILE_ACCESS);
+	#ifdef VERBOSE
+	    cerr << "PMDFile::OpenFile" << endl;
+	#endif
 
-    herr_t err = H5Pset_fclose_degree(fileAccessPropListID, H5F_CLOSE_SEMI);
+	hid_t fileAccessPropListID = H5Pcreate(H5P_FILE_ACCESS);
 
-    // Open the file
+	herr_t err = H5Pset_fclose_degree(fileAccessPropListID, H5F_CLOSE_SEMI);
+
+	// Open the file
 	fileId = H5Fopen(PMDFilePath, H5F_ACC_RDONLY, H5P_DEFAULT);
 
 	H5Pclose(fileAccessPropListID);
@@ -137,12 +144,17 @@ void PMDFile::OpenFile(char * PMDFilePath)
 // ***************************************************************************
 void PMDFile::ScanFileAttributes()
 {
+
+#ifdef VERBOSE
+	cerr << "PMDFile::ScanFileAttributes" << endl;
+#endif
+
 	int 			iAttr;
-    char 			attrName[64];
+	char 			attrName[64];
 	hsize_t			nbAttr;
 	hid_t			groupId;
-    hid_t			attrId;
-    hid_t 			atype;
+	hid_t			attrId;
+	hid_t 			atype;
 	hid_t 			aspace;
 
 	// OpenPMD files always contain a data group at the root
@@ -152,9 +164,9 @@ void PMDFile::ScanFileAttributes()
 	nbAttr = H5Aget_num_attrs(groupId);
 
 	// Loop over the attributes
-    for (iAttr = 0; iAttr < nbAttr; iAttr++)
-    {
-    	// Opening of the attribute
+	for (iAttr = 0; iAttr < nbAttr; iAttr++)
+	{
+		// Opening of the attribute
 		attrId = H5Aopen_idx(groupId, (unsigned int)iAttr );
 
 		// Get the name of the attribute
@@ -169,7 +181,16 @@ void PMDFile::ScanFileAttributes()
 			// Read attribute
 			H5Aread (attrId, atype, this->version);
 		}
-
+		else if (strcmp(attrName,"meshesPath")==0)
+		{
+			// Read attribute
+			H5Aread (attrId, atype, this->meshesPath);
+		}
+		else if (strcmp(attrName,"particlesPath")==0)
+		{
+			// Read attribute
+			H5Aread (attrId, atype, this->particlesPath);
+		}
     }
 
 }
@@ -191,20 +212,26 @@ void PMDFile::ScanFileAttributes()
 // ***************************************************************************
 void PMDFile::ScanIterations()
 {
+
+	#ifdef VERBOSE
+	    cerr << "PMDFile::ScanIterations" << endl;
+	#endif
+
+
 	hsize_t 		nbIterations; // Number of iterations
 	hsize_t			nbAttr;
-    hid_t    		groupId;
-    hid_t			iterationId;
-    hid_t			attrId;
-    int 			i;
-    int 			iAttr;
-    int 			length;
-    herr_t 			err;
-    char			iterationName[64];
-    char 			bufAttrName[64];
-    PMDIteration 	iteration;
-    double 			val;
-    hid_t 			atype;
+	hid_t    		groupId;
+	hid_t			iterationId;
+	hid_t			attrId;
+	int 			i;
+	int 			iAttr;
+	int 			length;
+	herr_t 			err;
+	char			iterationName[64];
+	char 			bufAttrName[64];
+	PMDIteration 	iteration;
+	double 			val;
+	hid_t 			atype;
 	hid_t 			aspace;
 	H5O_info_t 		objectInfo;
 
@@ -238,6 +265,9 @@ void PMDFile::ScanIterations()
 
 			// Save the iteration name
 			strcpy(iteration.name,iterationName);
+
+			// Save mesh path
+			strcpy(iteration.meshesPath,this->meshesPath);
 
 			// Number of attributes
 			nbAttr = H5Aget_num_attrs(iterationId);
@@ -301,7 +331,7 @@ void PMDFile::ScanIterations()
 void PMDFile::ScanFields()
 {
 	for (std::vector<PMDIteration>::iterator it = iterations.begin() ;
-         it != iterations.end(); ++it)
+		 it != iterations.end(); ++it)
 	{
 	 	it->ScanFields(this->fileId);
 	}
@@ -350,7 +380,7 @@ void PMDFile::Print()
 	cout << " OpenPMD Version: " << this->version << endl;
 
 	cout << endl;
-	cout << " Number of iteration: " << this->GetNumberIterations() 
+	cout << " Number of iteration: " << this->GetNumberIterations()
              << endl;
 	for (std::vector<PMDIteration>::iterator it = iterations.begin() ;
          it != iterations.end(); ++it)
@@ -441,10 +471,12 @@ PMDFile::ReadScalarDataSet(void * array,
     if ((datasetId = H5Dopen(this->fileId,path,H5P_DEFAULT))<0)
     {
         char error[1024];
-        SNPRINTF(error, 1024, "Problem when opening the dataset %d",
+#ifndef TEST
+        snprintf(error, 1024, "Problem when opening the dataset %d",
                  int(datasetId));
         EXCEPTION2(InvalidFilesException, (const char *) path,error);
         cerr << " Problem when opening the dataset: " << path << endl;
+#endif
         return -1;
     }
     else
@@ -472,7 +504,9 @@ PMDFile::ReadScalarDataSet(void * array,
                 if (H5Dread(datasetId, datasetType, H5S_ALL, H5S_ALL,
                             H5P_DEFAULT, array) < 0)
                 {
+#ifndef TEST
                     EXCEPTION1(InvalidVariableException, path);
+#endif
                     cerr << " Problem when reading the dataset: "
                          << path << endl;
                     return -4;
@@ -512,18 +546,20 @@ PMDFile::ReadScalarDataSet(void * array,
                         }
                     }
                 }
-                cerr << " End Application of the factor" << endl;
+                //cerr << " End Application of the factor" << endl;
 
 
             }
             else
             {
                 char error[1024];
-                SNPRINTF(error, 1024,
+                snprintf(error, 1024,
                          "Invalid size for the current dataset (%d %ld)",
                          numValues,long(datasetStorageSize));
 
+#ifndef TEST
                 EXCEPTION2(InvalidFilesException, (const char *) path,error);
+#endif
             	cerr << " Invalid size for the current dataset:" << numValues
                      << " " << long(datasetStorageSize) << endl;
                 return -3;
@@ -531,9 +567,11 @@ PMDFile::ReadScalarDataSet(void * array,
         }
         else
         {
+#ifndef TEST
             EXCEPTION2(InvalidFilesException,
                        (const char *) path,
                         "The current dataset is not of a valid class.");
+#endif
             cerr << "The current dataset, " << path
                  << ", is not a valid class: " << dataClass << endl;
             return -2;
@@ -544,7 +582,7 @@ PMDFile::ReadScalarDataSet(void * array,
         //H5Sclose(datasetSpace);
 
     }
-    cerr << " End ReadScalarDataSet" << endl;
+    //cerr << " End ReadScalarDataSet" << endl;
    	return 0;
 }
 
@@ -594,10 +632,12 @@ PMDFile::ReadFieldScalarBlock(void * array,
         H5P_DEFAULT))<0)
     {
         char error[1024];
-        SNPRINTF(error, 1024, "Problem when opening the dataset %d",
+        snprintf(error, 1024, "Problem when opening the dataset %d",
                  int(datasetId));
+#ifndef TEST
         EXCEPTION2(InvalidFilesException, (const char *)
                    fieldBlock->dataSetPath,error);
+#endif
         cerr << " Problem when opening the dataset: "
              << fieldBlock->dataSetPath << endl;
         return -1;
@@ -678,8 +718,10 @@ PMDFile::ReadFieldScalarBlock(void * array,
                 if (H5Dread(datasetId, datasetType, memspace, datasetSpace,
                     H5P_DEFAULT, array) < 0)
                 {
+#ifndef TEST
                     EXCEPTION1(InvalidVariableException,
                                fieldBlock->dataSetPath);
+#endif
                     cerr << " Problem when reading the dataset: "
                          << fieldBlock->dataSetPath << endl;
                     return -4;
@@ -739,8 +781,10 @@ PMDFile::ReadFieldScalarBlock(void * array,
                 if (H5Dread(datasetId, datasetType, memspace,
                             datasetSpace, H5P_DEFAULT, array) < 0)
                 {
+#ifndef TEST
                     EXCEPTION1(InvalidVariableException,
                                fieldBlock->dataSetPath);
+#endif
                     cerr << " Problem when reading the dataset: "
                          << fieldBlock->dataSetPath
                          << endl;
@@ -780,9 +824,11 @@ PMDFile::ReadFieldScalarBlock(void * array,
         }
         else
         {
+#ifndef TEST
             EXCEPTION2(InvalidFilesException,
                        (const char *) fieldBlock->dataSetPath,
                        "The current dataset is not of a valid class.");
+#endif
             cerr << "The current dataset, " << fieldBlock->dataSetPath
                  << ", is not a valid class: " << fieldDataClass << endl;
             return -2;
@@ -910,8 +956,10 @@ int PMDFile::ReadParticleScalarBlock(void * array,
             if (H5Dread(datasetId, datasetType, memspace, datasetSpace,
                         H5P_DEFAULT, array) < 0)
             {
+#ifndef TEST
                 EXCEPTION1(InvalidVariableException,
                            particleBlock->dataSetPath);
+#endif
                 cerr << " Problem when reading the dataset: "
                      << particleBlock->dataSetPath << endl;
                 return -4;
@@ -955,9 +1003,11 @@ int PMDFile::ReadParticleScalarBlock(void * array,
         }
         else
         {
+#ifndef TEST
             EXCEPTION2(InvalidFilesException,
                        (const char *) particleBlock->dataSetPath,
                        "The current dataset is not a float dataset");
+#endif
             cerr << "The current dataset, " << particleBlock->dataSetPath
                  << ", is not of the specified class:" << H5T_FLOAT
                  << endl;

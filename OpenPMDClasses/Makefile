@@ -1,8 +1,9 @@
 # C++ Compiler
 #CXX=g++
-CXX=h5c++
+#CXX=h5c++
+CXX=h5pcc -DTEST=1 -O2
 # Compiler arguments
-CARGS= -O2
+CARGS= -DTEST=1 -O2
 # Libraries
 # LDFLAGS=-I/Applications/VisIt.app/Contents/Resources/2.10.3/darwin-x86_64/include/hdf5/include/
 # LDFLAGS=-I/usr/local/hdf5/include/include/
@@ -12,7 +13,7 @@ SRC=PMDField.o PMDParticle.o PMDIteration.o PMDFile.o main.o
 APPNAME=test_OpenPMD
 
 %.o:%.cpp
-	$(CXX) $(CARGS) -c -o $@ $< $(LDFLAGS) 
+	$(CXX) $(CARGS) -c -o $@ $< $(LDFLAGS)
 
 all: clean build
 
