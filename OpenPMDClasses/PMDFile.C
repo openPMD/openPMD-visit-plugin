@@ -269,6 +269,9 @@ void PMDFile::ScanIterations()
 			// Save mesh path
 			strcpy(iteration.meshesPath,this->meshesPath);
 
+			// Save particles path
+			strcpy(iteration.particlesPath,this->particlesPath);
+
 			// Number of attributes
 			nbAttr = H5Aget_num_attrs(iterationId);
 
@@ -625,7 +628,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
     hid_t   datasetSpace;
     hsize_t datasetStorageSize;
 
-    cerr  << "PMDFile::ReadFieldScalarBlock" << endl;
+    //cerr  << "PMDFile::ReadFieldScalarBlock" << endl;
 
     // Open the corresponding dataset
     if ((datasetId = H5Dopen(this->fileId,fieldBlock->dataSetPath,
@@ -839,7 +842,7 @@ PMDFile::ReadFieldScalarBlock(void * array,
         H5Tclose(datasetType);
 
     }
-    cerr << " End ReadFieldScalarBlock" << endl;
+    //cerr << " End ReadFieldScalarBlock" << endl;
 
     return 0;
 }
@@ -879,7 +882,7 @@ int PMDFile::ReadParticleScalarBlock(void * array,
     hid_t   datasetSpace;
     hsize_t datasetStorageSize;
 
-    cerr  << "PMDFile::ReadParticleScalarBlock" << endl;
+    //cerr  << "PMDFile::ReadParticleScalarBlock" << endl;
 
     // Open the corresponding dataset
     if ((datasetId = H5Dopen(this->fileId,particleBlock->dataSetPath,

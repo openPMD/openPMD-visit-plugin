@@ -86,6 +86,8 @@ class PMDIteration
 	char	name[20];
 	/// Mesh path in the iteration group
 	char	meshesPath[64];
+	/// Particles path in the iteration group
+	char	particlesPath[64];
 	/// Iteration time step
 	float  	dt;
 	/// Iteration corresponding time

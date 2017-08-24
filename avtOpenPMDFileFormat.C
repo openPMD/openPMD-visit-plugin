@@ -735,6 +735,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     int             ndims;
     int             dims[3];
     int             i,j,k,l;
+    int             i0,i2;
     int             err;
     int             id;
     int             nnodes;
@@ -777,6 +778,19 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 // 3D
                 if (ndims==3)
                 {
+
+                    // Data order
+                    if (strcmp(field->dataOrder,"C")==0)
+                    {
+                        i0 = 2;
+                        i2 = 0;
+                    }
+                    else if (strcmp(field->dataOrder,"Fortran")==0)
+                    {
+                        i0 = 0;
+                        i2 = 2;
+                    }
+
                     // Treatment of the file in parallel
                     if (this->parallel)
                     {
@@ -807,20 +821,20 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 #endif*/
 
                         // Dimensions
-                        dims[0] = fieldBlock.nbNodes[2];
+                        dims[0] = fieldBlock.nbNodes[i0];
                         dims[1] = fieldBlock.nbNodes[1];
-                        dims[2] = fieldBlock.nbNodes[0];
+                        dims[2] = fieldBlock.nbNodes[i2];
 
                         // Read the X coordinates from the file.
                         coords[0] = vtkFloatArray::New();
                         coords[0]->SetNumberOfTuples(dims[0]);
                         float *xarray = (float *)coords[0]->GetVoidPointer(0);
-                        for(i=fieldBlock.minNode[2];
-                            i<=fieldBlock.maxNode[2];i++)
+                        for(i=fieldBlock.minNode[i0];
+                            i<=fieldBlock.maxNode[i0];i++)
                         {
-                            xarray[i - fieldBlock.minNode[2]] =
-                            ((i+field->gridPosition[2])*field->gridSpacing[2]
-                            + field->gridGlobalOffset[2])*field->gridUnitSI;
+                            xarray[i - fieldBlock.minNode[i0]] =
+                            ((i+field->gridPosition[i0])*field->gridSpacing[i0]
+                            + field->gridGlobalOffset[i0])*field->gridUnitSI;
                         }
 
                         // Read the Y coordinates from the file.
@@ -839,21 +853,22 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         coords[2] = vtkFloatArray::New();
                         coords[2]->SetNumberOfTuples(dims[2]);
                         float *zarray = (float *)coords[2]->GetVoidPointer(0);
-                        for(i=fieldBlock.minNode[0];
-                            i<=fieldBlock.maxNode[0];i++)
+                        for(i=fieldBlock.minNode[i2];
+                            i<=fieldBlock.maxNode[i2];i++)
                         {
-                            zarray[i - fieldBlock.minNode[0]] =
-                            ((i+field->gridPosition[0])*field->gridSpacing[0]
-                            + field->gridGlobalOffset[0])*field->gridUnitSI;
+                            zarray[i - fieldBlock.minNode[i2]] =
+                            ((i+field->gridPosition[i2])*field->gridSpacing[i2]
+                            + field->gridGlobalOffset[i2])*field->gridUnitSI;
                         }
 
                     }
                     // Only one processor
                     else
                     {
-                        dims[0] = field->nbNodes[2];
+
+                        dims[0] = field->nbNodes[i0];
                         dims[1] = field->nbNodes[1];
-                        dims[2] = field->nbNodes[0];
+                        dims[2] = field->nbNodes[i2];
 
                         // Read the X coordinates from the file.
                         coords[0] = vtkFloatArray::New();
@@ -862,8 +877,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=0;i<dims[0];i++)
                         {
                             xarray[i] =
-                            ((i+field->gridPosition[2])*field->gridSpacing[2]
-                            + field->gridGlobalOffset[2])*field->gridUnitSI;
+                            ((i+field->gridPosition[i0])*field->gridSpacing[i0]
+                            + field->gridGlobalOffset[i0])*field->gridUnitSI;
                         }
 
                         // Read the Y coordinates from the file.
@@ -884,8 +899,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                         for(i=0;i<dims[2];i++)
                         {
                             zarray[i] =
-                            ((i+field->gridPosition[0])*field->gridSpacing[0]
-                            + field->gridGlobalOffset[0])*field->gridUnitSI;
+                            ((i+field->gridPosition[i2])*field->gridSpacing[i2]
+                            + field->gridGlobalOffset[i2])*field->gridUnitSI;
                         }
                     }
 
@@ -916,32 +931,32 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                                 << " " << fieldBlock.nbNodes[1]
                                 << " " << fieldBlock.maxNode[1] << endl;
 
-                        dims[0] = fieldBlock.nbNodes[1];
-                        dims[1] = fieldBlock.nbNodes[0];
+                        dims[0] = fieldBlock.nbNodes[0];
+                        dims[1] = fieldBlock.nbNodes[1];
                         dims[2] = 1;
 
                         // Read the X coordinates from the file.
                         coords[0] = vtkFloatArray::New();
                         coords[0]->SetNumberOfTuples(dims[0]);
                         float *xarray = (float *)coords[0]->GetVoidPointer(0);
-                        for(i=fieldBlock.minNode[1];
-                            i<=fieldBlock.maxNode[1];i++)
+                        for(i=fieldBlock.minNode[0];
+                            i<=fieldBlock.maxNode[0];i++)
                         {
-                            xarray[i - fieldBlock.minNode[1]] =
-                            ((i+field->gridPosition[1])*field->gridSpacing[1]
-                            + field->gridGlobalOffset[1])*field->gridUnitSI;
+                            xarray[i - fieldBlock.minNode[0]] =
+                            ((i+field->gridPosition[0])*field->gridSpacing[0]
+                            + field->gridGlobalOffset[0])*field->gridUnitSI;
                         }
 
                         // Read the Y coordinates from the file.
                         coords[1] = vtkFloatArray::New();
                         coords[1]->SetNumberOfTuples(dims[1]);
                         float *yarray = (float *)coords[1]->GetVoidPointer(0);
-                        for(i=fieldBlock.minNode[0];
-                            i<=fieldBlock.maxNode[0];i++)
+                        for(i=fieldBlock.minNode[1];
+                            i<=fieldBlock.maxNode[1];i++)
                         {
-                            yarray[i - fieldBlock.minNode[0]] =
-                            ((i+field->gridPosition[0])*field->gridSpacing[0]
-                            + field->gridGlobalOffset[0])*field->gridUnitSI;
+                            yarray[i - fieldBlock.minNode[1]] =
+                            ((i+field->gridPosition[1])*field->gridSpacing[1]
+                            + field->gridGlobalOffset[1])*field->gridUnitSI;
                         }
 
                         // No Z coordinates
@@ -954,30 +969,30 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     else
                     {
 
-                        dims[0] = field->nbNodes[1];
-                        dims[1] = field->nbNodes[0];
+                        dims[0] = field->nbNodes[0];
+                        dims[1] = field->nbNodes[1];
                         dims[2] = 1;
 
                         // Read the X coordinates from the file.
                         coords[0] = vtkFloatArray::New();
-                        coords[0]->SetNumberOfTuples(field->nbNodes[1]);
+                        coords[0]->SetNumberOfTuples(field->nbNodes[0]);
                         float *xarray = (float *)coords[0]->GetVoidPointer(0);
-                        for(i=0;i<field->nbNodes[1];i++)
+                        for(i=0;i<field->nbNodes[0];i++)
                         {
                             xarray[i] =
-                            ((i+field->gridPosition[1])*field->gridSpacing[1]
-                            + field->gridGlobalOffset[1])*field->gridUnitSI;
+                            ((i+field->gridPosition[0])*field->gridSpacing[0]
+                            + field->gridGlobalOffset[0])*field->gridUnitSI;
                         }
 
                         // Read the Y coordinates from the file.
                         coords[1] = vtkFloatArray::New();
-                        coords[1]->SetNumberOfTuples(field->nbNodes[0]);
+                        coords[1]->SetNumberOfTuples(field->nbNodes[1]);
                         float *yarray = (float *)coords[1]->GetVoidPointer(0);
-                        for(i=0;i<field->nbNodes[0];i++)
+                        for(i=0;i<field->nbNodes[1];i++)
                         {
                             yarray[i] =
-                            ((i+field->gridPosition[0])*field->gridSpacing[0]
-                            + field->gridGlobalOffset[0])*field->gridUnitSI;
+                            ((i+field->gridPosition[1])*field->gridSpacing[1]
+                            + field->gridGlobalOffset[1])*field->gridUnitSI;
                         }
 
                         // No Z coordinates
@@ -1011,11 +1026,23 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             else if (strcmp(field->geometry,"thetaMode")==0)
             {
 
-                // Read the ndims and number of X,Y,Z nodes from file.
-                ndims = field->ndims;
-                dims[0] = field->nbNodes[2]; // z direction
-                dims[1] = field->nbNodes[1]; // r direction
-                dims[2] = field->thetaNbNodes; // Theta direction
+                if (strcmp(field->dataOrder,"C")==0)
+                {
+                    // Read the ndims and number of x,r,theta nodes from file.
+                    ndims = field->ndims;
+                    dims[0] = field->nbNodes[1]; // x direction
+                    dims[1] = field->nbNodes[2]; // r direction
+                    dims[2] = field->thetaNbNodes; // Theta direction
+
+                }
+                else if (strcmp(field->dataOrder,"Fortran")==0)
+                {
+                    // Read the ndims and number of z,r,theta nodes from file.
+                    ndims = field->ndims;
+                    dims[0] = field->nbNodes[2]; // z direction
+                    dims[1] = field->nbNodes[1]; // r direction
+                    dims[2] = field->thetaNbNodes; // Theta direction
+                }
 
                 // Total number of nodes
                 nnodes = dims[0] * dims[1] * dims[2];

@@ -68,16 +68,16 @@ PMDField::PMDField()
     // Data size: 4 - simple precision, 8 - double precision
     this->dataSize = 0;
     this->thetaImSign = 1;
-    strcpy(this->name,"none");
-    strcpy(this->datasetPath,"none");
-    strcpy(this->groupPath,"none");
-    strcpy(this->unitsLabel,"none");
-    strcpy(this->axisLabels[0],"none");
-    strcpy(this->axisLabels[1],"nonenone");
-    strcpy(this->axisLabels[2],"none");
-    strcpy(this->dataOrder,"none");
-    strcpy(this->geometry,"none");
-    strcpy(this->fieldBoundary,"none");
+    strcpy(this->name,"");
+    strcpy(this->datasetPath,"");
+    strcpy(this->groupPath,"");
+    strcpy(this->unitsLabel,"");
+    strcpy(this->axisLabels[0],"");
+    strcpy(this->axisLabels[1],"");
+    strcpy(this->axisLabels[2],"");
+    strcpy(this->dataOrder,"");
+    strcpy(this->geometry,"");
+    strcpy(this->fieldBoundary,"");
 
     // Discretization for the theta mode
     this->thetaNbNodes = 100;
@@ -122,13 +122,13 @@ void PMDField::ScanAttributes(hid_t objectId)
 
     int     numAttr;
     int     i;
-    hid_t     attrId;
-    hid_t    attrType;
-    hid_t    attrSpace;
+    hid_t   attrId;
+    hid_t   attrType;
+    hid_t   attrSpace;
     int     ndims;
     hsize_t sdim[64];
-    herr_t     err;
-    char     name[64];
+    herr_t  err;
+    char    name[64];
 
     // Number of attributes
     numAttr = H5Aget_num_attrs(objectId);
@@ -251,9 +251,9 @@ void PMDField::SetGridDimensions(hid_t datasetId)
     // Storage size
     hsize_t dataset_storage_size = H5Dget_storage_size(datasetId);
     // Dimension from the data space
-    hsize_t dims[3] ;
-    hsize_t maxdims[3] ;
-    this->ndims =  H5Sget_simple_extent_dims(dataset_space, dims, maxdims );
+    hsize_t dims[3];
+    hsize_t maxdims[3];
+    this->ndims = H5Sget_simple_extent_dims(dataset_space, dims, maxdims );
 
     if (ndims==3)
     {
@@ -266,6 +266,11 @@ void PMDField::SetGridDimensions(hid_t datasetId)
         this->nbNodes[0] = dims[0];
         this->nbNodes[1] = dims[1];
         this->nbNodes[2] = 1;
+    }
+    else
+    {
+        cerr << "Error in PMDField::SetGridDimensions, ndims = " << ndims
+             << endl;
     }
 
 }

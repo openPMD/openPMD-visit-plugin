@@ -67,8 +67,11 @@ vector <PMDIteration> iterations;
 PMDIteration::PMDIteration()
 {
 	this->dt		 = 0;
-	this->time	   = 0;
+	this->time	     = 0;
 	this->timeUnitSI = 1;
+	strcpy(this->name,"");
+	strcpy(this->meshesPath,"");
+	strcpy(this->particlesPath,"");
 }
 
 // ***************************************************************************
@@ -142,7 +145,7 @@ void PMDIteration::ScanFields(hid_t fileId)
 	// Get useful attributes fron the "fields" group
 	field.ScanAttributes(groupId);
 
-	  /*
+	/*
 			Iteration over the objects in the group "fields"
 
 			We look for the datasets and the groups.
@@ -154,7 +157,7 @@ void PMDIteration::ScanFields(hid_t fileId)
 			As a consequence, I prefer doing it by "hand".
 			Be prepared for an explicit but ugly code...
 			Mathieu
-	  */
+	*/
 
 	  // First we get the number of objects
 	  err = H5Gget_num_objs(groupId, &nb_objects);
@@ -181,32 +184,32 @@ void PMDIteration::ScanFields(hid_t fileId)
 			// If group...
 			case H5O_TYPE_GROUP:
 
-				  // Openning of the group
-				  subGroupId = H5Gopen2(groupId, object_name, H5P_DEFAULT);
+				// Openning of the group
+				subGroupId = H5Gopen2(groupId, object_name, H5P_DEFAULT);
 
-				  // Save the first part of the name
-				  strcpy(tmp_name,object_name);
+				// Save the first part of the name
+				strcpy(tmp_name,object_name);
 
-				  // Get useful attributes from the group
-				  field.ScanAttributes(subGroupId);
+				// Get useful attributes from the group
+				field.ScanAttributes(subGroupId);
 
-				  // Create a new group structure
-				  strcpy(fieldGroup.name,object_name);
-				  fieldGroup.thetaComponents[0] = -1;
-				  fieldGroup.thetaComponents[1] = -1;
-				  fieldGroup.thetaComponents[2] = -1;
-				  fieldGroup.fieldIds.clear();
+				// Create a new group structure
+				strcpy(fieldGroup.name,object_name);
+				fieldGroup.thetaComponents[0] = -1;
+				fieldGroup.thetaComponents[1] = -1;
+				fieldGroup.thetaComponents[2] = -1;
+				fieldGroup.fieldIds.clear();
 
-				  // Copy the group geometry
-				  strcpy(fieldGroup.geometry,field.geometry);
+				// Copy the group geometry
+				strcpy(fieldGroup.geometry,field.geometry);
 
 				  // Get the number of datasets
 				  err = H5Gget_num_objs(subGroupId, &nb_sub_objects);
 
-				  // Then, we iterate over the datasets in this group
-				  for (i_sub_object = 0; i_sub_object < nb_sub_objects;
+				// Then, we iterate over the datasets in this group
+				for (i_sub_object = 0; i_sub_object < nb_sub_objects;
 						 i_sub_object++)
-				  {
+				{
 						// Get the dataset name
 						length = H5Gget_objname_by_idx(subGroupId, (hsize_t)
 													i_sub_object,
@@ -305,6 +308,9 @@ void PMDIteration::ScanFields(hid_t fileId)
 				// Scan useful attributes
 				field.ScanAttributes(datasetId);
 
+				// Set the grid dimension from the dataset
+				field.SetGridDimensions(datasetId);
+
 				// Get the class and size of data (float, integer...)
 				datasetType = H5Dget_type(datasetId);
 				field.dataSize = H5Tget_size(datasetType);
@@ -350,22 +356,26 @@ void PMDIteration::ScanParticles(hid_t fileId)
 	hid_t		particleGroupId;
 	hsize_t		numObjects;
 	ssize_t		length;
-	herr_t		err;
+	herr_t		err = 1;
 	H5O_info_t	objectInfo;
 
-	  // Creation of the path to the group "particles" having all the species
-	  strcpy (path,"/data/");
-	  strcat (path,this->name);
-	  strcat (path,"/particles");
+	// Creation of the path to the group "particles" having all the species
+	strcpy (path,"/data/");
+	strcat (path,this->name);
+	strcat (path,"/");
+	strcat (path,this->particlesPath);
+	strcat (path,"/");
 
-	  err = H5Gget_objinfo (fileId, path, 0, NULL);
+	if (strcmp(this->particlesPath,"no_particles")!=0)
+	{
+		err = H5Gget_objinfo (fileId, path, 0, NULL);
 
-	  if (err!=0)
-	  {
+		if (err!=0)
+		{
 			cerr << " No group named particles of path: " << path << endl;
-	  }
-	  else
-	  {
+		}
+		else
+		{
 
 			// Openning of the group "particles" of the current iteration
 			groupId = H5Gopen2(fileId, path , H5P_DEFAULT);
@@ -377,45 +387,46 @@ void PMDIteration::ScanParticles(hid_t fileId)
 			for (i = 0; i < numObjects; i++)
 			{
 
-				  // Create a temporary particle object
-				  PMDParticle			particle;
+				// Create a temporary particle object
+				PMDParticle			particle;
 
-				  // Get the particle group name
-				  length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
-						objectName, (size_t) 64);
+				// Get the particle group name
+				length = H5Gget_objname_by_idx(groupId, (hsize_t)i,
+				objectName, (size_t) 64);
 
-				  // Get info in order to get the type: group, dataset...
-				  err = H5Oget_info_by_name(groupId,
-											  objectName,
-											  &objectInfo,
-											  H5P_DEFAULT);
+				// Get info in order to get the type: group, dataset...
+				err = H5Oget_info_by_name(groupId,
+										objectName,
+										&objectInfo,
+										H5P_DEFAULT);
 
-				  // Check that the object is well a group
-				  if (H5O_TYPE_GROUP==objectInfo.type)
-				  {
-						// Openning of the particle group
-						particleGroupId = H5Gopen2(groupId,
-												   objectName,
-												   H5P_DEFAULT);
+				// Check that the object is well a group
+				if (H5O_TYPE_GROUP==objectInfo.type)
+				{
+					// Openning of the particle group
+					particleGroupId = H5Gopen2(groupId,
+											   objectName,
+											   H5P_DEFAULT);
 
-						// Save the name
-						strcpy(particle.name,objectName);
+					// Save the name
+					strcpy(particle.name,objectName);
 
-						// Save the path
-						strcpy(particle.path,path);
-						strcat(particle.path,"/");
-						strcat(particle.path,objectName);
+					// Save the path
+					strcpy(particle.path,path);
+					strcat(particle.path,"/");
+					strcat(particle.path,objectName);
 
-						// Scan properties via datasets and attributes
-						// in this particle group
-						particle.ScanParticleGroup(particleGroupId);
+					// Scan properties via datasets and attributes
+					// in this particle group
+					particle.ScanParticleGroup(particleGroupId);
 
-						// Insert the particle object in the vector of particles
-						this->particles.push_back(particle);
+					// Insert the particle object in the vector of particles
+					this->particles.push_back(particle);
 
-				  }
+				}
 			}
-	  }
+		}
+	}
 }
 
 // ***************************************************************************
