@@ -329,12 +329,12 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         mmd->topologicalDimension = field->ndims;
         // Mesh type
         // Cartesian
-        if (strcmp(field->geometry,"cartesian")==0)
+        if (field->geometry == "cartesian")
         {
             mmd->meshType = AVT_RECTILINEAR_MESH;
         }
         // Curvilinear, thetaMode
-        else if (strcmp(field->geometry,"thetaMode")==0)
+        else if (field->geometry == "thetaMode")
         {
             mmd->meshType = AVT_CURVILINEAR_MESH;
         }
@@ -386,7 +386,7 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
     {
 
       // Additional field components for the theta mode
-      if (strcmp(fieldGroup->geometry,"thetaMode")==0)
+      if (fieldGroup->geometry == "thetaMode")
       {
           // check if components r and theta are available
           // If True, we compute x and y from r and theta.
@@ -770,7 +770,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
         if (strcmp(meshname, bufferMeshName) == 0)
         {
 
-            if (strcmp(field->geometry,"cartesian")==0)
+            if (field->geometry == "cartesian")
             {
                 // Read the ndims and number of X,Y,Z nodes from file.
                 ndims = field->ndims;
@@ -1023,15 +1023,15 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 return grid;
             }
             // Axicylindrical case
-            else if (strcmp(field->geometry,"thetaMode")==0)
+            else if (field->geometry == "thetaMode")
             {
 
                 if (field->dataOrder == "C")
                 {
                     // Read the ndims and number of x,r,theta nodes from file.
                     ndims = field->ndims;
-                    dims[0] = field->nbNodes[1]; // x direction
-                    dims[1] = field->nbNodes[2]; // r direction
+                    dims[0] = field->nbNodes[2]; // x direction
+                    dims[1] = field->nbNodes[1]; // r direction
                     dims[2] = field->thetaNbNodes; // Theta direction
 
                 }
@@ -1039,8 +1039,8 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 {
                     // Read the ndims and number of z,r,theta nodes from file.
                     ndims = field->ndims;
-                    dims[0] = field->nbNodes[2]; // z direction
-                    dims[1] = field->nbNodes[1]; // r direction
+                    dims[0] = field->nbNodes[1]; // z direction
+                    dims[1] = field->nbNodes[2]; // r direction
                     dims[2] = field->thetaNbNodes; // Theta direction
                 }
 
@@ -1742,7 +1742,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
         if (strcmp(varname, buffer) == 0)
         {
 
-            if (strcmp(field->geometry,"cartesian")==0)
+            if (field->geometry == "cartesian")
             {
 
                 // We treat the file in parallel by reading
@@ -1864,7 +1864,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                 }
 
             }
-            else if (strcmp(field->geometry,"thetaMode")==0)
+            else if (field->geometry == "thetaMode")
             {
 
                 // We treat the file in parallel by reading
@@ -2017,7 +2017,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
       {
 
           // And we are in theta mode
-          if (strcmp(fieldGroup->geometry,"thetaMode")==0)
+          if (fieldGroup->geometry == "thetaMode")
           {
               // check if components r and theta are available
               // If True, we compute x and y from r and theta.
@@ -2063,7 +2063,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
                      // Generate the r data array with the modes
                      err = fieldTmp->ComputeArrayThetaMode(dataSetArray,rDataArray);
 
-		     // The fieldTmp pointer now points to the new theta field component
+                     // The fieldTmp pointer now points to the new theta field component
                      fieldTmp = &(openPMDFile.iterations[timestate].
                              fields[fieldGroup->thetaComponents[1]]);
 

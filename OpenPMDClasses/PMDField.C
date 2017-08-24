@@ -71,10 +71,6 @@ PMDField::PMDField()
     strcpy(this->name,"");
     strcpy(this->datasetPath,"");
     strcpy(this->groupPath,"");
-    strcpy(this->axisLabels[0],"");
-    strcpy(this->axisLabels[1],"");
-    strcpy(this->axisLabels[2],"");
-    strcpy(this->geometry,"");
 
     // Discretization for the theta mode
     this->thetaNbNodes = 100;
@@ -219,7 +215,7 @@ void PMDField::ScanAttributes(hid_t objectId)
     }
 
     // Determine number of modes for the theta modes
-    if (strcmp(this->geometry,"thetaMode")==0)
+    if (this->geometry=="thetaMode")
     {
       this->nbModes = (this->nbNodes[0]-1)/2;
     }
@@ -528,11 +524,11 @@ PMDField::SetGeometry(char * name,
 
         if (strstr(tmpchar,"cartesian")>0)
         {
-            strcpy(geometry,"cartesian");
+            geometry = "cartesian";
         }
         else if (strstr(tmpchar,"thetaMode")>0)
         {
-            strcpy(geometry,"thetaMode");
+            geometry = "thetaMode";
         }
         else
         {
@@ -568,7 +564,6 @@ PMDField::SetAxisLabels(char * name,
 {
     int        iLabel;
     int        i,j;
-    string     buffer[3];
     herr_t     err;
 
     if (H5T_STRING == H5Tget_class(attrType)) {
@@ -582,14 +577,12 @@ PMDField::SetAxisLabels(char * name,
         //buffer[1] = new char[10];
         //buffer[2] = new char[10];
 
+        char * buffer = new char[128];
+
         // We put all the labels in buffer
         err = H5Aread(attrId, attrType, buffer);
 
-        cerr << buffer
-             << "x: " << buffer[0]
-             << "y: " << buffer[1]
-             << "z: " << buffer[2]
-             << endl;
+        this->axisLabels[0] = buffer;
 
         // then we parse buffer and fill this->axisLabels
         iLabel = 0;

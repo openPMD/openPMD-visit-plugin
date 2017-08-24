@@ -91,7 +91,7 @@ struct fieldGroupStruct
     /// List of id in the field vector
     vector <int> fieldIds;
     /// Geometry fo the group
-    char geometry[64];
+    string geometry;
     /// Components if cartesian geometry
     int cartesianComponents[3];
     /// If geometry is thetaMode, we keep in memory
@@ -148,9 +148,9 @@ class PMDField
         /// Units for the grid
         double  gridUnitSI;
         /// Geometry of the grid
-        char    geometry[64];
+        string    geometry;
         /// Labels
-        char    axisLabels[3][16];
+        string    axisLabels[3];
         /// Units
         string    unitsLabel;
         /// Field boundary conditions
