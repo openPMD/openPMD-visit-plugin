@@ -71,13 +71,10 @@ PMDField::PMDField()
     strcpy(this->name,"");
     strcpy(this->datasetPath,"");
     strcpy(this->groupPath,"");
-    strcpy(this->unitsLabel,"");
     strcpy(this->axisLabels[0],"");
     strcpy(this->axisLabels[1],"");
     strcpy(this->axisLabels[2],"");
-    strcpy(this->dataOrder,"");
     strcpy(this->geometry,"");
-    strcpy(this->fieldBoundary,"");
 
     // Discretization for the theta mode
     this->thetaNbNodes = 100;
@@ -170,10 +167,10 @@ void PMDField::ScanAttributes(hid_t objectId)
             SetGridPosition(name, attrId, attrType, attrSpace);
         }
         // Reading of the labels has to be done correctly
-        //else if (strcmp(name,"axisLabels")==0)
-        //{
-        //    SetAxisLabels(name, attrId, attrType, attrSpace);
-        //}
+        /*else if (strcmp(name,"axisLabels")==0)
+        {
+            SetAxisLabels(name, attrId, attrType, attrSpace);
+        }*/
         else if (strcmp(name,"geometry")==0)
         {
             SetGeometry(name, attrId, attrType, attrSpace);
@@ -569,43 +566,58 @@ PMDField::SetAxisLabels(char * name,
                         hid_t attrType,
                         hid_t attrSpace)
 {
-    int     iLabel;
-    int     i;
-    int     i0;
-    char *  buffer;
+    int        iLabel;
+    int        i,j;
+    string     buffer[3];
     herr_t     err;
 
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
+        cerr << npoints << endl;
+
         // Buffer that will contains all the labels
-        buffer = new char(npoints);
+        //buffer[0] = new char[10];
+        //buffer[1] = new char[10];
+        //buffer[2] = new char[10];
 
         // We put all the labels in buffer
         err = H5Aread(attrId, attrType, buffer);
 
+        cerr << buffer
+             << "x: " << buffer[0]
+             << "y: " << buffer[1]
+             << "z: " << buffer[2]
+             << endl;
+
         // then we parse buffer and fill this->axisLabels
         iLabel = 0;
-        i0 = 0;
+        j = 0;
+
+        // Init axisLabels
+        /*strcpy(this->axisLabels[0],"");
+
         for (i=0;i<npoints;i++)
         {
-            this->axisLabels[iLabel][i-i0] = buffer[i];
+            this->axisLabels[iLabel][j] = buffer[i];
+            j++;
 
             //cerr << buffer[i] << " " << iLabel << " " << i0 << endl;
 
             if (strcmp(&buffer[i],",")==0)
             {
                 iLabel += 1;
-                i0 = i+1;
+                j = 0;
             }
-        }
+        }*/
+
         //cerr << "Labels: " << axisLabels[0] << " "
         //                   << axisLabels[1] << " "
         //                   << axisLabels[2] << " "
         //                   << endl;
 
-        delete [] buffer;
+        //delete [] buffer;
 
     }
 }
@@ -647,8 +659,6 @@ void PMDField::SetUnitDimension(char * name,
         double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
 
         err = H5Aread(attrId, attrType, tmpArray);
-
-        strcpy(unitsLabel,"");
 
         for(i=0;i<7;i++)
         {
@@ -711,7 +721,7 @@ void PMDField::SetUnitDimension(char * name,
                     sprintf(buffer, units, int(tmpArray[i]));
                 }
                 // Creation of the unitsLabel
-                strcat(unitsLabel,buffer);
+                unitsLabel += buffer;
             }
         }
         free(tmpArray);
@@ -743,14 +753,34 @@ PMDField::SetFieldBoundary(char * name,
                            hid_t attrSpace)
 {
     herr_t     err;
+
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        //cout << " Number of elements: " << npoints << endl;
+        /*hsize_t startpoint = 0;
+        hsize_t numpoints = npoints;
+        hsize_t * buf = new hsize_t[npoints];
 
-        err = H5Aread(attrId, attrType, this->fieldBoundary);
+        H5Sget_select_elem_pointlist(attrSpace, startpoint, numpoints, buf);*/
+
+        //cerr << " Number of elements: " << npoints << endl;
+        /*for (int i=0;i<npoints;i++) {
+            cerr << " Number of points: " << buf[i] << endl;
+        }*/
+        //cerr << H5Sget_select_elem_npoints(attrSpace) << endl;
+
+        /*char **   buffer = new char*[npoints];
+        for (int i=0;i<npoints;i++) {
+            buffer[i] = new char[10];
+        }*/
+
+        char * buffer = new char [256];
+
+        err = H5Aread(attrId, attrType, buffer);
+
+        this->fieldBoundary = buffer;
 
     }
 }
@@ -787,7 +817,11 @@ PMDField::SetDataOrder(char * name,
 
         //cout << " Number of elements: " << npoints << endl;
 
-        err = H5Aread(attrId, attrType, this->dataOrder);
+        char * buffer = new char[7];
+
+        err = H5Aread(attrId, attrType, buffer);
+
+        this->dataOrder = buffer;
 
     }
 }

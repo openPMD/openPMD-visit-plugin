@@ -152,11 +152,11 @@ class PMDField
         /// Labels
         char    axisLabels[3][16];
         /// Units
-        char    unitsLabel[64];
+        string    unitsLabel;
         /// Field boundary conditions
-        char    fieldBoundary[64];
+        string    fieldBoundary;
         /// Data order (C or Fortran)
-        char    dataOrder[8];
+        string    dataOrder;
         /// Data size in number of bytes (4,8)
         int     dataSize;
         /// Data Class (H5T_FLOAT, H5T_INTEGER...)

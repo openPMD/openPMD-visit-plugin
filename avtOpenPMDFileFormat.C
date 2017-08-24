@@ -780,12 +780,12 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                 {
 
                     // Data order
-                    if (strcmp(field->dataOrder,"C")==0)
+                    if (field->dataOrder=="C")
                     {
                         i0 = 2;
                         i2 = 0;
                     }
-                    else if (strcmp(field->dataOrder,"Fortran")==0)
+                    else if (field->dataOrder == "Fortran")
                     {
                         i0 = 0;
                         i2 = 2;
@@ -1026,7 +1026,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
             else if (strcmp(field->geometry,"thetaMode")==0)
             {
 
-                if (strcmp(field->dataOrder,"C")==0)
+                if (field->dataOrder == "C")
                 {
                     // Read the ndims and number of x,r,theta nodes from file.
                     ndims = field->ndims;
@@ -1035,7 +1035,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                     dims[2] = field->thetaNbNodes; // Theta direction
 
                 }
-                else if (strcmp(field->dataOrder,"Fortran")==0)
+                else if (field->dataOrder == "Fortran")
                 {
                     // Read the ndims and number of z,r,theta nodes from file.
                     ndims = field->ndims;
