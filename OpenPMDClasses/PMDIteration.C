@@ -201,7 +201,7 @@ void PMDIteration::ScanFields(hid_t fileId)
 				fieldGroup.fieldIds.clear();
 
 				// Copy the group geometry
-				strcpy(fieldGroup.geometry,field.geometry);
+				fieldGroup.geometry = field.geometry;
 
 				  // Get the number of datasets
 				  err = H5Gget_num_objs(subGroupId, &nb_sub_objects);
