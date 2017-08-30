@@ -162,11 +162,10 @@ void PMDField::ScanAttributes(hid_t objectId)
         {
             SetGridPosition(name, attrId, attrType, attrSpace);
         }
-        // Reading of the labels has to be done correctly
-        /*else if (strcmp(name,"axisLabels")==0)
+        else if (strcmp(name,"axisLabels")==0)
         {
             SetAxisLabels(name, attrId, attrType, attrSpace);
-        }*/
+        }
         else if (strcmp(name,"geometry")==0)
         {
             SetGeometry(name, attrId, attrType, attrSpace);
@@ -194,6 +193,10 @@ void PMDField::ScanAttributes(hid_t objectId)
         else if (strcmp(name,"fieldBoundary")==0)
         {
             SetFieldBoundary(name, attrId, attrType, attrSpace);
+        }
+        else if (strcmp(name,"fieldBoundaryParameters")==0)
+        {
+            SetFieldBoundaryParameters(name, attrId, attrType, attrSpace);
         }
         else if (strcmp(name,"dataOrder")==0)
         {
@@ -568,49 +571,36 @@ PMDField::SetAxisLabels(char * name,
 
     if (H5T_STRING == H5Tget_class(attrType)) {
 
+        // Number of elements in the string array
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        cerr << npoints << endl;
+        //int rank = H5Sget_simple_extent_ndims(attrSpace);
+        //err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-        // Buffer that will contains all the labels
-        //buffer[0] = new char[10];
-        //buffer[1] = new char[10];
-        //buffer[2] = new char[10];
+        // Size of one of the string of the array
+        // All string should have the same size
+        size_t size = H5Tget_size (attrType);
 
-        char * buffer = new char[128];
+        /*cerr << " npoints: " << npoints
+             << " rank: " << rank
+             << " sdim: " << sdim[0] << " " << sdim[1]
+             << " size: " << size
+             << endl;*/
+
+        char * buffer = new char[size*npoints];
 
         // We put all the labels in buffer
         err = H5Aread(attrId, attrType, buffer);
 
-        this->axisLabels[0] = buffer;
-
-        // then we parse buffer and fill this->axisLabels
-        iLabel = 0;
-        j = 0;
-
-        // Init axisLabels
-        /*strcpy(this->axisLabels[0],"");
-
-        for (i=0;i<npoints;i++)
+        for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
-            this->axisLabels[iLabel][j] = buffer[i];
-            j++;
-
-            //cerr << buffer[i] << " " << iLabel << " " << i0 << endl;
-
-            if (strcmp(&buffer[i],",")==0)
+            for (i = 0; i < size ; i++)
             {
-                iLabel += 1;
-                j = 0;
+                this->axisLabels[iLabel] += buffer[i + iLabel*size];
             }
-        }*/
+        }
 
-        //cerr << "Labels: " << axisLabels[0] << " "
-        //                   << axisLabels[1] << " "
-        //                   << axisLabels[2] << " "
-        //                   << endl;
-
-        //delete [] buffer;
+        delete [] buffer;
 
     }
 }
@@ -746,43 +736,110 @@ PMDField::SetFieldBoundary(char * name,
                            hid_t attrSpace)
 {
     herr_t     err;
+    int        iLabel;
+    int        i,j;
 
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        /*hsize_t startpoint = 0;
-        hsize_t numpoints = npoints;
-        hsize_t * buf = new hsize_t[npoints];
+        //int rank = H5Sget_simple_extent_ndims(attrSpace);
+        //err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-        H5Sget_select_elem_pointlist(attrSpace, startpoint, numpoints, buf);*/
+        size_t size = H5Tget_size (attrType);
 
-        //cerr << " Number of elements: " << npoints << endl;
-        /*for (int i=0;i<npoints;i++) {
-            cerr << " Number of points: " << buf[i] << endl;
-        }*/
-        //cerr << H5Sget_select_elem_npoints(attrSpace) << endl;
+        /*cerr << " npoints: " << npoints
+             << " rank: " << rank
+             << " sdim: " << sdim[0] << " " << sdim[1]
+             << " size: " << size
+             << endl;*/
 
-        /*char **   buffer = new char*[npoints];
-        for (int i=0;i<npoints;i++) {
-            buffer[i] = new char[10];
-        }*/
-
-        char * buffer = new char [256];
+        // Creation of the buffer
+        char * buffer = new char[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
-        this->fieldBoundary = buffer;
+        for (iLabel = 0; iLabel < npoints ; iLabel++)
+        {
+            for (i = 0; i < size ; i++)
+            {
+                this->fieldBoundary[iLabel] += buffer[i + iLabel*size];
+            }
+        }
+
+        delete [] buffer;
 
     }
 }
 
 // ***************************************************************************
-// Method: PMDField::SetFieldBoundary
+// Method: PMDField::SetFieldBoundaryParameters
 //
 // Purpose:
-//      This method reads the field boundaries
+//      This method reads the field boundaries parameters attribute
+//
+// Arguments:
+//      name : name of the attribute
+//      attrId : attribute Id for hdf5
+//      attribute type : hdf5 attribute type
+//      attribute space : hdf5 attribute space
+//
+// Programmer: Mathieu Lobet
+// Creation:   Fri Oct 14 2016
+//
+// Modifications:
+//
+// ***************************************************************************
+void
+PMDField::SetFieldBoundaryParameters(char * name,
+                           hid_t attrId,
+                           hid_t attrType,
+                           hid_t attrSpace)
+{
+    herr_t     err;
+    int        iLabel;
+    int        i,j;
+
+    if (H5T_STRING == H5Tget_class(attrType)) {
+
+        // Number of elements
+        int npoints = H5Sget_simple_extent_npoints(attrSpace);
+
+        //int rank = H5Sget_simple_extent_ndims(attrSpace);
+        //err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
+
+        size_t size = H5Tget_size (attrType);
+
+        /*cerr << " npoints: " << npoints
+             << " rank: " << rank
+             << " sdim: " << sdim[0] << " " << sdim[1]
+             << " size: " << size
+             << endl;*/
+
+        char * buffer = new char[size*npoints];
+
+        err = H5Aread(attrId, attrType, buffer);
+
+        for (iLabel = 0; iLabel < npoints ; iLabel++)
+        {
+            for (i = 0; i < size ; i++)
+            {
+                this->fieldBoundaryParameters[iLabel] += buffer[i + iLabel*size];
+            }
+        }
+
+        delete [] buffer;
+
+    }
+}
+
+
+// ***************************************************************************
+// Method: PMDField::SetDataOrder
+//
+// Purpose:
+//      This method reads the data order
 //
 // Arguments:
 //      name : name of the attribute
