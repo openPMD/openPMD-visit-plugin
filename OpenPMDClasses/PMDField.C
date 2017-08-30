@@ -162,7 +162,6 @@ void PMDField::ScanAttributes(hid_t objectId)
         {
             SetGridPosition(name, attrId, attrType, attrSpace);
         }
-        // Reading of the labels has to be done correctly
         else if (strcmp(name,"axisLabels")==0)
         {
             SetAxisLabels(name, attrId, attrType, attrSpace);
@@ -737,48 +736,39 @@ PMDField::SetFieldBoundary(char * name,
                            hid_t attrSpace)
 {
     herr_t     err;
-    hsize_t sdim[64];
-    size_t size;
+    int        iLabel;
+    int        i,j;
 
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        /*hsize_t startpoint = 0;
-        hsize_t numpoints = npoints;
-        hsize_t * buf = new hsize_t[npoints];
+        //int rank = H5Sget_simple_extent_ndims(attrSpace);
+        //err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-        H5Sget_select_elem_pointlist(attrSpace, startpoint, numpoints, buf);*/
+        size_t size = H5Tget_size (attrType);
 
-        //cerr << " Number of elements: " << npoints << endl;
-        /*for (int i=0;i<npoints;i++) {
-            cerr << " Number of points: " << buf[i] << endl;
-        }*/
-        //cerr << H5Sget_select_elem_npoints(attrSpace) << endl;
-
-        /*char **   buffer = new char*[npoints];
-        for (int i=0;i<npoints;i++) {
-            buffer[i] = new char[10];
-        }*/
-
-        int rank = H5Sget_simple_extent_ndims(attrSpace);
-
-        err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
-
-        size = H5Tget_size (attrType);
-
-        cerr << " npoints: " << npoints
+        /*cerr << " npoints: " << npoints
              << " rank: " << rank
              << " sdim: " << sdim[0] << " " << sdim[1]
              << " size: " << size
-             << endl;
+             << endl;*/
 
-        char * buffer = new char [256];
+        // Creation of the buffer
+        char * buffer = new char[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
-        this->fieldBoundary = buffer;
+        for (iLabel = 0; iLabel < npoints ; iLabel++)
+        {
+            for (i = 0; i < size ; i++)
+            {
+                this->fieldBoundary[iLabel] += buffer[i + iLabel*size];
+            }
+        }
+
+        delete [] buffer;
 
     }
 }
@@ -808,48 +798,38 @@ PMDField::SetFieldBoundaryParameters(char * name,
                            hid_t attrSpace)
 {
     herr_t     err;
-    hsize_t sdim[64];
-    size_t size;
+    int        iLabel;
+    int        i,j;
 
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        /*hsize_t startpoint = 0;
-        hsize_t numpoints = npoints;
-        hsize_t * buf = new hsize_t[npoints];
+        //int rank = H5Sget_simple_extent_ndims(attrSpace);
+        //err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
 
-        H5Sget_select_elem_pointlist(attrSpace, startpoint, numpoints, buf);*/
+        size_t size = H5Tget_size (attrType);
 
-        //cerr << " Number of elements: " << npoints << endl;
-        /*for (int i=0;i<npoints;i++) {
-            cerr << " Number of points: " << buf[i] << endl;
-        }*/
-        //cerr << H5Sget_select_elem_npoints(attrSpace) << endl;
-
-        /*char **   buffer = new char*[npoints];
-        for (int i=0;i<npoints;i++) {
-            buffer[i] = new char[10];
-        }*/
-
-        int rank = H5Sget_simple_extent_ndims(attrSpace);
-
-        err = H5Sget_simple_extent_dims(attrSpace, sdim, NULL);
-
-        size = H5Tget_size (attrType);
-
-        cerr << " npoints: " << npoints
+        /*cerr << " npoints: " << npoints
              << " rank: " << rank
              << " sdim: " << sdim[0] << " " << sdim[1]
              << " size: " << size
-             << endl;
+             << endl;*/
 
-        char * buffer = new char [256];
+        char * buffer = new char[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
-        this->fieldBoundaryParameters = buffer;
+        for (iLabel = 0; iLabel < npoints ; iLabel++)
+        {
+            for (i = 0; i < size ; i++)
+            {
+                this->fieldBoundaryParameters[iLabel] += buffer[i + iLabel*size];
+            }
+        }
+
+        delete [] buffer;
 
     }
 }
