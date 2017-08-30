@@ -340,9 +340,19 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         }
 
         // Labels
-        //mmd->xLabel = field->axisLabels[0];
-        //mmd->yLabel = field->axisLabels[1];
-        //mmd->zLabel = field->axisLabels[2];
+
+        if (field->dataOrder == "C")
+        {
+            mmd->xLabel = field->axisLabels[2];
+            mmd->yLabel = field->axisLabels[1];
+            mmd->zLabel = field->axisLabels[0];
+        }
+        else if (field->dataOrder == "Fortran")
+        {
+            mmd->xLabel = field->axisLabels[0];
+            mmd->yLabel = field->axisLabels[1];
+            mmd->zLabel = field->axisLabels[2];
+        }
 
         // Number of blocks
         mmd->numBlocks = this->numTasks;

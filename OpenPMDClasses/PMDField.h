@@ -155,6 +155,8 @@ class PMDField
         string    unitsLabel;
         /// Field boundary conditions
         string    fieldBoundary;
+        /// Field boundary conditions
+        string    fieldBoundaryParameters;
         /// Data order (C or Fortran)
         string    dataOrder;
         /// Data size in number of bytes (4,8)
@@ -210,6 +212,10 @@ class PMDField
                                  hid_t attr_id,
                                  hid_t attr_type,
                                  hid_t attr_space);
+        void    SetFieldBoundaryParameters(char * name,
+                                  hid_t attr_id,
+                                  hid_t attr_type,
+                                  hid_t attr_space);
         void    SetDataOrder(char * name,
                              hid_t attr_id,
                              hid_t attr_type,
