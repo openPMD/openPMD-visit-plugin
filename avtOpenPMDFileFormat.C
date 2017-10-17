@@ -299,8 +299,8 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
 #endif
 
     int i;
-    char buffer[128];
-    char bufferMeshName[128];
+    string buffer;
+    string bufferMeshName;
 
     // ________________________________________________________
     // FIELDS
@@ -319,10 +319,10 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         // Each field has its own mesh
         avtMeshMetaData *mmd = new avtMeshMetaData;
         // Create the mesh name
-        strcpy(buffer,"Fields/");
-        strcat(buffer,field->name);
-        strcat(buffer,"_mesh");
-        mmd->name = buffer;
+        buffer = "Fields/";
+        buffer += field->name;
+        buffer += "_mesh";
+        mmd->name = buffer.c_str();
         // Spatial dimension
         mmd->spatialDimension = field->ndims;
         // Topological Dimension
@@ -362,14 +362,14 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         // Then we create a scalar for the current field
         avtScalarMetaData *smd = new avtScalarMetaData;
         // Create the variable name
-        strcpy(buffer,"Fields/");
-        strcat(buffer,field->name);
-        smd->name = buffer;
+        buffer = "Fields/";
+        buffer += field->name;
+        smd->name = buffer.c_str();
         // And select the right mesh
-        strcpy(buffer,"Fields/");
-        strcat(buffer,field->name);
-        strcat(buffer,"_mesh");
-        smd->meshName = buffer;
+        buffer = "Fields/";
+        buffer += field->name;
+        buffer += "_mesh";
+        smd->meshName = buffer.c_str();
         // Node or cell centered
         smd->centering = AVT_NODECENT;
         // Units
@@ -408,16 +408,16 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // that will be computed from r and theta
             avtScalarMetaData *smdEx = new avtScalarMetaData;
             // Create the variable name
-            strcpy(buffer,"Fields/");
-            strcat(buffer,fieldGroup->name);
-            strcat(buffer,"/x");
-            smdEx->name = buffer;
+            buffer = "Fields/";
+            buffer += fieldGroup->name;
+            buffer += "/x";
+            smdEx->name = buffer.c_str();
             // And select the right mesh
             // We use the same mesh as for the r component
-            strcpy(buffer,"Fields/");
-            strcat(buffer,fieldGroup->name);
-            strcat(buffer,"/r_mesh");
-            smdEx->meshName = buffer;
+            buffer = "Fields/";
+            buffer += fieldGroup->name;
+            buffer += "/r_mesh";
+            smdEx->meshName = buffer.c_str();
             // Node or cell centered
             smdEx->centering = AVT_NODECENT;
             // Units
@@ -432,16 +432,16 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // that will be computed from r and theta
             avtScalarMetaData *smdEy = new avtScalarMetaData;
             // Create the variable name
-            strcpy(buffer,"Fields/");
-            strcat(buffer,fieldGroup->name);
-            strcat(buffer,"/y");
-            smdEy->name = buffer;
+            buffer = "Fields/";
+            buffer += fieldGroup->name;
+            buffer += "/y";
+            smdEy->name = buffer.c_str();
             // And select the right mesh
             // We use the same mesh as for the r component
-            strcpy(buffer,"Fields/");
-            strcat(buffer,fieldGroup->name);
-            strcat(buffer,"/r_mesh");
-            smdEy->meshName = buffer;
+            buffer = "Fields/";
+            buffer += fieldGroup->name;
+            buffer += "/r_mesh";
+            smdEy->meshName = buffer.c_str();
             // Node or cell centered
             smdEy->centering = AVT_NODECENT;
             // Units
@@ -472,10 +472,10 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         // Add a point mesh to the metadata for the particles
         avtMeshMetaData *mmd = new avtMeshMetaData;
         // Mesh name
-        strcpy(bufferMeshName,"Particles/");
-        strcat(bufferMeshName,particle->name);
-        strcat(bufferMeshName,"/position_mesh");
-        mmd->name = bufferMeshName;
+        bufferMeshName = "Particles/";
+        bufferMeshName += particle->name;
+        bufferMeshName += "/position_mesh";
+        mmd->name = bufferMeshName.c_str();
         // Spatial and topological dimension
         mmd->spatialDimension = 3;
         mmd->topologicalDimension = 0;
@@ -492,12 +492,12 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // Then we create a scalar for the current field
             avtScalarMetaData *smd = new avtScalarMetaData;
             // Create the scalar name
-            strcpy(buffer,"Particles/");
-            strcat(buffer,particle->scalarDataSets[i].name);
-            smd->name = buffer;
+            buffer = "Particles/";
+            buffer += particle->scalarDataSets[i].name;
+            smd->name = buffer.c_str();
 
             // And select the right mesh
-            smd->meshName = bufferMeshName;
+            smd->meshName = bufferMeshName.c_str();
             // Node or cell centered
             smd->centering = AVT_NODECENT;
 
@@ -514,11 +514,11 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
         {
             avtVectorMetaData *vmd = new avtVectorMetaData;
             // Create the scalar name
-            strcpy(buffer,"Particles/");
-            strcat(buffer,particle->vectorDataSets[i].name);
-            vmd->name = buffer;
+            buffer = "Particles/";
+            buffer += particle->vectorDataSets[i].name;
+            vmd->name = buffer.c_str();
             // And select the right mesh
-            vmd->meshName = bufferMeshName;
+            vmd->meshName = bufferMeshName.c_str();
             // Node or cell centered
             vmd->centering = AVT_ZONECENT;
             // Units
@@ -534,9 +534,9 @@ avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
             // Particle Expressions
             Expression *e1 = new Expression;
             // Create the name
-            strcpy(buffer,"Particles/");
-            strcat(buffer,particle->name);
-            strcat(buffer,"/gamma");
+            buffer = "Particles/";
+            buffer += particle->name;
+            buffer += "/gamma";
             e1->SetName(buffer);
 
             // Creation of the expression definition
@@ -751,7 +751,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     int             nnodes;
     int             nmodes;
     int             dataSize;
-    char            bufferMeshName[128];
+    string          bufferMeshName;
     char            bufferDataSetName[128];
     float           factor;
     float           r,theta,dtheta;
@@ -772,12 +772,12 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
     {
 
         // Current field meshname
-        strcpy(bufferMeshName,"Fields/");
-        strcat(bufferMeshName,field->name);
-        strcat(bufferMeshName,"_mesh");
+        bufferMeshName = "Fields/";
+        bufferMeshName += field->name;
+        bufferMeshName += "_mesh";
 
         // We have found the corresponding mesh in the vector of fields
-        if (strcmp(meshname, bufferMeshName) == 0)
+        if (strcmp(meshname, bufferMeshName.c_str()) == 0)
         {
 
             if (field->geometry == "cartesian")
@@ -1141,11 +1141,11 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
          particle != particles->end(); ++particle)
     {
         // Mesh name
-        strcpy(bufferMeshName,"Particles/");
-        strcat(bufferMeshName,particle->name);
-        strcat(bufferMeshName,"/position_mesh");
+        bufferMeshName = "Particles/";
+        bufferMeshName += particle->name;
+        bufferMeshName += "/position_mesh";
 
-        if (strcmp(meshname, bufferMeshName) == 0)
+        if (strcmp(meshname, bufferMeshName.c_str()) == 0)
         {
 
             // Read the dimension ndims
@@ -1721,7 +1721,7 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
     int     numValues;
     int     err;
     int     dims[3];
-    char    buffer[128];
+    string  buffer;
     char    xCompBuffer[128];
     char    yCompBuffer[128];
     hid_t   datasetId;
@@ -1745,11 +1745,11 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
          field != fields->end(); ++field)
     {
 
-        strcpy(buffer,"Fields/");
-        strcat(buffer,field->name);
+        buffer = "Fields/";
+        buffer += field->name;
 
         // Determine which scalar dataset to return.
-        if (strcmp(varname, buffer) == 0)
+        if (strcmp(varname, buffer.c_str()) == 0)
         {
 
             if (field->geometry == "cartesian")
@@ -2274,11 +2274,11 @@ avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
         for (i=0;i<particle->scalarDataSets.size();i++)
         {
 
-            strcpy(buffer,"Particles/");
-            strcat(buffer,particle->scalarDataSets[i].name);
+            buffer = "Particles/";
+            buffer += particle->scalarDataSets[i].name;
 
             // Determine which scalar dataset to return.
-            if (strcmp(varname, buffer) == 0)
+            if (strcmp(varname, buffer.c_str()) == 0)
             {
 
                 /* ___ Parallel ___________________________________ */
@@ -2459,7 +2459,7 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
     int     scalarDataSetId;
     int     numValues;
     int     numComponents;
-    char    buffer[128];
+    string  buffer;
     float   factor;
 
     // ________________________________________________________
@@ -2479,11 +2479,11 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
         {
 
             // Current dataset name to be compared with varname
-            strcpy(buffer,"Particles/");
-            strcat(buffer,particle->vectorDataSets[i].name);
+            buffer = "Particles/";
+            buffer += particle->vectorDataSets[i].name;
 
             // If we find the correct dataset of name varname...
-            if (strcmp(varname, buffer) == 0)
+            if (strcmp(varname, buffer.c_str()) == 0)
             {
 
                 // Number of components (2D or 3D)
