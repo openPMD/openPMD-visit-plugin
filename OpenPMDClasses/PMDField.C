@@ -190,10 +190,10 @@ void PMDField::ScanAttributes(hid_t objectId)
         {
             SetUnitDimension(name, attrId, attrType, attrSpace);
         }
-        else if (strcmp(name,"fieldBoundary")==0)
+        /*else if (strcmp(name,"fieldBoundary")==0)
         {
             SetFieldBoundary(name, attrId, attrType, attrSpace);
-        }
+        }*/
         else if (strcmp(name,"fieldBoundaryParameters")==0)
         {
             SetFieldBoundaryParameters(name, attrId, attrType, attrSpace);
