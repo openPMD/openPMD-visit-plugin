@@ -76,7 +76,7 @@
 PMDFile::PMDFile()
 {
 	fileId=-1;
-	strcpy(this->version,"");
+	this->version = "";
 	strcpy(this->meshesPath,"");
 }
 
@@ -140,6 +140,7 @@ void PMDFile::OpenFile(char * PMDFilePath)
 // Creation:   Tue Oct 25 2016
 //
 // Modifications:
+// Nov. 9 2017 - M. Lobet - add buffer + `\0` for a correct reading
 //
 // ***************************************************************************
 void PMDFile::ScanFileAttributes()
@@ -156,6 +157,8 @@ void PMDFile::ScanFileAttributes()
 	hid_t			attrId;
 	hid_t 			atype;
 	hid_t 			aspace;
+	size_t 			size;
+	int				nPoints;
 
 	// OpenPMD files always contain a data group at the root
 	groupId = H5Gopen(fileId, "/",H5P_DEFAULT);
@@ -171,25 +174,52 @@ void PMDFile::ScanFileAttributes()
 
 		// Get the name of the attribute
 		H5Aget_name(attrId, 64, attrName);
-		/* the dimensions of the attribute data */
+		// the dimensions of the attribute data
 		aspace = H5Aget_space(attrId);
 		// The type of the attribute
 		atype  = H5Aget_type(attrId);
+		// Number of elements in the attribute
+		nPoints = H5Sget_simple_extent_npoints(aspace);
+		// Size of an element (number of char for instance)
+		size = H5Tget_size (atype);
 
 		if (strcmp(attrName,"openPMD")==0)
 		{
+
+			char buffer[size+1];
+
 			// Read attribute
-			H5Aread (attrId, atype, this->version);
+			H5Aread (attrId, atype, buffer);
+			buffer[size] = '\0';
+
+			this->version = buffer;
+
 		}
 		else if (strcmp(attrName,"meshesPath")==0)
 		{
+
+			// Buffer of char
+			char buffer[size+1];
+
 			// Read attribute
-			H5Aread (attrId, atype, this->meshesPath);
+			H5Aread (attrId, atype, buffer);
+			buffer[size] = '\0';
+
+			strncpy(this->meshesPath,buffer,sizeof(buffer));
+
 		}
 		else if (strcmp(attrName,"particlesPath")==0)
 		{
+
+			// Buffer of char
+			char buffer[size+1];
+
 			// Read attribute
-			H5Aread (attrId, atype, this->particlesPath);
+			H5Aread (attrId, atype, buffer);
+			buffer[size] = '\0';
+
+			strncpy(this->particlesPath,buffer,sizeof(buffer));
+
 		}
     }
 
@@ -458,10 +488,12 @@ PMDFile::ReadScalarDataSet(void * array,
                            char * path)
 {
 
+#ifdef VERBOSE
     cerr << "PMDFile::ReadScalarDataSet("
          << "numValues=" << numValues << ","
          << "path=" << path << ")"
          << endl;
+#endif
 
 	int 	ndims;
     int     dataSize;

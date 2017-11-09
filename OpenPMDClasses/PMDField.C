@@ -190,14 +190,14 @@ void PMDField::ScanAttributes(hid_t objectId)
         {
             SetUnitDimension(name, attrId, attrType, attrSpace);
         }
-        else if (strcmp(name,"fieldBoundary")==0)
+        /*else if (strcmp(name,"fieldBoundary")==0)
         {
             SetFieldBoundary(name, attrId, attrType, attrSpace);
-        }
-        else if (strcmp(name,"fieldBoundaryParameters")==0)
+        }*/
+        /*else if (strcmp(name,"fieldBoundaryParameters")==0)
         {
             SetFieldBoundaryParameters(name, attrId, attrType, attrSpace);
-        }
+        }*/
         else if (strcmp(name,"dataOrder")==0)
         {
             SetDataOrder(name, attrId, attrType, attrSpace);
@@ -302,7 +302,7 @@ PMDField::SetGridSpacing(char * name,
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double tmpArray[npoints];
 
         err = H5Aread(attrId, attrType, tmpArray);
 
@@ -318,8 +318,6 @@ PMDField::SetGridSpacing(char * name,
             this->gridSpacing[1] = tmpArray[1];
             this->gridSpacing[2] = 0;
         }
-
-        free(tmpArray);
     }
 }
 
@@ -355,7 +353,7 @@ PMDField::SetGridGlobalOffset(char * name,
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double tmpArray[npoints];
 
         err = H5Aread(attrId, attrType, tmpArray);
 
@@ -371,8 +369,6 @@ PMDField::SetGridGlobalOffset(char * name,
             this->gridGlobalOffset[1] = tmpArray[1];
             this->gridGlobalOffset[2] = 0;
         }
-
-        free(tmpArray);
     }
 }
 
@@ -406,7 +402,7 @@ PMDField::SetGridPosition(char * name,
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double tmpArray[npoints];
 
         err = H5Aread(attrId, attrType, tmpArray);
 
@@ -422,7 +418,6 @@ PMDField::SetGridPosition(char * name,
             gridPosition[1] = tmpArray[1];
             gridPosition[2] = 0;
         }
-        free(tmpArray);
     }
 }
 
@@ -521,15 +516,19 @@ PMDField::SetGeometry(char * name,
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
-        char tmpchar[64] = {'\0'};
+        size_t size = H5Tget_size (attrType);
 
-        err = H5Aread(attrId, attrType, &tmpchar);
+        // buffer
+        char buffer[size+1];
 
-        if (strstr(tmpchar,"cartesian")>0)
+        err = H5Aread(attrId, attrType, buffer);
+        buffer[size] = '\0';
+
+        if (strstr(buffer,"cartesian")>0)
         {
             geometry = "cartesian";
         }
-        else if (strstr(tmpchar,"thetaMode")>0)
+        else if (strstr(buffer,"thetaMode")>0)
         {
             geometry = "thetaMode";
         }
@@ -582,26 +581,24 @@ PMDField::SetAxisLabels(char * name,
         size_t size = H5Tget_size (attrType);
 
         /*cerr << " npoints: " << npoints
-             << " rank: " << rank
-             << " sdim: " << sdim[0] << " " << sdim[1]
+             //<< " rank: " << rank
+             //<< " sdim: " << sdim[0] << " " << sdim[1]
              << " size: " << size
              << endl;*/
 
-        char * buffer = new char[size*npoints];
+        char buffer[size*npoints];
 
         // We put all the labels in buffer
         err = H5Aread(attrId, attrType, buffer);
 
         for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
+            this->axisLabels[iLabel] = "";
             for (i = 0; i < size ; i++)
             {
                 this->axisLabels[iLabel] += buffer[i + iLabel*size];
             }
         }
-
-        delete [] buffer;
-
     }
 }
 
@@ -631,32 +628,36 @@ void PMDField::SetUnitDimension(char * name,
 {
     herr_t     err;
     int     i;
-    char     buffer[64];
-    char    units[8];
+    string  units;
     int     firstunits = 0;
 
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
+        // Number of units here
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        // Unit powers
+        double powers[npoints];
 
-        err = H5Aread(attrId, attrType, tmpArray);
+        err = H5Aread(attrId, attrType, powers);
 
+        this->unitsLabel = "";
+
+        // Go through all units
         for(i=0;i<7;i++)
         {
 
-            if (int(tmpArray[i])!=0)
+            if (int(powers[i])!=0)
             {
 
                 if (firstunits==0)
                 {
-                    strcpy(units,"");
+                    units = "";
                     firstunits=1;
                 }
                 else
                 {
-                    strcpy(units,".");
+                    units = ".";
                 }
 
                 // List of SI units
@@ -664,50 +665,48 @@ void PMDField::SetUnitDimension(char * name,
                 {
                 // Distance, meter
                 case 0:
-                    strcat(units,"m");
+                    units += "m";
                     break;
-                // ass, kg
+                // Mass, kg
                 case 1:
-                    strcat(units,"kg");
+                    units += "kg";
                     break;
-                // time, second
+                // Time, second
                 case 2:
-                    strcat(units,"s");
+                    units += "s";
                     break;
                 // Electric Current, Ampere
                 case 3:
-                    strcat(units,"A");
+                    units += "A";
                     break;
                 // Temperature, Kelvin
                 case 4:
-                    strcat(units,"K");
+                    units += "K";
                     break;
                 //amount of substance, mole
                 case 5:
-                    strcat(units,"mol");
+                    units += "mol";
                     break;
                 //luminous intensity, candela
                 case 6:
-                    strcat(units,"candela");
+                    units += "candela";
                     break;
                 }
                 //amount of substance, mole
                 //luminous intensity, candela
 
-                if (int(tmpArray[i]) == 1)
+                if (int(powers[i]) != 1)
                 {
-                    sprintf(buffer, units, int(tmpArray[i]));
-                }
-                else
-                {
-                    strcat(units,"^%d");
-                    sprintf(buffer, units, int(tmpArray[i]));
+                    char power[8];
+                    sprintf(power,"%d",int(powers[i]));
+                    units += "^";
+                    units += power;
                 }
                 // Creation of the unitsLabel
-                unitsLabel += buffer;
+                this->unitsLabel += units;
             }
         }
-        free(tmpArray);
+        //cerr << this->unitsLabel << endl;
     }
 }
 
@@ -756,20 +755,19 @@ PMDField::SetFieldBoundary(char * name,
              << endl;*/
 
         // Creation of the buffer
-        char * buffer = new char[size*npoints];
+        char buffer[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
         for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
+            this->fieldBoundary[iLabel] = "";
             for (i = 0; i < size ; i++)
             {
                 this->fieldBoundary[iLabel] += buffer[i + iLabel*size];
             }
+            //cerr << this->fieldBoundary[iLabel] << endl;
         }
-
-        delete [] buffer;
-
     }
 }
 
@@ -817,20 +815,18 @@ PMDField::SetFieldBoundaryParameters(char * name,
              << " size: " << size
              << endl;*/
 
-        char * buffer = new char[size*npoints];
+        char buffer[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
         for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
+            this->fieldBoundaryParameters[iLabel] = "";
             for (i = 0; i < size ; i++)
             {
                 this->fieldBoundaryParameters[iLabel] += buffer[i + iLabel*size];
             }
         }
-
-        delete [] buffer;
-
     }
 }
 
@@ -864,12 +860,13 @@ PMDField::SetDataOrder(char * name,
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
+        // Size of an elements
+        size_t size = H5Tget_size (attrType);
 
-        //cout << " Number of elements: " << npoints << endl;
-
-        char * buffer = new char[7];
+        char buffer[size+1];
 
         err = H5Aread(attrId, attrType, buffer);
+        buffer[size] = '\0';
 
         this->dataOrder = buffer;
 
@@ -905,12 +902,15 @@ PMDField::SetGeometryParameters(char * name,
 
       // Number of elements
       int npoints = H5Sget_simple_extent_npoints(attrSpace);
+      // Size of an element
+      size_t size = H5Tget_size (attrType);
 
       // Buffer to get the attribute
-      char buffer[64];
+      char buffer[size+1];
 
       // Reading of the attribute
       err = H5Aread(attrId, attrType, buffer);
+      buffer[size] = '\0';
 
       // Get the sign of imag
       if (strcspn(buffer,"-")!=strlen(buffer))
