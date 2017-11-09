@@ -140,6 +140,7 @@ void PMDFile::OpenFile(char * PMDFilePath)
 // Creation:   Tue Oct 25 2016
 //
 // Modifications:
+// Nov. 9 2017 - M. Lobet - add buffer + `\0` for a correct reading
 //
 // ***************************************************************************
 void PMDFile::ScanFileAttributes()

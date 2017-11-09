@@ -353,7 +353,7 @@ PMDField::SetGridGlobalOffset(char * name,
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double tmpArray[npoints];
 
         err = H5Aread(attrId, attrType, tmpArray);
 
@@ -369,8 +369,6 @@ PMDField::SetGridGlobalOffset(char * name,
             this->gridGlobalOffset[1] = tmpArray[1];
             this->gridGlobalOffset[2] = 0;
         }
-
-        free(tmpArray);
     }
 }
 
