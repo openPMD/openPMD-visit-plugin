@@ -154,7 +154,7 @@ class PMDField
         /// Units
         string    unitsLabel;
         /// Field boundary conditions
-        string    fieldBoundary;
+        string    fieldBoundary[6];
         /// Field boundary conditions
         string    fieldBoundaryParameters;
         /// Data order (C or Fortran)

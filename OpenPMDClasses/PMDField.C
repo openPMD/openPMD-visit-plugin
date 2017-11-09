@@ -755,20 +755,19 @@ PMDField::SetFieldBoundary(char * name,
              << endl;*/
 
         // Creation of the buffer
-        char * buffer = new char[size*npoints];
+        char buffer[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
         for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
+            this->fieldBoundary[iLabel] = "";
             for (i = 0; i < size ; i++)
             {
                 this->fieldBoundary[iLabel] += buffer[i + iLabel*size];
             }
+            //cerr << this->fieldBoundary[iLabel] << endl;
         }
-
-        delete [] buffer;
-
     }
 }
 
