@@ -860,12 +860,13 @@ PMDField::SetDataOrder(char * name,
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
+        // Size of elements
+        size_t size = H5Tget_size (attrType);
 
-        //cout << " Number of elements: " << npoints << endl;
-
-        char * buffer = new char[7];
+        char buffer[size+1];
 
         err = H5Aread(attrId, attrType, buffer);
+        buffer[size] = '\0'
 
         this->dataOrder = buffer;
 
