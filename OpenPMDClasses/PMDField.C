@@ -302,7 +302,7 @@ PMDField::SetGridSpacing(char * name,
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double tmpArray[npoints];
 
         err = H5Aread(attrId, attrType, tmpArray);
 
@@ -318,8 +318,6 @@ PMDField::SetGridSpacing(char * name,
             this->gridSpacing[1] = tmpArray[1];
             this->gridSpacing[2] = 0;
         }
-
-        free(tmpArray);
     }
 }
 
