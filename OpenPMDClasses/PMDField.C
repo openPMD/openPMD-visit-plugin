@@ -581,26 +581,24 @@ PMDField::SetAxisLabels(char * name,
         size_t size = H5Tget_size (attrType);
 
         /*cerr << " npoints: " << npoints
-             << " rank: " << rank
-             << " sdim: " << sdim[0] << " " << sdim[1]
+             //<< " rank: " << rank
+             //<< " sdim: " << sdim[0] << " " << sdim[1]
              << " size: " << size
              << endl;*/
 
-        char * buffer = new char[size*npoints];
+        char buffer[size*npoints];
 
         // We put all the labels in buffer
         err = H5Aread(attrId, attrType, buffer);
 
         for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
+            this->axisLabels[iLabel] = "";
             for (i = 0; i < size ; i++)
             {
                 this->axisLabels[iLabel] += buffer[i + iLabel*size];
             }
         }
-
-        delete [] buffer;
-
     }
 }
 
