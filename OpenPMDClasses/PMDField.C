@@ -516,15 +516,19 @@ PMDField::SetGeometry(char * name,
     if (H5T_STRING == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
-        char tmpchar[64] = {'\0'};
+        size_t size = H5Tget_size (attrType);
 
-        err = H5Aread(attrId, attrType, &tmpchar);
+        // buffer
+        char buffer[size+1];
 
-        if (strstr(tmpchar,"cartesian")>0)
+        err = H5Aread(attrId, attrType, buffer);
+        buffer[size] = '\0';
+
+        if (strstr(buffer,"cartesian")>0)
         {
             geometry = "cartesian";
         }
-        else if (strstr(tmpchar,"thetaMode")>0)
+        else if (strstr(buffer,"thetaMode")>0)
         {
             geometry = "thetaMode";
         }
