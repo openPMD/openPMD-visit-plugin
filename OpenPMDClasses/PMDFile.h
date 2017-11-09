@@ -88,7 +88,7 @@ class PMDFile
 		/// File path
 		char                    filePath[128];
 		/// OpenPMD version
-		char                    version[8];
+		string                  version;
 		/// Meshes path
 		char 					meshesPath[64];
 		// Particles path
