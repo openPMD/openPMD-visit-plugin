@@ -402,7 +402,7 @@ PMDField::SetGridPosition(char * name,
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double tmpArray[npoints];
 
         err = H5Aread(attrId, attrType, tmpArray);
 
@@ -418,7 +418,6 @@ PMDField::SetGridPosition(char * name,
             gridPosition[1] = tmpArray[1];
             gridPosition[2] = 0;
         }
-        free(tmpArray);
     }
 }
 
