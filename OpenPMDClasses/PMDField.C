@@ -194,10 +194,10 @@ void PMDField::ScanAttributes(hid_t objectId)
         {
             SetFieldBoundary(name, attrId, attrType, attrSpace);
         }*/
-        else if (strcmp(name,"fieldBoundaryParameters")==0)
+        /*else if (strcmp(name,"fieldBoundaryParameters")==0)
         {
             SetFieldBoundaryParameters(name, attrId, attrType, attrSpace);
-        }
+        }*/
         else if (strcmp(name,"dataOrder")==0)
         {
             SetDataOrder(name, attrId, attrType, attrSpace);
@@ -815,20 +815,18 @@ PMDField::SetFieldBoundaryParameters(char * name,
              << " size: " << size
              << endl;*/
 
-        char * buffer = new char[size*npoints];
+        char buffer[size*npoints];
 
         err = H5Aread(attrId, attrType, buffer);
 
         for (iLabel = 0; iLabel < npoints ; iLabel++)
         {
+            this->fieldBoundaryParameters[iLabel] = "";
             for (i = 0; i < size ; i++)
             {
                 this->fieldBoundaryParameters[iLabel] += buffer[i + iLabel*size];
             }
         }
-
-        delete [] buffer;
-
     }
 }
 
