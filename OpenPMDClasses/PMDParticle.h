@@ -102,7 +102,7 @@ class PMDParticle
             /// Scalar data path in the OpenPMD file
             char    path[128];
             /// Units computed from the OpenPMD file
-            char    unitLabel[64];
+            string    unitLabel;
             /// Factor for SI units
             double  unitSI;
             /// Weighting Power
@@ -127,7 +127,7 @@ class PMDParticle
             /// Vector data path in the OpenPMD file
             char    path[128];
             /// Units computed from the OpenPMD file
-            char    unitLabel[64];
+            string    unitLabel;
             /// Corresponding scalarDataSet objects in scalarDataSets
             /// for each vector component
             int     dataSetId[3];
@@ -191,7 +191,7 @@ class PMDParticle
                                         scalarDataSet * scalar);
         void        SetVectorAttributes(hid_t objectId,
                                         vectorDataSet * vectorObject);
-        char*       SetUnitDimension(char* name, hid_t attrId,
+        string      SetUnitDimension(char* name, hid_t attrId,
                                      hid_t attrType,
                                      hid_t attrSpace);
         double      SetUnitSI(char * name, hid_t attrId,

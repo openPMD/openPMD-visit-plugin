@@ -898,9 +898,8 @@ PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
         // Read useful attributes
         if (strcmp(attrName,"unitDimension")==0)
         {
-            strcpy(scalarObject->unitLabel,"");
-            strcat(scalarObject->unitLabel,
-            this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
+            scalarObject->unitLabel =
+            this->SetUnitDimension(attrName, attrId, attrType, attrSpace);
         }
         else if (strcmp(attrName,"unitSI")==0)
         {
@@ -957,9 +956,8 @@ PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 
             if (strcmp(attrName,"unitDimension")==0)
             {
-                  strcpy(vectorObject->unitLabel,"");
-                  strcat(vectorObject->unitLabel,
-                  this->SetUnitDimension(attrName, attrId, attrType, attrSpace));
+                  vectorObject->unitLabel =
+                  this->SetUnitDimension(attrName, attrId, attrType, attrSpace);
             }
 
     }
@@ -1012,97 +1010,91 @@ PMDParticle::SetUnitSI(char * name,
 // Modifications:
 //
 // ***************************************************************************
-char*
+string
 PMDParticle::SetUnitDimension(char * name,
                                             hid_t attrId,
                                             hid_t attrType,
                                             hid_t attrSpace)
 {
-      herr_t       err;
-      int       i;
-      char      buffer[8];
-      char      units[8];
-      char*       unitLabel;
-      int       firstunits = 0;
+    herr_t    err;
+    int       i;
+    string    units;
+    string    unitLabel;
+    int       firstunits = 0;
 
-      unitLabel = new char[64];
-      strcpy(unitLabel,"");
+    unitLabel = "";
 
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        double powers[npoints];
 
-        err = H5Aread(attrId, attrType, tmpArray);
+        err = H5Aread(attrId, attrType, powers);
 
         for(i=0;i<7;i++)
         {
 
-              if (int(tmpArray[i])!=0)
-              {
+            if (int(powers[i])!=0)
+            {
 
-                    // If this is the first units, then we don't put a dot,
-                    // else there is a dot between two units
-                    if (firstunits==0)
-                    {
-                          strcpy(units,"");
-                          firstunits=1;
-                    }
-                    else
-                    {
-                          strcpy(units,".");
-                    }
+                // If this is the first units, then we don't put a dot,
+                // else there is a dot between two units
+                if (firstunits==0)
+                {
+                    units = "";
+                    firstunits=1;
+                }
+                else
+                {
+                    units = ".";
+                }
 
-                    // List of SI units
-                    switch(i)
-                    {
-                    // Distance, meter
-                    case 0:
-                          strcat(units,"m");
-                          break;
-                    // ass, kg
-                    case 1:
-                          strcat(units,"kg");
-                          break;
-                    // time, second
-                    case 2:
-                          strcat(units,"s");
-                          break;
-                    // Electric Current, Ampere
-                  case 3:
-                          strcat(units,"A");
-                          break;
-                    // Temperature, Kelvin
-                  case 4:
-                          strcat(units,"K");
-                          break;
-                        //amount of substance, mole
-                  case 5:
-                          strcat(units,"mol");
-                          break;
-                        //luminous intensity, candela
-                  case 6:
-                          strcat(units,"candela");
-                          break;
-                    }
+                // List of SI units
+                switch(i)
+                {
+                // Distance, meter
+                case 0:
+                    units += "m";
+                    break;
+                // ass, kg
+                case 1:
+                    units += "kg";
+                    break;
+                // time, second
+                case 2:
+                    units += "s";
+                    break;
+                // Electric Current, Ampere
+                case 3:
+                    units += "A";
+                    break;
+                // Temperature, Kelvin
+                case 4:
+                    units += "K";
+                    break;
+                //amount of substance, mole
+                case 5:
+                    units += "mol";
+                    break;
+                //luminous intensity, candela
+                case 6:
+                    units += "candela";
+                    break;
+                }
 
-                        strcpy(buffer,"");
-                    if (int(tmpArray[i]) == 1)
-                    {
-                          strcat(buffer, units);
-                    }
-                    else
-                    {
-                          strcat(units,"^%d");
-                          sprintf(buffer, units, int(tmpArray[i]));
-                    }
-                    strcat(unitLabel, buffer);
-              }
+                if (int(powers[i]) != 1)
+                {
+                    char power[8];
+                    sprintf(power, "%d", int(powers[i]));
+                    units += "^";
+                    units += power;
+                }
+                unitLabel += units;
+            }
         }
-        free(tmpArray);
     }
-
+    //cerr << unitLabel << endl;
     return unitLabel;
 }
 
