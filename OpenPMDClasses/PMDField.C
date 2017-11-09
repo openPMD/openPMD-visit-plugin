@@ -628,32 +628,36 @@ void PMDField::SetUnitDimension(char * name,
 {
     herr_t     err;
     int     i;
-    char     buffer[64];
-    char    units[8];
+    string  units;
     int     firstunits = 0;
 
     if (H5T_FLOAT == H5Tget_class(attrType)) {
 
+        // Number of units here
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
 
-        double * tmpArray = (double *)malloc(sizeof(double)*(int)npoints);
+        // Unit powers
+        double powers[npoints];
 
-        err = H5Aread(attrId, attrType, tmpArray);
+        err = H5Aread(attrId, attrType, powers);
 
+        this->unitsLabel = "";
+
+        // Go through all units
         for(i=0;i<7;i++)
         {
 
-            if (int(tmpArray[i])!=0)
+            if (int(powers[i])!=0)
             {
 
                 if (firstunits==0)
                 {
-                    strcpy(units,"");
+                    units = "";
                     firstunits=1;
                 }
                 else
                 {
-                    strcpy(units,".");
+                    units = ".";
                 }
 
                 // List of SI units
@@ -661,50 +665,48 @@ void PMDField::SetUnitDimension(char * name,
                 {
                 // Distance, meter
                 case 0:
-                    strcat(units,"m");
+                    units += "m";
                     break;
-                // ass, kg
+                // Mass, kg
                 case 1:
-                    strcat(units,"kg");
+                    units += "kg";
                     break;
-                // time, second
+                // Time, second
                 case 2:
-                    strcat(units,"s");
+                    units += "s";
                     break;
                 // Electric Current, Ampere
                 case 3:
-                    strcat(units,"A");
+                    units += "A";
                     break;
                 // Temperature, Kelvin
                 case 4:
-                    strcat(units,"K");
+                    units += "K";
                     break;
                 //amount of substance, mole
                 case 5:
-                    strcat(units,"mol");
+                    units += "mol";
                     break;
                 //luminous intensity, candela
                 case 6:
-                    strcat(units,"candela");
+                    units += "candela";
                     break;
                 }
                 //amount of substance, mole
                 //luminous intensity, candela
 
-                if (int(tmpArray[i]) == 1)
+                if (int(powers[i]) != 1)
                 {
-                    sprintf(buffer, units, int(tmpArray[i]));
-                }
-                else
-                {
-                    strcat(units,"^%d");
-                    sprintf(buffer, units, int(tmpArray[i]));
+                    char power[8];
+                    sprintf(power,"%d",int(powers[i]));
+                    units += "^";
+                    units += power;
                 }
                 // Creation of the unitsLabel
-                unitsLabel += buffer;
+                this->unitsLabel += units;
             }
         }
-        free(tmpArray);
+        //cerr << this->unitsLabel << endl;
     }
 }
 
