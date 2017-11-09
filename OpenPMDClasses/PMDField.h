@@ -156,7 +156,7 @@ class PMDField
         /// Field boundary conditions
         string    fieldBoundary[6];
         /// Field boundary conditions
-        string    fieldBoundaryParameters;
+        string    fieldBoundaryParameters[6];
         /// Data order (C or Fortran)
         string    dataOrder;
         /// Data size in number of bytes (4,8)
