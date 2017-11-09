@@ -860,13 +860,13 @@ PMDField::SetDataOrder(char * name,
 
         // Number of elements
         int npoints = H5Sget_simple_extent_npoints(attrSpace);
-        // Size of elements
+        // Size of an elements
         size_t size = H5Tget_size (attrType);
 
         char buffer[size+1];
 
         err = H5Aread(attrId, attrType, buffer);
-        buffer[size] = '\0'
+        buffer[size] = '\0';
 
         this->dataOrder = buffer;
 
@@ -902,12 +902,15 @@ PMDField::SetGeometryParameters(char * name,
 
       // Number of elements
       int npoints = H5Sget_simple_extent_npoints(attrSpace);
+      // Size of an element
+      size_t size = H5Tget_size (attrType);
 
       // Buffer to get the attribute
-      char buffer[64];
+      char buffer[size+1];
 
       // Reading of the attribute
       err = H5Aread(attrId, attrType, buffer);
+      buffer[size] = '\0';
 
       // Get the sign of imag
       if (strcspn(buffer,"-")!=strlen(buffer))
