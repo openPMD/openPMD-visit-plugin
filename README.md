@@ -241,16 +241,16 @@ cd ../src/databases
 git clone OpenPMD repository
 ```
 
-You can rename the plugin folder like OpenPMD. 
+You can rename the plugin folder like OpenPMD.
 ```
 mv openpmd-visit-plugin OpenPMD
 ```
 
-Check that `/CMakeLists.txt` located in the plugin folder is well configured. 
+Check that `/CMakeLists.txt` located in the plugin folder is well configured.
 For this aim, look at the `CMakeLists.txt` file of the other plugins.
 You can also just replace the file by `CMakeLists/CMakeLists.txt`.
 
-Then, open the file `CMakeLists.txt` located in the `src/databases` directory and add the openPMD plugin 
+Then, open the file `CMakeLists.txt` located in the `src/databases` directory and add the openPMD plugin
 name to the list after `SET(REQUIRED_DATABASE_PLUGINS`.
 
 Prepare the makefile:
@@ -289,15 +289,3 @@ To start Visit, you can use the launcher but we recommend to start Visit by comm
 
 You can specify the number of cores you want to use in parallel with VisIt.
 OpenPMD files are read and treated in parallel if more than one core are used.
-
-## To be implemented/improved
--------------------------
-
-- The plugin does not read all group and dataset attributes. More attribute readers need to be implemented although the necessary ones for visualization are present.
-- The plugin does not take into account dataset of mass or charge (it only works when these are constant).
-- Field axis labels, fieldBoudary conditions are not read properly.
-- For Particles, 2D is partially implemented (depends on the components).
-- Debugging curvilinear meshes for cylindrical geometry.
-- Implementing Fortran order, only C order is taken into account
-- Improving Exception output.
-- Read files in parallel using ADIOS.
