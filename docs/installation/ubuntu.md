@@ -114,7 +114,7 @@ Copy the OpenPMD plugin in the VisIt database:
 
 ```
 cd ../src/databases
-git clone OpenPMD repository
+git clone git@github.com:openPMD/openPMD-viewer.git
 ```
 
 You can rename the plugin folder like OpenPMD.
