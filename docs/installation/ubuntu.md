@@ -1,7 +1,7 @@
 Installation instructions for Ubuntu
 ================================================================================
 
-#### Ubuntu using executables
+## Ubuntu using executables
 
 Download and install the Ubuntu executable of VisIt:
 [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit/executables).
@@ -47,7 +47,7 @@ their corresponding directories. You should be able to find the
 files `libEOpenPMDDatabase_ser.dylib`, `libMOpenPMDDatabase.dylib`,
  `libEOpenPMDDatabase_par.dylib`.
 
-#### Ubuntu using the sources
+## Ubuntu using the sources
 
 In this section, we present how to install OpenPMD with the VisIt sources.
 
