@@ -138,10 +138,12 @@ cd build
 cmake -DVISIT_CONFIG_SITE=../deps/*.cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../install  ../src
 ```
 
-Make VisIt:
+At this step, the cmake file is sometime not recognized like this `*.cmake`. The full name has to be given.
+
+Then, make VisIt:
 
 ```
-make -j 8
+make -j
 ```
 
 Use this command to launch VisIt with Valgrind:
