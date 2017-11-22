@@ -84,7 +84,7 @@ using     std::string;
 avtOpenPMDFileFormat::avtOpenPMDFileFormat(const char *filename)
     : avtMTMDFileFormat(filename)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::avtOpenPMDFileFormat "
          << filename
          << endl;
@@ -106,7 +106,7 @@ avtOpenPMDFileFormat::avtOpenPMDFileFormat(const char *filename)
 // ****************************************************************************
 avtOpenPMDFileFormat::~avtOpenPMDFileFormat()
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::~avtOpenPMDFileFormat" << endl;
 #endif
 }
@@ -124,7 +124,7 @@ avtOpenPMDFileFormat::~avtOpenPMDFileFormat()
 void
 avtOpenPMDFileFormat::Initialize()
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::Initialize" << endl;
 #endif
     if(!this->initialized)
@@ -173,7 +173,7 @@ avtOpenPMDFileFormat::Initialize()
 int
 avtOpenPMDFileFormat::GetNTimesteps(void)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::GetNTimesteps" << endl;
 #endif
 
@@ -232,7 +232,7 @@ avtOpenPMDFileFormat::GetCycles(std::vector<int> &cycles)
 void
 avtOpenPMDFileFormat::GetTimes(std::vector<double> &times)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::GetTimes" << endl;
 #endif
     // Shortcut pointer to the vector iterations
@@ -265,7 +265,7 @@ avtOpenPMDFileFormat::GetTimes(std::vector<double> &times)
 void
 avtOpenPMDFileFormat::FreeUpResources(void)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::FreeUpResources" << endl;
 #endif
 }
@@ -292,7 +292,7 @@ void
 avtOpenPMDFileFormat::PopulateDatabaseMetaData(avtDatabaseMetaData *md,
                                                int timeState)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::PopulateDatabaseMetaData(timeState="
          << timeState << ")"
          << endl;
@@ -735,7 +735,7 @@ vtkDataSet *
 avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::GetMesh(timestate="
          << timestate
          << ",domain=" << domain
@@ -813,7 +813,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
                                                         domain,
                                                         &fieldBlock);
 
-/*#if defined(VERSOSE)&&(VERBOSE==1)
+/*#if defined(VERSOSE)&&(VERBOSE_MODE==1)
                         cerr    << "fieldBlock.minNode[0]: "
                                 << fieldBlock.minNode[0]
                                 << " " << fieldBlock.nbNodes[0]
@@ -1710,7 +1710,7 @@ avtOpenPMDFileFormat::GetMesh(int timestate, int domain, const char *meshname)
 vtkDataArray *
 avtOpenPMDFileFormat::GetVar(int timestate, int domain, const char *varname)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::GetVar("
          << "timestate=" << timestate << ","
          << "domain=" << domain << ","
@@ -2446,7 +2446,7 @@ avtOpenPMDFileFormat::GetVectorVar(int timestate,
                                    int domain,
                                    const char *varname)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "avtOpenPMDFileFormat::GetVectorVar("
          << "timestate=" << timestate << ","
          << "varname=" << varname
