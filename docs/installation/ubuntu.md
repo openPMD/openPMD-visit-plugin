@@ -6,7 +6,7 @@ Installation instructions for Ubuntu
 Download and install the Ubuntu executable of VisIt:
 [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit/executables).
 
-On MacOs, you can choose to install the plugin only for you or all users.
+You can choose to install the plugin only for you or all users.
 For this aim, we will first use the xml2cmake tool located in
 `<Visit application directory>/Contents/Resources/bin/`.
 
