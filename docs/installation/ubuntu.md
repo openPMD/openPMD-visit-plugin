@@ -114,12 +114,12 @@ Copy the OpenPMD plugin in the VisIt database:
 
 ```
 cd ../src/databases
-git clone git@github.com:openPMD/openPMD-viewer.git
+git clone git@github.com:openPMD/openPMD-visit-plugin.git
 ```
 
 You can rename the plugin folder like OpenPMD.
 ```
-mv openpmd-visit-plugin OpenPMD
+mv openPMD-visit-plugin OpenPMD
 ```
 
 Check that `/CMakeLists.txt` located in the plugin folder is well configured.
