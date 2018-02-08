@@ -1260,7 +1260,7 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
             {
                 // Offset to llok at the right part of the array
                 // dataSetArray depending on the mode
-                offset1 = mode*offset0;
+                offset1 = 2*mode*offset0;
 
                 for(k = 0; k < this->thetaNbNodes; ++k) // Loop theta
                 {
@@ -1275,13 +1275,14 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
                         m = l + k*offset0;
 
                         // Update of data with the real part
-                        finalDataArrayTmp[m] += dataSetArrayTmp[l + offset1]
+                        finalDataArrayTmp[m] += 
+			          dataSetArrayTmp[l + offset1 - offset0]
                                    *cos(mode*theta);
 
                         // Update of the data with the imaginary
                         // part
                         finalDataArrayTmp[m] +=
-                                   dataSetArrayTmp[l + offset1 + offset0]
+                                  dataSetArrayTmp[l + offset1]
                                   *thetaImSign*sin(mode*theta);
 
                     }
