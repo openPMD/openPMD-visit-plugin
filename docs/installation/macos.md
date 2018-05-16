@@ -5,33 +5,28 @@ Installation instructions for Ubuntu
 
 First, download and install the MacOs executable (.dmg image)
 [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit/executables).
+(Please note that we recommend version 2.11: this has been used successfully with this plugin
+on High Sierra.)
 
-On MacOs, you can choose to install the plugin only for you or all users.
-For this aim, we will first use the xml2cmake tool located in `<Visit application directory>/Contents/Resources/bin/`.
-We recommend to add an alias in your `~/.profile`.
-
-To install the plugin for you only:
-
+After downloading/cloning the plugin source, we will use the `xml2cmake` tool located in
 ```
-xml2cmake OpenPMD.xml
+<Visit application directory>/Contents/Resources/bin/
 ```
+where `<Visit application directory>`
+would usually be `/Applications/VisIt.app`. You can either use this directly, or add an alias
+in your `~/.profile`.
 
-In this case, the compiled library will be generated in the directory `~/.visit/`.
-
-To install the plugin for all users:
+To generate the `CMakeLists.txt`, run: 
 
 ```
 xml2cmake -public -clobber OpenPMD.xml
 ```
 
-In this case, the plugin will be located where you have installed VisIt.
-If you used the .dmg image, you will find the files in:
-
-```
-/Applications/VisIt.app/Contents/Resources/<VisIt version>/darwin-x86_64/plugins/databases/
-```
-
+Note that you may need to prepend a path to a Python 2 interpreter for this step.
 This step generates the file `CMakeLists.txt` in the source directory.
+
+If your system uses cmake version >= 3 (you can check using `cmake --version`) then it is
+necessary to add `SET(CMAKE_MACOSX_RPATH 1)` to the head of `CMakeLists.txt`.
 
 Then, prepare the makefile by doing
 
@@ -39,18 +34,23 @@ Then, prepare the makefile by doing
 cmake -DCMAKE_BUILD_TYPE:STRING=Debug
 ```
 
-This step generates the files `CMakeFiles`, `CMakeCache.txt` and `cmake_install.cmake`.
+This step generates the files `CMakeFiles/`, `CMakeCache.txt`, and `cmake_install.cmake`.
 
-To compile and generates the library:
+To compile and generate the library, use:
 
 ```
 make
 ```
 
-You have almost finished, make sure that the libraries are well generated in
-their corresponding directories. You should be able to find the files
-`libEOpenPMDDatabase_ser.dylib`, `libMOpenPMDDatabase.dylib`,
- `libEOpenPMDDatabase_par.dylib`.
+with the optional flag `-j N` with `N` the number of threads to use to speed up compilation.
+
+You have almost finished, make sure that the libraries have been successfully created in the
+plugins directory, usually
+```
+/Applications/VisIt.app/Contents/Resources/<VisIt version>/darwin-x86_64/plugins/databases/
+```
+You should be able to find the files: `libEOpenPMDDatabase_ser.dylib`, `libMOpenPMDDatabase.dylib`,
+and `libEOpenPMDDatabase_par.dylib`.
 
 ## Using Visit with openPMD
 --------------------------------------------------------------------------------
