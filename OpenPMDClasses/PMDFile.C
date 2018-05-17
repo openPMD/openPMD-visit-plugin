@@ -113,7 +113,7 @@ PMDFile::~PMDFile()
 // ***************************************************************************
 void PMDFile::OpenFile(char * PMDFilePath)
 {
-	#ifdef VERBOSE
+	#ifdef VERBOSE_MODE
 	    cerr << "PMDFile::OpenFile" << endl;
 	#endif
 
@@ -146,7 +146,7 @@ void PMDFile::OpenFile(char * PMDFilePath)
 void PMDFile::ScanFileAttributes()
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
 	cerr << "PMDFile::ScanFileAttributes" << endl;
 #endif
 
@@ -243,7 +243,7 @@ void PMDFile::ScanFileAttributes()
 void PMDFile::ScanIterations()
 {
 
-	#ifdef VERBOSE
+	#ifdef VERBOSE_MODE
 	    cerr << "PMDFile::ScanIterations" << endl;
 	#endif
 
@@ -488,7 +488,7 @@ PMDFile::ReadScalarDataSet(void * array,
                            char * path)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "PMDFile::ReadScalarDataSet("
          << "numValues=" << numValues << ","
          << "path=" << path << ")"
@@ -555,8 +555,8 @@ PMDFile::ReadScalarDataSet(void * array,
     		        if (factorTmp != 1)
     		        {
                         float * arrayTmp = (float*) (array);
-                        cerr << " Application of the factor: "
-                             << factorTmp << endl;
+                        //cerr << " Application of the factor: "
+                        //     << factorTmp << endl;
 
     		        	for (int i=0;i<numValues;i++)
     		        	{
@@ -572,8 +572,8 @@ PMDFile::ReadScalarDataSet(void * array,
                     if (factorTmp != 1)
                     {
                         double * arrayTmp = (double*) (array);
-                        cerr << " Application of the factor: "
-                             << factorTmp << endl;
+                        /*cerr << " Application of the factor: "
+                             << factorTmp << endl;*/
 
                         for (int i=0;i<numValues;i++)
                         {

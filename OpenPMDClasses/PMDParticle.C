@@ -403,7 +403,7 @@ void PMDParticle::ScanMass(hid_t particleGroupId, char * objectName)
 void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
       cerr << " PMDParticle::SetPositions(" << objectName << ")" << endl;
 #endif
 
@@ -533,7 +533,7 @@ void PMDParticle::ScanPositions(hid_t particleGroupId, char * objectName)
 void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
       cerr << " PMDParticle::SetMomenta(" << objectName << ")" << endl;
 #endif
 
@@ -674,7 +674,7 @@ void PMDParticle::ScanMomenta(hid_t particleGroupId, char * objectName)
 void PMDParticle::ScanGroup(hid_t particleGroupId,char * objectName)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
       cerr << " PMDParticle::ScanGroup(" << objectName << ")" << endl;
 #endif
 
@@ -810,7 +810,7 @@ void
 PMDParticle::ScanDataSet(hid_t particleGroupId,char * objectName)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
       cerr << " PMDParticle::ScanDataSet(" << objectName << ")" << endl;
 #endif
 
@@ -867,7 +867,7 @@ void
 PMDParticle::SetScalarAttributes(hid_t objectId, scalarDataSet * scalarObject)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
       cerr << " PMDParticle::SetVarAttributes" << endl;
 #endif
 
@@ -926,7 +926,7 @@ void
 PMDParticle::SetVectorAttributes(hid_t objectId, vectorDataSet * vectorObject)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
       cerr << " PMDParticle::SetVectorAttributes" << endl;
 #endif
 
@@ -1161,7 +1161,7 @@ PMDParticle::GetBlockProperties(int scalarDataSetId,
                                   particleBlockStruct * particleBlock)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "PMDParticle::GetBlockProperties(scalarDataSetId="
          << scalarDataSetId
          << ")"<< endl;

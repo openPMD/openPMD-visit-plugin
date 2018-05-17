@@ -6,7 +6,7 @@
 
 In order to contribute, please fork the [main repository](https://github.com/openPMD/openPMD-visit-plugin):
 
-- Click 'Fork' on the page of the main repository, in order to create a personal copy of this repository on your Github account. 
+- Click 'Fork' on the page of the main repository, in order to create a personal copy of this repository on your GitHub account.
 
 - Clone this copy to your local machine:
 ```
@@ -17,7 +17,7 @@ git clone git@github.com:<YourUserLogin>/openPMD-visit-plugin.git
 
 - Switch to the development branch
 ```
-git checkout dev
+git checkout develop
 ```
 
 - Start a new branch from the development branch, in order to implement a new feature. (Choose a branch name that is representative of the feature that you are implementing)
@@ -45,4 +45,4 @@ git pull git@github.com:openPMD/openPMD-visit-plugin.git dev
 git push -u origin <NewBranchName>
 ```
 
-- Go on your Github account and create a pull request between your new feature branch and the dev branch of the main repository. Please add some text to the pull request to describe what feature you just implemented and why. Please also make sure that the automated tests (on Github) return no error.
+- Go on your Github account and create a pull request between your new feature branch and the `develop` branch of the main repository. Please add some text to the pull request to describe what feature you just implemented and why. Please also make sure that the automated tests (on Github) return no error.

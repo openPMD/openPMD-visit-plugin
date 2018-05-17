@@ -109,7 +109,7 @@ PMDField::~PMDField()
 // ***************************************************************************
 void PMDField::ScanAttributes(hid_t objectId)
 {
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << " PMDField::ScanAttributes: " << endl;
 #endif
 
@@ -996,7 +996,7 @@ PMDField::GetBlockProperties(int blockDim,
                      fieldBlockStruct * fieldBlock) const
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "PMDField::GetBlockProperties"
          << "(blockDim=" << blockDim
          << ", blockId=" << blockId
@@ -1155,7 +1155,7 @@ PMDField::ComputeArrayThetaMode(void * dataSetArray,
                                 void * finalDataArray)
 {
 
-#ifdef VERBOSE
+#ifdef VERBOSE_MODE
     cerr << "PMDField::ComputeArrayThetaMode"
          << endl;
 #endif

@@ -40,8 +40,8 @@
 //                            avtOpenPMDFileFormat.h                         //
 // ************************************************************************* //
 
-#ifndef VERBOSE
-#define VERBOSE 0
+#ifndef VERBOSE_MODE
+#define VERBOSE_MODE 0
 #endif
 
 #ifndef AVT_OpenPMD_FILE_FORMAT_H
