@@ -8,7 +8,7 @@ Download and install the Ubuntu executable of VisIt:
 
 You can choose to install the plugin only for you or all users.
 For this aim, we will first use the xml2cmake tool located in
-`<Visit application directory>/Contents/Resources/bin/`.
+`<Visit installation directory>/bin/`.
 
 To install the plugin for you only:
 
@@ -44,8 +44,8 @@ make
 
 You have almost finished, make sure that the libraries are well generated in
 their corresponding directories. You should be able to find the
-files `libEOpenPMDDatabase_ser.dylib`, `libMOpenPMDDatabase.dylib`,
- `libEOpenPMDDatabase_par.dylib`.
+files `libEOpenPMDDatabase_ser.so`, `libMOpenPMDDatabase.so`,
+ `libEOpenPMDDatabase_par.so`.
 
 ## Ubuntu using the sources
 
@@ -114,12 +114,12 @@ Copy the OpenPMD plugin in the VisIt database:
 
 ```
 cd ../src/databases
-git clone git@github.com:openPMD/openPMD-viewer.git
+git clone git@github.com:openPMD/openPMD-visit-plugin.git
 ```
 
 You can rename the plugin folder like OpenPMD.
 ```
-mv openpmd-visit-plugin OpenPMD
+mv openPMD-visit-plugin OpenPMD
 ```
 
 Check that `/CMakeLists.txt` located in the plugin folder is well configured.
