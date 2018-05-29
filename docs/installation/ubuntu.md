@@ -49,7 +49,7 @@ files `libEOpenPMDDatabase_ser.so`, `libMOpenPMDDatabase.so`,
 
 ## Ubuntu using the sources
 
-In this section, we present how to install OpenPMD with the VisIt sources.
+In this section, we present how to install openPMD with the VisIt sources.
 
 First, you need to install the following packages
 
@@ -110,7 +110,7 @@ Build the files for VisIt:
 Useful libraries for visit are built in `deps/visit`.
 You may have to define some path by hand in case of trouble.
 
-Copy the OpenPMD plugin in the VisIt database:
+Copy the openPMD plugin in the VisIt database:
 
 ```
 cd ../src/databases
