@@ -55,7 +55,7 @@ and `libEOpenPMDDatabase_par.dylib`.
 ## Using Visit with openPMD
 --------------------------------------------------------------------------------
 
-Once you have installed the OpenPMD viewer, Visit will automatically recognize it.
+Once you have installed the openPMD viewer, Visit will automatically recognize it.
 
 To start Visit, you can use the launcher but we recommend to start Visit by command line:
 
@@ -64,4 +64,4 @@ To start Visit, you can use the launcher but we recommend to start Visit by comm
 ```
 
 You can specify the number of cores you want to use in parallel with VisIt.
-OpenPMD files are read and treated in parallel if more than one core are used.
+openPMD files are read and treated in parallel if more than one core are used.
