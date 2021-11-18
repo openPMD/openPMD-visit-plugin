@@ -1,6 +1,9 @@
 openPMD plugin for VisIt
 ================================================================================
 
+:warning: This reader plugin [has been integrated into mainline VisIt](https://github.com/visit-dav/visit/pull/3996) :tada:
+All further development happens [in the VisIt repository](https://github.com/visit-dav/visit/pulls?q=is%3Apr+openPMD).
+
 #### Table of Contents
 1. [Presentation](#Presentation)
 2. [Repository and code structure](#Repository-and-code-structure)
